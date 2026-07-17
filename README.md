@@ -4,11 +4,16 @@ Ein kleines, modernes und erweiterbares Content-Management-System — ohne Frame
 
 ## Funktionen
 
+- **Ein-Datei-Installer** – `install.php` allein auf den Webspace laden und im Browser öffnen: Server-Check, das CMS-Paket wird automatisch heruntergeladen und entpackt, danach übernimmt der Einrichtungs-Assistent.
 - **Install-Assistent** – Datenbank-Zugangsdaten eingeben, alle Tabellen und Beispieldaten werden automatisch angelegt (inkl. Admin-Konto).
 - **Seitenverwaltung** – hierarchische Seitenstruktur; pro Seite wählbar, ob sie im Menü erscheint (inkl. Reihenfolge und Entwurfs-Status).
-- **Layouts** – frei definierbare HTML-Grundgerüste mit Platzhaltern (`{{content}}`, `{{title}}`, `{{site_name}}`, `{{menu}}`, `{{template:key}}`, …).
+- **Layouts mit Design-Panel** – frei definierbare HTML-Grundgerüste mit Platzhaltern (`{{content}}`, `{{title}}`, `{{site_name}}`, `{{menu}}`, `{{template:key}}`, …). Pro Layout wählbar: Grundfarben per Color-Picker (Primär-, Akzent-, Text-, Hintergrund- und Flächenfarbe) sowie Schriften für Überschriften und Fließtext – alle Inhaltselemente richten sich automatisch danach (CSS-Variablen `--cms-primary` usw.).
+- **Google Fonts, lokal** – Schriften werden einmalig von Google heruntergeladen und dauerhaft auf dem eigenen Server gespeichert (DSGVO-freundlich, keine Verbindung der Besucher zu Google).
 - **Templates** – wiederverwendbare Bausteine (z. B. das Hauptmenü), die in Layouts oder anderen Templates eingebettet werden.
-- **Drag-&-Drop-Inhalts-Editor** – Zeilen mit frei wählbaren Spalten im 12er-Raster, live in echten Proportionen dargestellt. Inhalts-Blöcke (Überschrift, Text, Bild, Button, HTML, Trennlinie, Abstand) per Drag & Drop in die Spalten ziehen, per Klick bearbeiten, Spaltenbreiten mit +/− anpassen.
+- **Mediathek** – Bild-/PDF-Upload mit Vorschau-Raster und Auswahldialog überall dort, wo Bilder gebraucht werden.
+- **News & Events** – eigene Verwaltung mit Rich-Text-Editor, Beitragsbild, Kurzbeschreibung, Terminen und Orten; automatische Detailseiten unter `/news/…` und `/events/…`.
+- **Drag-&-Drop-Inhalts-Editor** – Zeilen mit frei wählbaren Spalten im 12er-Raster, live in echten Proportionen dargestellt. Zeilen und Blöcke per Drag & Drop verschieben, Spaltenbreiten mit +/− anpassen, Blöcke per Klick bearbeiten.
+- **Inhaltselemente** – Überschrift, Text (Rich-Text), Bild, Bildergalerie (Spaltenzahl, Lightbox, Bildunterschriften), Slider, vollbreiter Hero-Slider (Höhe, Abdunkelung, Overlay-Texte und Buttons), Button, Video (YouTube/Vimeo/MP4), Zitat, Akkordeon, News-Liste, Event-Liste, HTML, Trennlinie, Abstand – viele davon mit wählbaren **Designvorlagen**, die den Layout-Farben folgen.
 
 ## Voraussetzungen
 
@@ -17,6 +22,14 @@ Ein kleines, modernes und erweiterbares Content-Management-System — ohne Frame
 - Apache mit `mod_rewrite` (oder ein anderer Webserver mit entsprechender Rewrite-Regel)
 
 ## Installation
+
+**Variante A – Ein-Datei-Installer (empfohlen):**
+
+1. Nur die Datei `install.php` auf den Webspace hochladen (dorthin, wo die Domain hinzeigt).
+2. Im Browser öffnen (`https://deine-domain.de/install.php`) — der Installer prüft den Server, lädt das CMS-Paket herunter und entpackt es.
+3. Danach übernimmt der Einrichtungs-Assistent: Datenbank-Zugangsdaten, Website-Name, Admin-Konto. Fertig.
+
+**Variante B – manuell:**
 
 1. Projektdateien auf den Webserver hochladen.
 2. Domain entweder direkt auf das Verzeichnis `public/` zeigen lassen **oder** auf das Projektverzeichnis — die mitgelieferte `.htaccess` leitet dann automatisch nach `public/` um.

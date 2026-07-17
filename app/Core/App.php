@@ -4,7 +4,11 @@ declare(strict_types=1);
 namespace Core;
 
 use Controllers\Admin\DashboardController;
+use Controllers\Admin\EventsController;
+use Controllers\Admin\FontController;
 use Controllers\Admin\LayoutController;
+use Controllers\Admin\MediaController;
+use Controllers\Admin\NewsController;
 use Controllers\Admin\PageController;
 use Controllers\Admin\SettingsController;
 use Controllers\Admin\TemplateController;
@@ -103,10 +107,30 @@ class App
         $router->add('POST', '/admin/templates/{id}', [TemplateController::class, 'update']);
         $router->add('POST', '/admin/templates/{id}/delete', [TemplateController::class, 'delete']);
 
+        $router->add('GET', '/admin/media', [MediaController::class, 'index']);
+        $router->add('GET', '/admin/media/list', [MediaController::class, 'list']);
+        $router->add('POST', '/admin/media/upload', [MediaController::class, 'upload']);
+        $router->add('POST', '/admin/media/{id}/delete', [MediaController::class, 'delete']);
+
+        foreach (['news' => NewsController::class, 'events' => EventsController::class] as $prefix => $controller) {
+            $router->add('GET', "/admin/$prefix", [$controller, 'index']);
+            $router->add('GET', "/admin/$prefix/new", [$controller, 'create']);
+            $router->add('POST', "/admin/$prefix", [$controller, 'store']);
+            $router->add('GET', "/admin/$prefix/{id}/edit", [$controller, 'edit']);
+            $router->add('POST', "/admin/$prefix/{id}", [$controller, 'update']);
+            $router->add('POST', "/admin/$prefix/{id}/delete", [$controller, 'delete']);
+        }
+
+        $router->add('GET', '/admin/fonts', [FontController::class, 'index']);
+        $router->add('POST', '/admin/fonts', [FontController::class, 'store']);
+        $router->add('POST', '/admin/fonts/{id}/delete', [FontController::class, 'delete']);
+
         $router->add('GET', '/admin/settings', [SettingsController::class, 'index']);
         $router->add('POST', '/admin/settings', [SettingsController::class, 'save']);
 
         // Öffentliche Seiten (Catch-all zuletzt)
+        $router->add('GET', '/news/{slug}', [SiteController::class, 'newsShow']);
+        $router->add('GET', '/events/{slug}', [SiteController::class, 'eventShow']);
         $router->add('GET', '/', [SiteController::class, 'home']);
         $router->add('GET', '/{slug}', [SiteController::class, 'show']);
     }

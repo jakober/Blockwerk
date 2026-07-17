@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Core;
 
+use Models\Font;
 use Models\Layout;
 use Models\Page;
 use Models\Setting;
@@ -20,6 +21,12 @@ use Models\Template;
  *   {{year}}           aktuelles Jahr
  *   {{menu}}           Hauptmenü aus allen Seiten mit "im Menü anzeigen"
  *   {{template:key}}   bettet das Template mit diesem Schlüssel ein
+ *
+ * Zusätzlich werden automatisch injiziert:
+ *   - cms-blocks.css / cms-blocks.js (Struktur & Interaktion der Blöcke)
+ *   - ein <style>-Block mit den im Layout-Designer gewählten Farben und
+ *     Schriften als CSS-Variablen (--cms-primary, --cms-font-body, …)
+ *   - <link>-Tags für lokal gespeicherte Google Fonts
  */
 class Renderer
 {
@@ -29,14 +36,55 @@ class Renderer
     {
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
         $layout ??= Layout::first();
+        return $this->renderWithLayout($layout, (string) $page['title'], $this->renderContent($page['content'] ?? null));
+    }
+
+    /** Detailseite für News/Events – nutzt das erste Layout. */
+    public function renderPost(array $post, string $type): string
+    {
+        $html = '<article class="cms-post">';
+        $html .= '<h1 class="cms-heading">' . e((string) $post['title']) . '</h1>';
+
+        $meta = [];
+        if ($type === 'events') {
+            $date = format_date_de($post['start_at'] ?? null, true);
+            if (!empty($post['end_at'])) {
+                $date .= ' – ' . format_date_de($post['end_at'], true);
+            }
+            if ($date !== '') {
+                $meta[] = '🗓 ' . $date;
+            }
+            if (!empty($post['location'])) {
+                $meta[] = '📍 ' . $post['location'];
+            }
+        } else {
+            $date = format_date_de($post['published_at'] ?? $post['created_at'] ?? null);
+            if ($date !== '') {
+                $meta[] = $date;
+            }
+        }
+        if ($meta !== []) {
+            $html .= '<div class="cms-post-meta">' . e(implode('   ·   ', $meta)) . '</div>';
+        }
+        if (!empty($post['image'])) {
+            $html .= '<img class="cms-post-image" src="' . e((string) $post['image']) . '" alt="' . e((string) $post['title']) . '">';
+        }
+        $html .= '<div class="cms-text">' . (string) ($post['body'] ?? '') . '</div>';
+        $html .= '</article>';
+
+        return $this->renderWithLayout(Layout::first(), (string) $post['title'], $html);
+    }
+
+    private function renderWithLayout(?array $layout, string $title, string $contentHtml): string
+    {
         $layoutHtml = $layout['html'] ?? "<!doctype html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><title>{{title}}</title></head><body>{{content}}</body></html>";
 
-        $contentHtml = $this->renderContent($page['content'] ?? null);
-
-        return $this->replacePlaceholders($layoutHtml, [
+        $html = $this->replacePlaceholders($layoutHtml, [
             'content' => $contentHtml,
-            'title' => $page['title'] ?? '',
+            'title' => $title,
         ]);
+
+        return $this->injectAssets($html, $layout);
     }
 
     public function renderContent(?string $json): string
@@ -66,6 +114,70 @@ class Renderer
         }
         return $html;
     }
+
+    /* ---------- Design (Farben & Schriften) + Block-Assets ---------- */
+
+    private function injectAssets(string $html, ?array $layout): string
+    {
+        $head = '';
+        if (stripos($html, 'cms-blocks.css') === false) {
+            $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css">' . "\n";
+        }
+        $head .= $this->designStyles($layout);
+
+        if ($head !== '' && ($pos = stripos($html, '</head>')) !== false) {
+            $html = substr_replace($html, $head, $pos, 0);
+        }
+
+        if (stripos($html, 'cms-blocks.js') === false) {
+            $script = '<script src="' . e(App::base()) . '/assets/js/cms-blocks.js" defer></script>' . "\n";
+            if (($pos = stripos($html, '</body>')) !== false) {
+                $html = substr_replace($html, $script, $pos, 0);
+            } else {
+                $html .= $script;
+            }
+        }
+        return $html;
+    }
+
+    private function designStyles(?array $layout): string
+    {
+        $design = json_decode((string) ($layout['design'] ?? ''), true);
+        if (!is_array($design)) {
+            return '';
+        }
+
+        $out = '';
+        $vars = [];
+
+        $colorMap = ['primary' => '--cms-primary', 'accent' => '--cms-accent',
+            'text' => '--cms-text', 'bg' => '--cms-bg', 'surface' => '--cms-surface'];
+        foreach ($colorMap as $key => $var) {
+            $value = (string) ($design['colors'][$key] ?? '');
+            if (preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+                $vars[$var] = $value;
+            }
+        }
+
+        foreach (['heading' => '--cms-font-heading', 'body' => '--cms-font-body'] as $key => $var) {
+            $fontId = (int) ($design['fonts'][$key] ?? 0);
+            if ($fontId > 0 && ($font = Font::find($fontId)) !== null) {
+                $out .= '<link rel="stylesheet" href="' . e(App::base() . '/uploads/fonts/' . $font['folder'] . '/font.css') . '">' . "\n";
+                $vars[$var] = "'" . str_replace("'", '', $font['family']) . "', sans-serif";
+            }
+        }
+
+        if ($vars !== []) {
+            $css = ':root{';
+            foreach ($vars as $name => $value) {
+                $css .= $name . ':' . $value . ';';
+            }
+            $out .= '<style id="cms-design">' . $css . '}</style>' . "\n";
+        }
+        return $out;
+    }
+
+    /* ---------- Platzhalter ---------- */
 
     private function replacePlaceholders(string $html, array $vars, int $depth = 0): string
     {

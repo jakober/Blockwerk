@@ -2,8 +2,12 @@
 $nav = [
     'dashboard' => ['Dashboard', '/admin', '◈'],
     'pages' => ['Seiten', '/admin/pages', '▤'],
+    'news' => ['News', '/admin/news', '❑'],
+    'events' => ['Events', '/admin/events', '◷'],
+    'media' => ['Mediathek', '/admin/media', '▧'],
     'layouts' => ['Layouts', '/admin/layouts', '▦'],
     'templates' => ['Templates', '/admin/templates', '⧉'],
+    'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
     'settings' => ['Einstellungen', '/admin/settings', '⚙'],
 ];
 ?>
@@ -14,6 +18,7 @@ $nav = [
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($title ?? 'Admin') ?> – CMS</title>
 <link rel="stylesheet" href="<?= e(url('/assets/css/admin.css')) ?>">
+<script>window.CMS_BASE = <?= json_encode(\Core\App::base()) ?>;</script>
 </head>
 <body class="<?= e($bodyClass ?? '') ?>">
 <div class="admin">

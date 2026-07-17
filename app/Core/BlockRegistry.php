@@ -3,16 +3,25 @@ declare(strict_types=1);
 
 namespace Core;
 
+use Models\Post;
+
 /**
  * Zentrale Registrierung aller Inhalts-Block-Typen.
  * Neue Block-Typen: hier einen Render-Eintrag ergänzen und in
  * public/assets/js/editor.js einen passenden Eintrag in blockDefs anlegen.
+ *
+ * Viele Blöcke haben eine Designvorlage ("variant"), die als CSS-Klasse
+ * cms-v-<variant> ausgegeben wird. Die zugehörigen Styles in
+ * public/assets/css/cms-blocks.css nutzen die Layout-Farben (CSS-Variablen
+ * --cms-primary, --cms-accent, …), sodass sich alle Varianten automatisch
+ * nach dem gewählten Farbschema richten.
  */
 class BlockRegistry
 {
     public static function types(): array
     {
-        return ['heading', 'text', 'image', 'button', 'html', 'divider', 'spacer'];
+        return ['heading', 'text', 'image', 'gallery', 'slider', 'hero', 'button',
+            'video', 'quote', 'accordion', 'news', 'events', 'html', 'divider', 'spacer'];
     }
 
     public static function render(array $block): string
@@ -21,9 +30,17 @@ class BlockRegistry
 
         return match ($block['type'] ?? '') {
             'heading' => self::heading($data),
-            'text' => '<div class="cms-text">' . (string) ($data['html'] ?? '') . '</div>',
+            'text' => '<div class="cms-text' . self::variant($data) . '">' . (string) ($data['html'] ?? '') . '</div>',
             'image' => self::image($data),
+            'gallery' => self::gallery($data),
+            'slider' => self::slider($data),
+            'hero' => self::hero($data),
             'button' => self::button($data),
+            'video' => self::video($data),
+            'quote' => self::quote($data),
+            'accordion' => self::accordion($data),
+            'news' => self::news($data),
+            'events' => self::events($data),
             'html' => (string) ($data['code'] ?? ''),
             'divider' => '<hr class="cms-divider">',
             'spacer' => '<div class="cms-spacer" style="height:' . max(0, (int) ($data['height'] ?? 40)) . 'px"></div>',
@@ -31,10 +48,27 @@ class BlockRegistry
         };
     }
 
+    private static function variant(array $data): string
+    {
+        $variant = (string) ($data['variant'] ?? '');
+        if ($variant === '' || $variant === 'standard') {
+            return '';
+        }
+        return ' cms-v-' . preg_replace('/[^a-z0-9\-]/', '', strtolower($variant));
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private static function items(array $data, string $key): array
+    {
+        $items = $data[$key] ?? [];
+        return is_array($items) ? array_values(array_filter($items, 'is_array')) : [];
+    }
+
     private static function heading(array $data): string
     {
         $level = in_array($data['level'] ?? 'h2', ['h1', 'h2', 'h3', 'h4'], true) ? $data['level'] : 'h2';
-        return "<{$level} class=\"cms-heading\">" . e((string) ($data['text'] ?? '')) . "</{$level}>";
+        return "<{$level} class=\"cms-heading" . self::variant($data) . '">'
+            . e((string) ($data['text'] ?? '')) . "</{$level}>";
     }
 
     private static function image(array $data): string
@@ -43,13 +77,234 @@ class BlockRegistry
         if ($src === '') {
             return '';
         }
-        return '<img class="cms-image" src="' . e($src) . '" alt="' . e((string) ($data['alt'] ?? '')) . '">';
+        $img = '<img class="cms-image" src="' . e($src) . '" alt="' . e((string) ($data['alt'] ?? '')) . '" loading="lazy">';
+        if (!empty($data['link'])) {
+            $img = '<a href="' . e((string) $data['link']) . '">' . $img . '</a>';
+        }
+        $caption = (string) ($data['caption'] ?? '');
+        $html = '<figure class="cms-figure' . self::variant($data) . '">' . $img;
+        if ($caption !== '') {
+            $html .= '<figcaption>' . e($caption) . '</figcaption>';
+        }
+        return $html . '</figure>';
+    }
+
+    private static function gallery(array $data): string
+    {
+        $images = self::items($data, 'images');
+        if ($images === []) {
+            return '';
+        }
+        $cols = min(6, max(1, (int) ($data['columns'] ?? 3)));
+        $lightbox = !empty($data['lightbox']);
+        $showCaptions = !empty($data['show_captions']);
+
+        $html = '<div class="cms-gallery' . self::variant($data) . '" style="--cols:' . $cols . '"'
+            . ($lightbox ? ' data-lightbox' : '') . '>';
+        foreach ($images as $img) {
+            $src = (string) ($img['src'] ?? '');
+            if ($src === '') {
+                continue;
+            }
+            $alt = e((string) ($img['alt'] ?? $img['caption'] ?? ''));
+            $caption = (string) ($img['caption'] ?? '');
+            $tag = '<img src="' . e($src) . '" alt="' . $alt . '" loading="lazy">';
+            if ($lightbox) {
+                $tag = '<a href="' . e($src) . '" class="cms-gl-link" data-caption="' . e($caption) . '">' . $tag . '</a>';
+            }
+            $html .= '<figure class="cms-gl-item">' . $tag;
+            if ($showCaptions && $caption !== '') {
+                $html .= '<figcaption>' . e($caption) . '</figcaption>';
+            }
+            $html .= '</figure>';
+        }
+        return $html . '</div>';
+    }
+
+    private static function sliderAttrs(array $data, int $defaultInterval = 5): string
+    {
+        $attrs = ' data-slider';
+        if (!empty($data['autoplay'])) {
+            $attrs .= ' data-autoplay data-interval="' . max(2, (int) ($data['interval'] ?? $defaultInterval)) . '"';
+        }
+        if (!empty($data['arrows'])) {
+            $attrs .= ' data-arrows';
+        }
+        if (!empty($data['dots'])) {
+            $attrs .= ' data-dots';
+        }
+        return $attrs;
+    }
+
+    private static function slider(array $data): string
+    {
+        $images = self::items($data, 'images');
+        if ($images === []) {
+            return '';
+        }
+        $height = min(900, max(160, (int) ($data['height'] ?? 420)));
+
+        $html = '<div class="cms-imgslider"' . self::sliderAttrs($data) . ' style="--h:' . $height . 'px">';
+        foreach ($images as $i => $img) {
+            $src = (string) ($img['src'] ?? '');
+            if ($src === '') {
+                continue;
+            }
+            $caption = (string) ($img['caption'] ?? '');
+            $html .= '<div class="cms-slide' . ($i === 0 ? ' is-active' : '') . '">';
+            $html .= '<img src="' . e($src) . '" alt="' . e($caption) . '" loading="lazy">';
+            if ($caption !== '') {
+                $html .= '<div class="cms-slide-caption">' . e($caption) . '</div>';
+            }
+            $html .= '</div>';
+        }
+        return $html . '</div>';
+    }
+
+    private static function hero(array $data): string
+    {
+        $slides = self::items($data, 'slides');
+        if ($slides === []) {
+            return '';
+        }
+        $height = min(100, max(30, (int) ($data['height'] ?? 65)));
+        $overlay = in_array($data['overlay'] ?? 'medium', ['none', 'light', 'medium', 'dark'], true)
+            ? $data['overlay'] : 'medium';
+
+        $html = '<div class="cms-hero cms-fullwidth"' . self::sliderAttrs($data, 6)
+            . ' style="--hero-h:' . $height . 'vh">';
+        foreach ($slides as $i => $slide) {
+            $html .= '<div class="cms-slide' . ($i === 0 ? ' is-active' : '') . '"'
+                . (!empty($slide['src']) ? ' style="background-image:url(\'' . e((string) $slide['src']) . '\')"' : '') . '>';
+            $html .= '<div class="cms-hero-overlay is-' . $overlay . '"></div>';
+            $html .= '<div class="cms-hero-content">';
+            if (!empty($slide['title'])) {
+                $html .= '<h2>' . e((string) $slide['title']) . '</h2>';
+            }
+            if (!empty($slide['text'])) {
+                $html .= '<p>' . e((string) $slide['text']) . '</p>';
+            }
+            if (!empty($slide['button_text'])) {
+                $html .= '<a class="cms-btn cms-btn-primary cms-btn-lg" href="'
+                    . e((string) ($slide['button_url'] ?? '#')) . '">' . e((string) $slide['button_text']) . '</a>';
+            }
+            $html .= '</div></div>';
+        }
+        return $html . '</div>';
     }
 
     private static function button(array $data): string
     {
-        $style = ($data['style'] ?? 'primary') === 'outline' ? 'cms-btn-outline' : 'cms-btn-primary';
-        return '<a class="cms-btn ' . $style . '" href="' . e((string) ($data['url'] ?? '#')) . '">'
+        $style = in_array($data['style'] ?? 'primary', ['primary', 'outline', 'accent', 'ghost'], true)
+            ? $data['style'] : 'primary';
+        $size = in_array($data['size'] ?? 'normal', ['small', 'normal', 'large'], true)
+            ? $data['size'] : 'normal';
+        $class = 'cms-btn cms-btn-' . $style
+            . ($size === 'large' ? ' cms-btn-lg' : ($size === 'small' ? ' cms-btn-sm' : ''));
+        return '<a class="' . $class . '" href="' . e((string) ($data['url'] ?? '#')) . '">'
             . e((string) ($data['text'] ?? '')) . '</a>';
+    }
+
+    private static function video(array $data): string
+    {
+        $url = trim((string) ($data['url'] ?? ''));
+        if ($url === '') {
+            return '';
+        }
+        if (preg_match('~(?:youtube\.com/(?:watch\?v=|embed/|shorts/)|youtu\.be/)([\w\-]{6,})~', $url, $m)) {
+            $embed = '<iframe src="https://www.youtube-nocookie.com/embed/' . e($m[1])
+                . '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>';
+        } elseif (preg_match('~vimeo\.com/(\d+)~', $url, $m)) {
+            $embed = '<iframe src="https://player.vimeo.com/video/' . e($m[1])
+                . '" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>';
+        } elseif (preg_match('~\.(mp4|webm|ogg)(\?.*)?$~i', $url)) {
+            $embed = '<video controls src="' . e($url) . '"></video>';
+        } else {
+            return '<!-- Video-URL nicht erkannt -->';
+        }
+        return '<div class="cms-video">' . $embed . '</div>';
+    }
+
+    private static function quote(array $data): string
+    {
+        $html = '<blockquote class="cms-quote' . self::variant($data) . '"><p>'
+            . nl2br(e((string) ($data['text'] ?? ''))) . '</p>';
+        if (!empty($data['author'])) {
+            $html .= '<cite>' . e((string) $data['author']) . '</cite>';
+        }
+        return $html . '</blockquote>';
+    }
+
+    private static function accordion(array $data): string
+    {
+        $items = self::items($data, 'items');
+        if ($items === []) {
+            return '';
+        }
+        $html = '<div class="cms-accordion' . self::variant($data) . '">';
+        foreach ($items as $i => $item) {
+            $open = $i === 0 && !empty($data['first_open']) ? ' open' : '';
+            $html .= '<details' . $open . '><summary>' . e((string) ($item['title'] ?? '')) . '</summary>'
+                . '<div class="cms-acc-body">' . (string) ($item['text'] ?? '') . '</div></details>';
+        }
+        return $html . '</div>';
+    }
+
+    private static function news(array $data): string
+    {
+        $posts = Post::latestNews(min(24, max(1, (int) ($data['count'] ?? 3))));
+        if ($posts === []) {
+            return '<p class="cms-empty">Zurzeit keine News.</p>';
+        }
+        return self::postCards($posts, $data, 'news');
+    }
+
+    private static function events(array $data): string
+    {
+        $posts = Post::upcomingEvents(min(24, max(1, (int) ($data['count'] ?? 3))));
+        if ($posts === []) {
+            return '<p class="cms-empty">Zurzeit keine anstehenden Termine.</p>';
+        }
+        return self::postCards($posts, $data, 'events');
+    }
+
+    /** @param array<int, array<string, mixed>> $posts */
+    private static function postCards(array $posts, array $data, string $type): string
+    {
+        $cols = min(4, max(1, (int) ($data['columns'] ?? 3)));
+        $mode = in_array($data['layout'] ?? 'cards', ['cards', 'list', 'minimal'], true)
+            ? $data['layout'] : 'cards';
+        $showImage = !isset($data['show_image']) || !empty($data['show_image']);
+        $showDate = !isset($data['show_date']) || !empty($data['show_date']);
+        $showExcerpt = !isset($data['show_excerpt']) || !empty($data['show_excerpt']);
+        $showLocation = !empty($data['show_location']);
+
+        $html = '<div class="cms-cards is-' . $mode . '" style="--cols:' . ($mode === 'cards' ? $cols : 1) . '">';
+        foreach ($posts as $post) {
+            $link = url('/' . $type . '/' . $post['slug']);
+            $html .= '<article class="cms-card">';
+            if ($mode === 'cards' && $showImage && !empty($post['image'])) {
+                $html .= '<a class="cms-card-img" href="' . e($link) . '"><img src="' . e((string) $post['image'])
+                    . '" alt="' . e((string) $post['title']) . '" loading="lazy"></a>';
+            }
+            $html .= '<div class="cms-card-body">';
+            if ($showDate) {
+                $date = $type === 'events'
+                    ? format_date_de($post['start_at'] ?? null, true)
+                    : format_date_de($post['published_at'] ?? $post['created_at'] ?? null);
+                if ($date !== '') {
+                    $html .= '<div class="cms-card-date">' . e($date) . '</div>';
+                }
+            }
+            $html .= '<h3><a href="' . e($link) . '">' . e((string) $post['title']) . '</a></h3>';
+            if ($type === 'events' && $showLocation && !empty($post['location'])) {
+                $html .= '<div class="cms-card-location">📍 ' . e((string) $post['location']) . '</div>';
+            }
+            if ($mode !== 'minimal' && $showExcerpt && !empty($post['excerpt'])) {
+                $html .= '<p>' . e((string) $post['excerpt']) . '</p>';
+            }
+            $html .= '</div></article>';
+        }
+        return $html . '</div>';
     }
 }

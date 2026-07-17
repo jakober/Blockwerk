@@ -116,16 +116,10 @@ class PageController extends AdminController
                     if (!is_array($block) || !in_array($block['type'] ?? '', BlockRegistry::types(), true)) {
                         continue;
                     }
-                    $blockData = [];
-                    foreach ((array) ($block['data'] ?? []) as $key => $value) {
-                        if (is_scalar($value)) {
-                            $blockData[(string) $key] = is_bool($value) ? (int) $value : $value;
-                        }
-                    }
                     $blocks[] = [
                         'id' => substr((string) ($block['id'] ?? uniqid('b-')), 0, 40),
                         'type' => $block['type'],
-                        'data' => $blockData,
+                        'data' => $this->sanitizeBlockData((array) ($block['data'] ?? [])),
                     ];
                 }
                 $columns[] = [
@@ -142,6 +136,37 @@ class PageController extends AdminController
             }
         }
         return ['rows' => $rows];
+    }
+
+    /**
+     * Block-Daten: Skalare Werte plus Element-Listen (z. B. Galerie-Bilder,
+     * Hero-Slides, Akkordeon-Abschnitte) als Arrays von Objekten mit
+     * skalaren Werten – tiefere Verschachtelung wird verworfen.
+     */
+    private function sanitizeBlockData(array $data): array
+    {
+        $clean = [];
+        foreach ($data as $key => $value) {
+            if (is_scalar($value)) {
+                $clean[(string) $key] = is_bool($value) ? (int) $value : $value;
+            } elseif (is_array($value)) {
+                $items = [];
+                foreach ($value as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+                    $itemClean = [];
+                    foreach ($item as $itemKey => $itemValue) {
+                        if (is_scalar($itemValue)) {
+                            $itemClean[(string) $itemKey] = is_bool($itemValue) ? (int) $itemValue : $itemValue;
+                        }
+                    }
+                    $items[] = $itemClean;
+                }
+                $clean[(string) $key] = $items;
+            }
+        }
+        return $clean;
     }
 
     private function form(?array $page): void

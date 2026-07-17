@@ -1,23 +1,22 @@
-/* ===== Frontend-Basisstyling =====
-   Wird vom Standard-Layout eingebunden. Eigene Layouts können ein
-   komplett anderes Stylesheet verwenden. */
+/* ===== Frontend-Theme (Standard-Layout) =====
+   Wird vom Standard-Layout eingebunden; eigene Layouts können ein anderes
+   Stylesheet nutzen. Die Struktur-Styles der Inhaltsblöcke liegen in
+   cms-blocks.css und werden automatisch injiziert – ebenso wie das im
+   Layout-Designer gewählte Farbschema (CSS-Variablen --cms-…). */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    color: #1e293b;
     line-height: 1.65;
     font-size: 16px;
-    background: #fff;
 }
 .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-a { color: #4f46e5; }
+a { color: var(--cms-primary, #4f46e5); }
 img { max-width: 100%; height: auto; }
 
 /* ===== Header & Menü ===== */
 .site-header {
-    border-bottom: 1px solid #e2e8f0;
-    background: #fff;
+    border-bottom: 1px solid color-mix(in srgb, var(--cms-text, #1e293b) 12%, transparent);
+    background: var(--cms-bg, #fff);
     position: sticky;
     top: 0;
     z-index: 50;
@@ -33,9 +32,10 @@ img { max-width: 100%; height: auto; }
 .brand {
     font-size: 20px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--cms-text, #0f172a);
     text-decoration: none;
     letter-spacing: -.4px;
+    font-family: var(--cms-font-heading, inherit);
 }
 .main-nav ul.menu {
     display: flex;
@@ -49,20 +49,23 @@ img { max-width: 100%; height: auto; }
 .main-nav a {
     display: block;
     padding: 8px 14px;
-    color: #334155;
+    color: var(--cms-text, #334155);
     text-decoration: none;
     font-weight: 600;
     border-radius: 8px;
 }
-.main-nav a:hover { background: #f1f5f9; color: #4f46e5; }
+.main-nav a:hover {
+    background: var(--cms-surface, #f1f5f9);
+    color: var(--cms-primary, #4f46e5);
+}
 .main-nav ul.submenu {
     display: none;
     position: absolute;
     top: 100%;
     left: 0;
     min-width: 200px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--cms-bg, #fff);
+    border: 1px solid color-mix(in srgb, var(--cms-text, #1e293b) 14%, transparent);
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(15, 23, 42, .12);
     list-style: none;
@@ -74,46 +77,15 @@ img { max-width: 100%; height: auto; }
 .main-nav li.has-children:focus-within > ul.submenu { display: block; }
 .main-nav ul.submenu ul.submenu { top: 0; left: 100%; }
 
-/* ===== Inhalt: Zeilen & flexible Spalten (12er-Raster) ===== */
+/* ===== Inhalt & Footer ===== */
 main.container { padding-top: 36px; padding-bottom: 56px; }
-.cms-row {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 28px;
-    margin-bottom: 28px;
-}
-.cms-col { grid-column: span var(--span, 12); min-width: 0; }
-@media (max-width: 768px) {
-    .cms-row { gap: 16px; }
-    .cms-col { grid-column: span 12; }
-}
-
-.cms-heading { margin: 0 0 .5em; letter-spacing: -.3px; color: #0f172a; }
-h1.cms-heading { font-size: 2.3em; }
-.cms-text p { margin: 0 0 1em; }
-.cms-image { border-radius: 12px; display: block; }
-.cms-divider { border: none; border-top: 1px solid #e2e8f0; margin: 8px 0; }
-.cms-btn {
-    display: inline-block;
-    padding: 11px 22px;
-    border-radius: 9px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform .12s, box-shadow .12s;
-}
-.cms-btn:hover { transform: translateY(-1px); }
-.cms-btn-primary { background: #4f46e5; color: #fff; }
-.cms-btn-primary:hover { box-shadow: 0 6px 18px rgba(79, 70, 229, .35); }
-.cms-btn-outline { border: 2px solid #4f46e5; color: #4f46e5; }
-
-/* ===== Footer ===== */
 .site-footer {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid color-mix(in srgb, var(--cms-text, #1e293b) 12%, transparent);
     padding: 26px 0;
-    color: #64748b;
+    color: color-mix(in srgb, var(--cms-text, #64748b) 60%, transparent);
     font-size: 14px;
 }
 
 /* ===== Fehlerseite ===== */
 .error-page { text-align: center; padding: 90px 20px; }
-.error-page h1 { font-size: 76px; margin: 0; color: #4f46e5; }
+.error-page h1 { font-size: 76px; margin: 0; color: var(--cms-primary, #4f46e5); }

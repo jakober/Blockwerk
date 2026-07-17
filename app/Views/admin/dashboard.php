@@ -1,16 +1,20 @@
+<?php
+$stats = [
+    ['/admin/pages', $counts['pages'], 'Seiten'],
+    ['/admin/news', $counts['news'], 'News'],
+    ['/admin/events', $counts['events'], 'Events'],
+    ['/admin/media', $counts['media'], 'Medien'],
+    ['/admin/layouts', $counts['layouts'], 'Layouts'],
+    ['/admin/templates', $counts['templates'], 'Templates'],
+];
+?>
 <div class="cards">
-    <a class="card stat" href="<?= e(url('/admin/pages')) ?>">
-        <div class="stat-value"><?= (int) $counts['pages'] ?></div>
-        <div class="stat-label">Seiten</div>
-    </a>
-    <a class="card stat" href="<?= e(url('/admin/layouts')) ?>">
-        <div class="stat-value"><?= (int) $counts['layouts'] ?></div>
-        <div class="stat-label">Layouts</div>
-    </a>
-    <a class="card stat" href="<?= e(url('/admin/templates')) ?>">
-        <div class="stat-value"><?= (int) $counts['templates'] ?></div>
-        <div class="stat-label">Templates</div>
-    </a>
+    <?php foreach ($stats as [$href, $count, $label]): ?>
+        <a class="card stat" href="<?= e(url($href)) ?>">
+            <div class="stat-value"><?= (int) $count ?></div>
+            <div class="stat-label"><?= e($label) ?></div>
+        </a>
+    <?php endforeach; ?>
 </div>
 
 <div class="card">

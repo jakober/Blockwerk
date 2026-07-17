@@ -28,4 +28,5 @@
 </div>
 
 <script type="application/json" id="editor-data"><?= $contentJson ?></script>
+<script src="<?= e(url('/assets/js/admin-tools.js')) ?>"></script>
 <script src="<?= e(url('/assets/js/editor.js')) ?>"></script>

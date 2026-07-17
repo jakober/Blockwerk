@@ -47,6 +47,7 @@ class Database
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
                 html MEDIUMTEXT NOT NULL,
+                design TEXT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
@@ -74,6 +75,44 @@ class Database
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_parent (parent_id),
                 INDEX idx_menu (in_menu, menu_order)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS media (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                filename VARCHAR(255) NOT NULL,
+                path VARCHAR(255) NOT NULL,
+                mime VARCHAR(100) NOT NULL,
+                size INT UNSIGNED NOT NULL DEFAULT 0,
+                width INT UNSIGNED NULL,
+                height INT UNSIGNED NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS posts (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                type ENUM(\'news\', \'event\') NOT NULL DEFAULT \'news\',
+                title VARCHAR(200) NOT NULL,
+                slug VARCHAR(200) NOT NULL UNIQUE,
+                excerpt TEXT NULL,
+                body MEDIUMTEXT NULL,
+                image VARCHAR(255) NULL,
+                published TINYINT(1) NOT NULL DEFAULT 1,
+                published_at DATETIME NULL,
+                start_at DATETIME NULL,
+                end_at DATETIME NULL,
+                location VARCHAR(200) NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_type (type, published),
+                INDEX idx_start (start_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS fonts (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                family VARCHAR(100) NOT NULL,
+                folder VARCHAR(120) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
         ];
 

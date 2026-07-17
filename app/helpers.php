@@ -54,6 +54,24 @@ function csrf_check(): void
     }
 }
 
+function format_date_de(?string $datetime, bool $withTime = false): string
+{
+    if (!$datetime) {
+        return '';
+    }
+    $ts = strtotime($datetime);
+    if ($ts === false) {
+        return '';
+    }
+    $months = [1 => 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli',
+        'August', 'September', 'Oktober', 'November', 'Dezember'];
+    $out = date('j', $ts) . '. ' . $months[(int) date('n', $ts)] . ' ' . date('Y', $ts);
+    if ($withTime) {
+        $out .= ', ' . date('H:i', $ts) . ' Uhr';
+    }
+    return $out;
+}
+
 function slugify(string $text): string
 {
     $text = mb_strtolower(trim($text));

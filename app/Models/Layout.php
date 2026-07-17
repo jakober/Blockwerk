@@ -24,16 +24,17 @@ class Layout
         return Database::pdo()->query('SELECT * FROM layouts ORDER BY id LIMIT 1')->fetch() ?: null;
     }
 
-    public static function create(string $name, string $html): int
+    public static function create(string $name, string $html, ?string $design = null): int
     {
         $pdo = Database::pdo();
-        $pdo->prepare('INSERT INTO layouts (name, html) VALUES (?, ?)')->execute([$name, $html]);
+        $pdo->prepare('INSERT INTO layouts (name, html, design) VALUES (?, ?, ?)')->execute([$name, $html, $design]);
         return (int) $pdo->lastInsertId();
     }
 
-    public static function update(int $id, string $name, string $html): void
+    public static function update(int $id, string $name, string $html, ?string $design = null): void
     {
-        Database::pdo()->prepare('UPDATE layouts SET name = ?, html = ? WHERE id = ?')->execute([$name, $html, $id]);
+        Database::pdo()->prepare('UPDATE layouts SET name = ?, html = ?, design = ? WHERE id = ?')
+            ->execute([$name, $html, $design, $id]);
     }
 
     public static function delete(int $id): void

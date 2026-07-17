@@ -12,6 +12,9 @@ class DashboardController extends AdminController
         $pdo = Database::pdo();
         $counts = [
             'pages' => (int) $pdo->query('SELECT COUNT(*) FROM pages')->fetchColumn(),
+            'news' => (int) $pdo->query("SELECT COUNT(*) FROM posts WHERE type = 'news'")->fetchColumn(),
+            'events' => (int) $pdo->query("SELECT COUNT(*) FROM posts WHERE type = 'event'")->fetchColumn(),
+            'media' => (int) $pdo->query('SELECT COUNT(*) FROM media')->fetchColumn(),
             'layouts' => (int) $pdo->query('SELECT COUNT(*) FROM layouts')->fetchColumn(),
             'templates' => (int) $pdo->query('SELECT COUNT(*) FROM templates')->fetchColumn(),
         ];

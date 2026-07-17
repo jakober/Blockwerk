@@ -35,6 +35,24 @@ class SiteController
         echo (new Renderer())->renderPage($page);
     }
 
+    public function newsShow(string $slug): void
+    {
+        $post = \Models\Post::findPublished('news', $slug);
+        if ($post === null) {
+            $this->notFound();
+        }
+        echo (new Renderer())->renderPost($post, 'news');
+    }
+
+    public function eventShow(string $slug): void
+    {
+        $post = \Models\Post::findPublished('event', $slug);
+        if ($post === null) {
+            $this->notFound();
+        }
+        echo (new Renderer())->renderPost($post, 'events');
+    }
+
     public function notFound(): never
     {
         http_response_code(404);

@@ -50,5 +50,5 @@
         <li>Neue Datenbank-Tabellen werden automatisch angelegt.</li>
     </ol>
     <p class="muted small">Voraussetzung für die automatische Prüfung: Das Repository ist öffentlich erreichbar – ansonsten hier eigene URLs (z.&nbsp;B. zu deinem eigenen Server) hinterlegen.</p>
-    <p class="muted small">Was sich pro Version geändert hat, steht im <a href="https://github.com/jakober/Cms/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog ↗</a>.</p>
+    <p class="muted small">Was sich pro Version geändert hat, steht im <a href="https://github.com/jakober/Cms/blob/claude/claude-md-docs-e7ae7u/CHANGELOG.md" target="_blank" rel="noopener">Changelog ↗</a>.</p>
 </div>

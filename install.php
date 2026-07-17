@@ -185,7 +185,13 @@ input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(7
 </head>
 <body>
 <div class="card">
-    <div class="brand">Blockwerk<span>Installation</span></div>
+    <div class="brand">
+        <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-7px;margin-right:10px">
+            <rect x="4" y="4" width="18" height="18" rx="4.5" fill="#4f46e5"/>
+            <rect x="4" y="26" width="18" height="18" rx="4.5" fill="#4f46e5"/>
+            <rect x="26" y="26" width="18" height="18" rx="4.5" fill="#4f46e5"/>
+            <rect x="28" y="2" width="18" height="18" rx="4.5" fill="#f59e0b"/>
+        </svg>Blockwerk<span>Installation</span></div>
 
     <?php foreach ($errors as $error): ?>
         <div class="alert"><?= htmlspecialchars($error) ?></div>

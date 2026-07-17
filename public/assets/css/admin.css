@@ -674,3 +674,8 @@ body.is-editor .ed-canvas {
 .seo-details summary::before { content: "▸ "; }
 .seo-details[open] summary::before { content: "▾ "; }
 .seo-details .form-group { margin-bottom: 12px; }
+
+/* ===== Blockwerk-Logo ===== */
+.sidebar-brand { display: flex; align-items: center; gap: 11px; }
+.sidebar-brand .bw-logo { flex-shrink: 0; }
+.auth-brand { display: flex; align-items: center; gap: 12px; }

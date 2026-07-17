@@ -679,3 +679,23 @@ body.is-editor .ed-canvas {
 .sidebar-brand { display: flex; align-items: center; gap: 11px; }
 .sidebar-brand .bw-logo { flex-shrink: 0; }
 .auth-brand { display: flex; align-items: center; gap: 12px; }
+
+/* ===== Design-Auswahl (Themes) ===== */
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.theme-card { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; overflow: hidden; }
+.theme-card.is-active { border-color: var(--green); }
+.theme-preview { padding: 14px 14px 10px; pointer-events: none; }
+.tp-header { display: flex; align-items: center; justify-content: space-between; border-radius: 7px; padding: 8px 10px; margin-bottom: 8px; }
+.tp-brand { display: block; width: 52px; height: 8px; border-radius: 4px; opacity: .9; }
+.tp-nav { display: flex; gap: 5px; }
+.tp-nav i { display: block; width: 22px; height: 6px; border-radius: 3px; opacity: .55; }
+.tp-hero { border-radius: 7px; height: 54px; margin-bottom: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.tp-hero i { display: block; width: 90px; height: 8px; border-radius: 4px; opacity: .92; }
+.tp-hero b { display: block; width: 44px; height: 10px; border-radius: 5px; }
+.tp-cols { display: flex; gap: 8px; }
+.tp-cols span { flex: 1; border-radius: 7px; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+.tp-cols i { display: block; height: 5px; border-radius: 3px; opacity: .45; }
+.tp-cols i:first-child { width: 70%; opacity: .8; }
+.theme-body { padding: 4px 16px 16px; }
+.theme-name { font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.theme-body form, .theme-body .btn { margin-top: 10px; }

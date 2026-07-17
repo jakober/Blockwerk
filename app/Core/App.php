@@ -93,6 +93,9 @@ class App
         $router->add('GET', '/admin/pages/{id}/editor', [PageController::class, 'editor']);
         $router->add('POST', '/admin/pages/{id}/content', [PageController::class, 'saveContent']);
 
+        $router->add('GET', '/admin/themes', [\Controllers\Admin\ThemeController::class, 'index']);
+        $router->add('POST', '/admin/themes/{key}/apply', [\Controllers\Admin\ThemeController::class, 'apply']);
+
         $router->add('GET', '/admin/layouts', [LayoutController::class, 'index']);
         $router->add('GET', '/admin/layouts/new', [LayoutController::class, 'create']);
         $router->add('POST', '/admin/layouts', [LayoutController::class, 'store']);

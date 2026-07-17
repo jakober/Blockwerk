@@ -5,6 +5,7 @@ $nav = [
     'news' => ['News', '/admin/news', '❑'],
     'events' => ['Events', '/admin/events', '◷'],
     'media' => ['Mediathek', '/admin/media', '▧'],
+    'themes' => ['Designs', '/admin/themes', '✦'],
     'layouts' => ['Layouts', '/admin/layouts', '▦'],
     'templates' => ['Templates', '/admin/templates', '⧉'],
     'fonts' => ['Schriften', '/admin/fonts', 'Aa'],

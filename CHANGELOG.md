@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.6.0 – 2026-07-17
+
+- **Design-Galerie:** Neuer Admin-Bereich „Designs“ mit sechs mitgelieferten Gesamt-Designs, die die komplette Optik der Website ändern – Kopfbereich, Menü, Farben, Formen, Schriftstil. Die Inhalte bleiben unverändert und passen sich automatisch an. Mit einem Klick aktiviert (ersetzt das Standard-Layout, mit Sicherheitsabfrage), Vorschaukarten zeigen jedes Design vorab.
+- Die sechs Designs: **Klar** (hell, Indigo – Standard), **Mitternacht** (dunkel, Violett/Türkis), **Magazin** (Zeitungs-Stil mit Serifen), **Natur** (Erd-/Grüntöne, weiche Formen), **Studio** (Schwarz-Weiß, minimalistisch), **Ozean** (Blau mit Farbverlauf).
+
 ## 1.5.0 – 2026-07-17
 
 - **Benutzerverwaltung:** Neuer Admin-Bereich „Benutzer“ – weitere Benutzer anlegen, Benutzernamen ändern, Passwörter zurücksetzen und Benutzer löschen. Schutzmechanismen: Das eigene Konto und der letzte verbleibende Benutzer können nicht gelöscht werden.

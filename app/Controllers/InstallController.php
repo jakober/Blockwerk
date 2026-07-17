@@ -45,12 +45,35 @@ class InstallController
             }
             Database::createSchema($pdo);
         } catch (PDOException $e) {
-            flash('error', 'Datenbankverbindung fehlgeschlagen: ' . $e->getMessage());
+            flash('error', self::friendlyDbError($e, $host, $user));
             redirect('/install');
         }
 
         $_SESSION['install_db'] = compact('host', 'port', 'name', 'user', 'pass');
         redirect('/install/site');
+    }
+
+    /** Übersetzt häufige MySQL-Verbindungsfehler in verständliche Hinweise. */
+    private static function friendlyDbError(PDOException $e, string $host, string $user): string
+    {
+        $message = $e->getMessage();
+        $code = (int) ($e->errorInfo[1] ?? 0);
+        if ($code === 0 && preg_match('/\[(\d{4})\]/', $message, $m)) {
+            $code = (int) $m[1];
+        }
+
+        return match (true) {
+            $code === 1130 => 'Der MySQL-Server lehnt Verbindungen von deinem Webserver ab (Fehler 1130 – "Host is not allowed to connect"). '
+                . 'Das ist KEIN falsches Passwort, sondern eine Rechte-Einstellung am MySQL-Server: Der Benutzer "' . $user . '" ist dort nur für bestimmte Hosts freigeschaltet (z. B. nur localhost). '
+                . 'Lösungen: 1) Wenn Webserver und Datenbank auf derselben Maschine laufen, als Host "localhost" eintragen. '
+                . '2) Beim Hoster den exakten Datenbank-Host aus dem Kundenmenü verwenden (oft nicht "localhost"). '
+                . '3) Bei eigenem Server/Docker dem Benutzer den Zugriff vom Webserver erlauben, z. B.: CREATE USER \'' . $user . '\'@\'%\' IDENTIFIED BY \'…\'; GRANT ALL PRIVILEGES ON `datenbankname`.* TO \'' . $user . '\'@\'%\'; FLUSH PRIVILEGES;',
+            $code === 1045 => 'Anmeldung am MySQL-Server abgelehnt (Fehler 1045 – "Access denied"). Benutzername oder Passwort stimmen nicht – oder der Benutzer existiert für diesen Host nicht. Bitte die Zugangsdaten genau so verwenden, wie sie beim Anlegen des Datenbank-Benutzers vergeben wurden.',
+            $code === 1044 => 'Der Benutzer "' . $user . '" hat keine Rechte auf diese Datenbank (Fehler 1044). Bitte dem Benutzer im Hosting-Menü bzw. per GRANT die Rechte auf die Datenbank geben – oder eine Datenbank wählen, für die er berechtigt ist.',
+            $code === 2002 || str_contains($message, 'Connection refused') || str_contains($message, 'getaddrinfo')
+                => 'Der MySQL-Server ist unter "' . $host . '" nicht erreichbar (Verbindung abgelehnt oder Host unbekannt). Bitte Host und Port prüfen – bei vielen Hostern lautet der Datenbank-Host nicht "localhost", sondern steht im Kundenmenü. Läuft der MySQL-Server?',
+            default => 'Datenbankverbindung fehlgeschlagen: ' . $message,
+        };
     }
 
     public function site(): void

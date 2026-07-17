@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.5.0 – 2026-07-17
+
+- **Benutzerverwaltung:** Neuer Admin-Bereich „Benutzer“ – weitere Benutzer anlegen, Benutzernamen ändern, Passwörter zurücksetzen und Benutzer löschen. Schutzmechanismen: Das eigene Konto und der letzte verbleibende Benutzer können nicht gelöscht werden.
+- **Eigenes Profil:** Klick auf den eigenen Namen oben rechts öffnet das eigene Konto – dort lässt sich das Admin-Passwort jederzeit ändern (leer lassen = unverändert).
+
 ## 1.4.1 – 2026-07-17
 
 - **Blockwerk-Logo:** Schlichtes SVG-Logo (vier Blöcke, einer wird gerade „eingesetzt“) – eingebunden in Admin-Seitenleiste, Login, Installations-Assistent, Ein-Datei-Installer und README, außerdem als Favicon im Admin-Bereich.

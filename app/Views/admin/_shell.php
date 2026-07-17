@@ -8,6 +8,7 @@ $nav = [
     'layouts' => ['Layouts', '/admin/layouts', '▦'],
     'templates' => ['Templates', '/admin/templates', '⧉'],
     'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
+    'users' => ['Benutzer', '/admin/users', '◉'],
     'update' => ['Updates', '/admin/update', '⟳'],
     'settings' => ['Einstellungen', '/admin/settings', '⚙'],
 ];
@@ -41,7 +42,7 @@ $nav = [
         <header class="topbar">
             <h1><?= e($title ?? '') ?></h1>
             <div class="topbar-right">
-                <span class="muted"><?= e($_SESSION['username'] ?? '') ?></span>
+                <a class="muted" href="<?= e(url('/admin/users/' . (int) ($_SESSION['user_id'] ?? 0) . '/edit')) ?>" title="Profil &amp; Passwort ändern"><?= e($_SESSION['username'] ?? '') ?></a>
                 <form method="post" action="<?= e(url('/logout')) ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-ghost">Abmelden</button>

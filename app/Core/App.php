@@ -121,6 +121,13 @@ class App
             $router->add('POST', "/admin/$prefix/{id}/delete", [$controller, 'delete']);
         }
 
+        $router->add('GET', '/admin/users', [\Controllers\Admin\UserController::class, 'index']);
+        $router->add('GET', '/admin/users/new', [\Controllers\Admin\UserController::class, 'create']);
+        $router->add('POST', '/admin/users', [\Controllers\Admin\UserController::class, 'store']);
+        $router->add('GET', '/admin/users/{id}/edit', [\Controllers\Admin\UserController::class, 'edit']);
+        $router->add('POST', '/admin/users/{id}', [\Controllers\Admin\UserController::class, 'update']);
+        $router->add('POST', '/admin/users/{id}/delete', [\Controllers\Admin\UserController::class, 'delete']);
+
         $router->add('GET', '/admin/fonts', [FontController::class, 'index']);
         $router->add('POST', '/admin/fonts', [FontController::class, 'store']);
         $router->add('POST', '/admin/fonts/{id}/delete', [FontController::class, 'delete']);

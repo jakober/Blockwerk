@@ -83,7 +83,8 @@ $colorDefaults = [
                 <li><code>{{site_name}}</code> – Name der Website</li>
                 <li><code>{{base_url}}</code> – Basis-URL</li>
                 <li><code>{{year}}</code> – aktuelles Jahr</li>
-                <li><code>{{menu}}</code> – Hauptmenü</li>
+                <li><code>{{menu}}</code> – Hauptmenü (Hover-Dropdown)</li>
+                <li><code>{{menu:mega}}</code> / <code>{{menu:vertical}}</code> / <code>{{menu:simple}}</code> – weitere Menü-Vorlagen</li>
                 <li><code>{{template:key}}</code> – Template einbetten</li>
             </ul>
             <p class="muted small">Layouts sind das HTML-Grundgerüst einer Seite. Templates (z.&nbsp;B. <code>{{template:main-menu}}</code>) sind wiederverwendbare Bausteine darin.</p>

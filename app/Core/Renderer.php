@@ -242,37 +242,107 @@ class Renderer
             $html
         ) ?? $html;
 
+        // Menü mit wählbarer Darstellungsvariante:
+        // {{menu}} bzw. {{menu:dropdown}} – klassisches Hover-Aufklappmenü
+        // {{menu:mega}} – Mega-Menü (breites Panel mit Spalten für Unterpunkte)
+        // {{menu:vertical}} – vertikale Liste mit eingerückten Ebenen (Sidebar/Footer)
+        // {{menu:simple}} – nur die oberste Ebene, ohne Unterpunkte
+        $html = preg_replace_callback(
+            '/\{\{menu(?::([a-z]+))?\}\}/i',
+            fn (array $m): string => $this->renderMenu(strtolower($m[1] ?? 'dropdown')),
+            $html
+        ) ?? $html;
+
         return strtr($html, [
             '{{content}}' => $vars['content'] ?? '',
             '{{title}}' => e($vars['title'] ?? ''),
             '{{site_name}}' => e(Setting::get('site_name', 'Meine Website')),
             '{{base_url}}' => App::base(),
             '{{year}}' => date('Y'),
-            '{{menu}}' => $this->renderMenu(),
         ]);
     }
 
-    private function renderMenu(): string
+    /* ---------- Menü (Baumstruktur, mehrere Darstellungen) ---------- */
+
+    private function renderMenu(string $style): string
     {
-        $pages = Page::menuPages();
+        if (!in_array($style, ['dropdown', 'mega', 'vertical', 'simple'], true)) {
+            $style = 'dropdown';
+        }
+
         $byParent = [];
-        foreach ($pages as $page) {
+        foreach (Page::menuPages() as $page) {
             $byParent[(int) ($page['parent_id'] ?? 0)][] = $page;
         }
-        return $this->renderMenuLevel($byParent, 0, 'menu');
+
+        return match ($style) {
+            'simple' => $this->menuSimple($byParent),
+            'mega' => $this->menuMega($byParent),
+            'vertical' => $this->menuNested($byParent, 0, 'menu cms-menu cms-menu-vertical'),
+            default => $this->menuNested($byParent, 0, 'menu cms-menu cms-menu-dropdown'),
+        };
     }
 
-    private function renderMenuLevel(array $byParent, int $parentId, string $class): string
+    private function menuNested(array $byParent, int $parentId, string $class): string
     {
         if (empty($byParent[$parentId])) {
             return '';
         }
         $html = '<ul class="' . $class . '">';
         foreach ($byParent[$parentId] as $page) {
-            $children = $this->renderMenuLevel($byParent, (int) $page['id'], 'submenu');
+            $children = $this->menuNested($byParent, (int) $page['id'], 'submenu');
             $html .= '<li' . ($children !== '' ? ' class="has-children"' : '') . '>';
             $html .= '<a href="' . e(url('/' . $page['slug'])) . '">' . e($page['title']) . '</a>';
             $html .= $children . '</li>';
+        }
+        return $html . '</ul>';
+    }
+
+    private function menuSimple(array $byParent): string
+    {
+        if (empty($byParent[0])) {
+            return '';
+        }
+        $html = '<ul class="menu cms-menu cms-menu-simple">';
+        foreach ($byParent[0] as $page) {
+            $html .= '<li><a href="' . e(url('/' . $page['slug'])) . '">' . e($page['title']) . '</a></li>';
+        }
+        return $html . '</ul>';
+    }
+
+    /**
+     * Mega-Menü: Hauptpunkte mit Unterseiten öffnen ein breites Panel,
+     * in dem jede Unterseite eine Spalte mit ihren eigenen Unterpunkten ist.
+     */
+    private function menuMega(array $byParent): string
+    {
+        if (empty($byParent[0])) {
+            return '';
+        }
+        $html = '<ul class="menu cms-menu cms-menu-mega">';
+        foreach ($byParent[0] as $page) {
+            $children = $byParent[(int) $page['id']] ?? [];
+            $html .= '<li' . ($children !== [] ? ' class="has-children"' : '') . '>';
+            $html .= '<a href="' . e(url('/' . $page['slug'])) . '">' . e($page['title']) . '</a>';
+
+            if ($children !== []) {
+                $html .= '<div class="cms-mega-panel">';
+                foreach ($children as $child) {
+                    $html .= '<div class="cms-mega-col">';
+                    $html .= '<a class="cms-mega-head" href="' . e(url('/' . $child['slug'])) . '">' . e($child['title']) . '</a>';
+                    $grandchildren = $byParent[(int) $child['id']] ?? [];
+                    if ($grandchildren !== []) {
+                        $html .= '<ul>';
+                        foreach ($grandchildren as $grandchild) {
+                            $html .= '<li><a href="' . e(url('/' . $grandchild['slug'])) . '">' . e($grandchild['title']) . '</a></li>';
+                        }
+                        $html .= '</ul>';
+                    }
+                    $html .= '</div>';
+                }
+                $html .= '</div>';
+            }
+            $html .= '</li>';
         }
         return $html . '</ul>';
     }

@@ -27,9 +27,22 @@ $action = $isEdit ? '/admin/templates/' . $template['id'] : '/admin/templates';
         </form>
     </div>
     <aside class="card help-card">
+        <h3>Menü-Vorlagen</h3>
+        <p class="muted small">Das Menü wird automatisch aus deiner Seiten-Baumstruktur aufgebaut (Unterpunkte über „Übergeordnete Seite“ bei den Seiten). Wähle die Darstellung:</p>
+        <div class="menu-insert-buttons">
+            <button type="button" class="btn btn-small" data-insert="{{menu}}">Dropdown (Hover)</button>
+            <button type="button" class="btn btn-small" data-insert="{{menu:mega}}">Mega-Menü</button>
+            <button type="button" class="btn btn-small" data-insert="{{menu:vertical}}">Vertikal (Sidebar)</button>
+            <button type="button" class="btn btn-small" data-insert="{{menu:simple}}">Nur oberste Ebene</button>
+        </div>
+        <p class="muted small">Klick fügt den Platzhalter an der Cursor-Position im HTML ein.</p>
+
         <h3>Platzhalter</h3>
         <ul class="placeholder-list">
-            <li><code>{{menu}}</code> – Hauptmenü aus den Seiten</li>
+            <li><code>{{menu}}</code> – Hover-Aufklappmenü (Standard)</li>
+            <li><code>{{menu:mega}}</code> – Mega-Menü mit Spalten-Panel</li>
+            <li><code>{{menu:vertical}}</code> – vertikale Baum-Liste</li>
+            <li><code>{{menu:simple}}</code> – nur oberste Ebene</li>
             <li><code>{{site_name}}</code> – Name der Website</li>
             <li><code>{{base_url}}</code> – Basis-URL</li>
             <li><code>{{year}}</code> – aktuelles Jahr</li>
@@ -38,3 +51,16 @@ $action = $isEdit ? '/admin/templates/' . $template['id'] : '/admin/templates';
         <p class="muted small">Templates sind wiederverwendbare Bausteine, die du mit <code>{{template:key}}</code> in Layouts (oder anderen Templates) einbettest – z.&nbsp;B. Hauptmenü, Footer oder ein Kontakt-Kasten.</p>
     </aside>
 </div>
+
+<script>
+document.querySelectorAll('[data-insert]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        const area = document.getElementById('html');
+        const insert = btn.dataset.insert;
+        const start = area.selectionStart ?? area.value.length;
+        area.value = area.value.slice(0, start) + insert + area.value.slice(area.selectionEnd ?? start);
+        area.focus();
+        area.selectionStart = area.selectionEnd = start + insert.length;
+    });
+});
+</script>

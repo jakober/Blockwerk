@@ -47,6 +47,8 @@ $action = $isEdit ? '/admin/templates/' . $template['id'] : '/admin/templates';
             <li><code>{{base_url}}</code> – Basis-URL</li>
             <li><code>{{year}}</code> – aktuelles Jahr</li>
             <li><code>{{template:key}}</code> – anderes Template einbetten</li>
+            <li><code>{{global:ID}}</code> – globalen Block einbetten (ID: siehe „Globale Blöcke“)</li>
+            <li><code>{{languages}}</code> – Sprachumschalter</li>
         </ul>
         <p class="muted small">Templates sind wiederverwendbare Bausteine, die du mit <code>{{template:key}}</code> in Layouts (oder anderen Templates) einbettest – z.&nbsp;B. Hauptmenü, Footer oder ein Kontakt-Kasten.</p>
     </aside>

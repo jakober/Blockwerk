@@ -78,10 +78,13 @@ class Themes
 
         $layout = Layout::first();
         if ($layout === null) {
-            Layout::create('Standard (' . $theme['name'] . ')', self::html($key), $design);
+            $id = Layout::create('Standard (' . $theme['name'] . ')', self::html($key), $design);
         } else {
-            Layout::update((int) $layout['id'], 'Standard (' . $theme['name'] . ')', self::html($key), $design);
+            $id = (int) $layout['id'];
+            Layout::update($id, 'Standard (' . $theme['name'] . ')', self::html($key), $design);
         }
+        // Themes sind HTML-Layouts – eine evtl. vorhandene Baukasten-Struktur ablösen.
+        Layout::saveBuilder($id, null);
         Setting::set('active_theme', $key);
         return true;
     }

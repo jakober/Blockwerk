@@ -95,6 +95,100 @@ class LayoutController extends AdminController
         redirect('/admin/layouts');
     }
 
+    /* ---------- Visueller Layout-Baukasten ---------- */
+
+    /** Neues Layout direkt im visuellen Modus anlegen. */
+    public function visualNew(): void
+    {
+        $id = Layout::create('Neues Layout (visuell)', '<!doctype html><html lang="de"><head><meta charset="utf-8"><title>{{title}}</title></head><body>{{content}}</body></html>');
+        Layout::saveBuilder($id, json_encode(self::defaultBuilder(), JSON_UNESCAPED_UNICODE));
+        flash('success', 'Visuelles Layout angelegt – Kopfzeile, Inhaltsbereich und Fußzeile kannst du jetzt frei per Drag & Drop gestalten.');
+        redirect('/admin/layouts/' . $id . '/builder');
+    }
+
+    public function builder(string $id): void
+    {
+        $layout = Layout::find((int) $id) ?? $this->abort();
+        $builder = json_decode((string) ($layout['builder'] ?? ''), true);
+        if (!is_array($builder) || !is_array($builder['rows'] ?? null)) {
+            $builder = self::defaultBuilder();
+        }
+
+        \Core\View::render('admin/pages/editor', [
+            'title' => 'Layout-Baukasten: ' . $layout['name'],
+            'active' => 'layouts',
+            'flash' => flash(),
+            'editorTitle' => $layout['name'],
+            'contentJson' => json_encode($builder, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE),
+            'designHead' => (new \Core\Renderer())->designHead($layout),
+            'globalBlocks' => array_map(
+                static fn (array $g): array => [(string) $g['id'], $g['title']],
+                \Models\Page::globals()
+            ),
+            'saveUrl' => url('/admin/layouts/' . $layout['id'] . '/builder-content'),
+            'backUrl' => url('/admin/layouts'),
+            'backLabel' => '← Layouts',
+            'previewHref' => url('/'),
+            'versionsUrl' => null,
+            'mode' => 'layout',
+            'bodyClass' => 'is-editor',
+        ], 'admin/_shell');
+    }
+
+    public function saveBuilder(string $id): void
+    {
+        $layout = Layout::find((int) $id);
+        header('Content-Type: application/json');
+        if ($layout === null) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => 'Layout nicht gefunden.']);
+            return;
+        }
+        $data = json_decode(file_get_contents('php://input') ?: '', true);
+        if (!is_array($data)) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'error' => 'Ungültige Daten.']);
+            return;
+        }
+        $clean = \Core\BlockRegistry::sanitizeTree($data);
+        Layout::saveBuilder((int) $layout['id'], json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null);
+        \Core\Cache::clear();
+        echo json_encode(['ok' => true]);
+    }
+
+    /** Zurück zum HTML-Modus: Baukasten-Struktur verwerfen. */
+    public function builderReset(string $id): void
+    {
+        Layout::saveBuilder((int) $id, null);
+        flash('success', 'Visueller Modus deaktiviert – das Layout nutzt wieder sein HTML.');
+        redirect('/admin/layouts');
+    }
+
+    /** Startstruktur: Kopfzeile (Logo + Menü), Inhaltsbereich, Fußzeile. */
+    private static function defaultBuilder(): array
+    {
+        return ['rows' => [
+            ['id' => 'lrow-header', 'style' => ['bg' => '#ffffff', 'pt' => 10, 'pb' => 10], 'columns' => [
+                ['id' => 'lcol-brand', 'span' => 4, 'blocks' => [
+                    ['id' => 'lb-brand', 'type' => 'l-brand', 'data' => ['logo' => '', 'show_name' => 1]],
+                ]],
+                ['id' => 'lcol-menu', 'span' => 8, 'blocks' => [
+                    ['id' => 'lb-menu', 'type' => 'l-menu', 'data' => ['variant' => 'dropdown', 'align' => 'right']],
+                ]],
+            ]],
+            ['id' => 'lrow-content', 'columns' => [
+                ['id' => 'lcol-content', 'span' => 12, 'blocks' => [
+                    ['id' => 'lb-content', 'type' => 'l-content', 'data' => []],
+                ]],
+            ]],
+            ['id' => 'lrow-footer', 'style' => ['bg' => '#f1f5f9', 'pt' => 24, 'pb' => 24], 'columns' => [
+                ['id' => 'lcol-footer', 'span' => 12, 'blocks' => [
+                    ['id' => 'lb-footer', 'type' => 'text', 'data' => ['html' => '<p>© {{year}} {{site_name}}</p>']],
+                ]],
+            ]],
+        ]];
+    }
+
     /** @return array{0:string,1:string} */
     private function validated(string $backTo): array
     {

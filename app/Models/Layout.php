@@ -37,6 +37,11 @@ class Layout
             ->execute([$name, $html, $design, $id]);
     }
 
+    public static function saveBuilder(int $id, ?string $json): void
+    {
+        Database::pdo()->prepare('UPDATE layouts SET builder = ? WHERE id = ?')->execute([$json, $id]);
+    }
+
     public static function delete(int $id): void
     {
         $pdo = Database::pdo();

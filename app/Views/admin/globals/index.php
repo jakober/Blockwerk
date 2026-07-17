@@ -14,12 +14,16 @@
     <?php else: ?>
         <table class="table">
             <thead>
-                <tr><th>Name</th><th>Zuletzt geändert</th><th class="actions-col">Aktionen</th></tr>
+                <tr><th>Name</th><th>Einbau</th><th>Zuletzt geändert</th><th class="actions-col">Aktionen</th></tr>
             </thead>
             <tbody>
                 <?php foreach ($globals as $global): ?>
                     <tr>
                         <td><a href="<?= e(url('/admin/pages/' . $global['id'] . '/editor')) ?>"><strong><?= e($global['title']) ?></strong></a></td>
+                        <td>
+                            <code>{{global:<?= (int) $global['id'] ?>}}</code>
+                            <div class="muted small">für Layout/Template (jede Seite) – oder im Editor den Block „Globaler Block“ nutzen (einzelne Seiten)</div>
+                        </td>
                         <td class="muted"><?= e(format_date_de($global['updated_at'], true)) ?></td>
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url('/admin/pages/' . $global['id'] . '/editor')) ?>">Inhalt bearbeiten</a>

@@ -140,16 +140,23 @@ class PageController extends AdminController
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
         $layout ??= Layout::first();
 
+        $isGlobal = !empty($page['is_global']);
         $this->view('admin/pages/editor', [
             'title' => 'Inhalt: ' . $page['title'],
-            'active' => !empty($page['is_global']) ? 'globals' : 'pages',
-            'page' => $page,
+            'active' => $isGlobal ? 'globals' : 'pages',
+            'editorTitle' => $page['title'],
             'contentJson' => json_encode($content, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE),
             'designHead' => (new \Core\Renderer())->designHead($layout),
             'globalBlocks' => array_map(
                 static fn (array $g): array => [(string) $g['id'], $g['title']],
                 Page::globals()
             ),
+            'saveUrl' => url('/admin/pages/' . $page['id'] . '/content'),
+            'backUrl' => url($isGlobal ? '/admin/globals' : '/admin/pages'),
+            'backLabel' => $isGlobal ? '← Globale Blöcke' : '← Seiten',
+            'previewHref' => $isGlobal ? null : page_url($page),
+            'versionsUrl' => url('/admin/pages/' . $page['id'] . '/versions'),
+            'mode' => 'page',
             'bodyClass' => 'is-editor',
         ]);
     }
@@ -184,56 +191,7 @@ class PageController extends AdminController
     /** Nur bekannte Struktur und Block-Typen übernehmen. */
     private function sanitizeContent(array $data): array
     {
-        $rows = [];
-        foreach (($data['rows'] ?? []) as $row) {
-            if (!is_array($row) || !is_array($row['columns'] ?? null)) {
-                continue;
-            }
-            $columns = [];
-            foreach ($row['columns'] as $column) {
-                if (!is_array($column)) {
-                    continue;
-                }
-                $blocks = [];
-                foreach (($column['blocks'] ?? []) as $block) {
-                    if (!is_array($block) || !in_array($block['type'] ?? '', BlockRegistry::types(), true)) {
-                        continue;
-                    }
-                    $blocks[] = [
-                        'id' => substr((string) ($block['id'] ?? uniqid('b-')), 0, 40),
-                        'type' => $block['type'],
-                        'data' => BlockRegistry::sanitizeData((array) ($block['data'] ?? [])),
-                    ];
-                }
-                $columns[] = [
-                    'id' => substr((string) ($column['id'] ?? uniqid('col-')), 0, 40),
-                    'span' => min(12, max(1, (int) ($column['span'] ?? 12))),
-                    'blocks' => $blocks,
-                ];
-            }
-            if ($columns !== []) {
-                $rowOut = [
-                    'id' => substr((string) ($row['id'] ?? uniqid('row-')), 0, 40),
-                    'columns' => $columns,
-                ];
-                $rowStyle = [];
-                foreach ((array) ($row['style'] ?? []) as $styleKey => $styleValue) {
-                    if (is_scalar($styleValue)) {
-                        $rowStyle[(string) $styleKey] = is_bool($styleValue) ? (int) $styleValue : $styleValue;
-                    }
-                }
-                if ($rowStyle !== []) {
-                    $rowOut['style'] = $rowStyle;
-                }
-                $rows[] = $rowOut;
-            }
-        }
-
-        $clean = ['rows' => $rows];
-        if (is_string($data['css'] ?? null) && trim($data['css']) !== '') {
-            $clean['css'] = substr($data['css'], 0, 100000);
-        }
-        return $clean;
+        return BlockRegistry::sanitizeTree($data);
     }
 
     private function form(?array $page): void

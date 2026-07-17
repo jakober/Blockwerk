@@ -85,7 +85,9 @@ $colorDefaults = [
                 <li><code>{{year}}</code> – aktuelles Jahr</li>
                 <li><code>{{menu}}</code> – Hauptmenü (Hover-Dropdown)</li>
                 <li><code>{{menu:mega}}</code> / <code>{{menu:vertical}}</code> / <code>{{menu:simple}}</code> – weitere Menü-Vorlagen</li>
+                <li><code>{{languages}}</code> – Sprachumschalter</li>
                 <li><code>{{template:key}}</code> – Template einbetten</li>
+                <li><code>{{global:ID}}</code> – globalen Block einbetten (ID: siehe „Globale Blöcke“)</li>
             </ul>
             <p class="muted small">Layouts sind das HTML-Grundgerüst einer Seite. Templates (z.&nbsp;B. <code>{{template:main-menu}}</code>) sind wiederverwendbare Bausteine darin.</p>
             <p class="muted small">Die gewählten Farben stehen im Layout-HTML und in eigenen Styles als CSS-Variablen zur Verfügung: <code>var(--cms-primary)</code>, <code>--cms-accent</code>, <code>--cms-text</code>, <code>--cms-bg</code>, <code>--cms-surface</code>, <code>--cms-font-heading</code>, <code>--cms-font-body</code>.</p>

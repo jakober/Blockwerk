@@ -165,6 +165,10 @@ class App
         $router->add('POST', '/admin/themes/{key}/apply', [\Controllers\Admin\ThemeController::class, 'apply']);
 
         $router->add('GET', '/admin/layouts', [LayoutController::class, 'index']);
+        $router->add('POST', '/admin/layouts/visual-new', [LayoutController::class, 'visualNew']);
+        $router->add('GET', '/admin/layouts/{id}/builder', [LayoutController::class, 'builder']);
+        $router->add('POST', '/admin/layouts/{id}/builder-content', [LayoutController::class, 'saveBuilder']);
+        $router->add('POST', '/admin/layouts/{id}/builder-reset', [LayoutController::class, 'builderReset']);
         $router->add('GET', '/admin/layouts/new', [LayoutController::class, 'create']);
         $router->add('POST', '/admin/layouts', [LayoutController::class, 'store']);
         $router->add('GET', '/admin/layouts/{id}/edit', [LayoutController::class, 'edit']);

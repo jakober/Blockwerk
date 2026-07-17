@@ -162,6 +162,7 @@ class Database
         self::ensureColumn($pdo, 'pages', 'lang', "VARCHAR(5) NOT NULL DEFAULT 'de'");
         self::ensureColumn($pdo, 'pages', 'is_global', 'TINYINT(1) NOT NULL DEFAULT 0');
         self::ensureColumn($pdo, 'users', 'role', "VARCHAR(20) NOT NULL DEFAULT 'admin'");
+        self::ensureColumn($pdo, 'layouts', 'builder', 'MEDIUMTEXT NULL');
     }
 
     private static function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void

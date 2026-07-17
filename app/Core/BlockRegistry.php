@@ -25,7 +25,67 @@ class BlockRegistry
     {
         return ['heading', 'text', 'image', 'gallery', 'slider', 'hero', 'button',
             'video', 'quote', 'accordion', 'news', 'events', 'form', 'search', 'global',
-            'map', 'team', 'pricing', 'countdown', 'social', 'html', 'divider', 'spacer'];
+            'map', 'team', 'pricing', 'countdown', 'social', 'html', 'divider', 'spacer',
+            // Layout-Blöcke (visueller Layout-Baukasten)
+            'l-brand', 'l-menu', 'l-content', 'l-languages'];
+    }
+
+    /**
+     * Kompletten Inhalts-Baum (rows → columns → blocks, optional css)
+     * bereinigen – genutzt vom Seiten-Editor UND dem Layout-Baukasten.
+     */
+    public static function sanitizeTree(array $data): array
+    {
+        $rows = [];
+        foreach (($data['rows'] ?? []) as $row) {
+            if (!is_array($row) || !is_array($row['columns'] ?? null)) {
+                continue;
+            }
+            $columns = [];
+            foreach ($row['columns'] as $column) {
+                if (!is_array($column)) {
+                    continue;
+                }
+                $blocks = [];
+                foreach (($column['blocks'] ?? []) as $block) {
+                    if (!is_array($block) || !in_array($block['type'] ?? '', self::types(), true)) {
+                        continue;
+                    }
+                    $blocks[] = [
+                        'id' => substr((string) ($block['id'] ?? uniqid('b-')), 0, 40),
+                        'type' => $block['type'],
+                        'data' => self::sanitizeData((array) ($block['data'] ?? [])),
+                    ];
+                }
+                $columns[] = [
+                    'id' => substr((string) ($column['id'] ?? uniqid('col-')), 0, 40),
+                    'span' => min(12, max(1, (int) ($column['span'] ?? 12))),
+                    'blocks' => $blocks,
+                ];
+            }
+            if ($columns !== []) {
+                $rowOut = [
+                    'id' => substr((string) ($row['id'] ?? uniqid('row-')), 0, 40),
+                    'columns' => $columns,
+                ];
+                $rowStyle = [];
+                foreach ((array) ($row['style'] ?? []) as $styleKey => $styleValue) {
+                    if (is_scalar($styleValue)) {
+                        $rowStyle[(string) $styleKey] = is_bool($styleValue) ? (int) $styleValue : $styleValue;
+                    }
+                }
+                if ($rowStyle !== []) {
+                    $rowOut['style'] = $rowStyle;
+                }
+                $rows[] = $rowOut;
+            }
+        }
+
+        $clean = ['rows' => $rows];
+        if (is_string($data['css'] ?? null) && trim($data['css']) !== '') {
+            $clean['css'] = substr($data['css'], 0, 100000);
+        }
+        return $clean;
     }
 
     public static function render(array $block): string
@@ -132,6 +192,12 @@ class BlockRegistry
             'pricing' => self::pricing($data),
             'countdown' => self::countdown($data),
             'social' => self::social($data),
+            // Layout-Blöcke: geben Platzhalter aus, die der Renderer beim
+            // Seitenaufbau (bzw. die Vorschau im Editor) auflöst.
+            'l-brand' => self::lBrand($data),
+            'l-menu' => self::lMenu($data),
+            'l-content' => '<div class="bwl-content">{{content}}</div>',
+            'l-languages' => '{{languages}}',
             'html' => (string) ($data['code'] ?? ''),
             'divider' => '<hr class="cms-divider">',
             'spacer' => '<div class="cms-spacer" style="height:' . max(0, (int) ($data['height'] ?? 40)) . 'px"></div>',
@@ -395,6 +461,27 @@ class BlockRegistry
         $html .= '<label>Nachricht*<textarea name="message" rows="6" required></textarea></label>';
         $html .= '<button type="submit" class="cms-btn cms-btn-primary">' . e((string) ($data['button_text'] ?? 'Nachricht senden')) . '</button>';
         return $html . '</form></div>';
+    }
+
+    private static function lBrand(array $data): string
+    {
+        $html = '<a class="bwl-brand" href="{{base_url}}/">';
+        if (!empty($data['logo'])) {
+            $html .= '<img src="' . e((string) $data['logo']) . '" alt="">';
+        }
+        if (!isset($data['show_name']) || !empty($data['show_name'])) {
+            $html .= '<span>{{site_name}}</span>';
+        }
+        return $html . '</a>';
+    }
+
+    private static function lMenu(array $data): string
+    {
+        $variant = in_array($data['variant'] ?? 'dropdown', ['dropdown', 'mega', 'vertical', 'simple'], true)
+            ? $data['variant'] : 'dropdown';
+        $align = in_array($data['align'] ?? 'left', ['left', 'center', 'right'], true)
+            ? $data['align'] : 'left';
+        return '<nav class="t-nav bwl-menu is-' . $align . '">{{menu:' . $variant . '}}</nav>';
     }
 
     private static function searchForm(array $data): string

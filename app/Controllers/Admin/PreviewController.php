@@ -15,13 +15,16 @@ class PreviewController extends AdminController
     {
         header('Content-Type: application/json');
         $data = json_decode(file_get_contents('php://input') ?: '', true);
+        $renderer = new \Core\Renderer();
         $out = [];
         foreach ((array) ($data['blocks'] ?? []) as $block) {
             if (is_array($block) && in_array($block['type'] ?? '', BlockRegistry::types(), true)) {
-                $out[] = BlockRegistry::render([
+                $html = BlockRegistry::render([
                     'type' => $block['type'],
                     'data' => BlockRegistry::sanitizeData((array) ($block['data'] ?? [])),
                 ]);
+                // Platzhalter (Menü, Marke, Inhaltsbereich …) live auflösen.
+                $out[] = $renderer->fillForPreview($html);
             } else {
                 $out[] = '';
             }

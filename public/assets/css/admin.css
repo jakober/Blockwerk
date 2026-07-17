@@ -721,3 +721,14 @@ body.is-editor .ed-canvas {
 .entry-data dd { margin: 0; overflow-wrap: anywhere; }
 .entry-details .btn { margin-bottom: 6px; }
 @media (max-width: 700px) { .entry-data { grid-template-columns: 1fr; gap: 2px; } .entry-data dd { margin-bottom: 8px; } }
+
+/* ===== Layout-Baukasten: Vorschau des Inhaltsbereichs ===== */
+.bwl-content-ph {
+    border: 2px dashed var(--primary);
+    background: rgba(79, 70, 229, .05);
+    color: var(--primary);
+    border-radius: 12px;
+    padding: 42px 20px;
+    text-align: center;
+    font-weight: 700;
+}

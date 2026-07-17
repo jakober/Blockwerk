@@ -117,7 +117,20 @@ class Renderer
 
     private function renderWithLayout(?array $layout, string $title, string $contentHtml, string $extraHead = ''): string
     {
-        $layoutHtml = $layout['html'] ?? "<!doctype html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><title>{{title}}</title></head><body>{{content}}</body></html>";
+        // Visueller Layout-Baukasten: Layout-HTML aus der Zeilen/Spalten-
+        // Struktur erzeugen (enthält Platzhalter wie {{content}}, {{menu:…}}).
+        $builder = json_decode((string) ($layout['builder'] ?? ''), true);
+        if (is_array($builder) && !empty($builder['rows'])) {
+            $layoutHtml = "<!doctype html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n"
+                . "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+                . "<title>{{title}} – {{site_name}}</title>\n</head>\n<body class=\"bwl-body\">\n"
+                . '<div class="bwl-page">' . $this->renderContentData($builder) . "</div>\n</body>\n</html>";
+            if (is_string($builder['css'] ?? null) && trim($builder['css']) !== '') {
+                $extraHead .= '<style id="cms-layout-builder-css">' . $builder['css'] . '</style>' . "\n";
+            }
+        } else {
+            $layoutHtml = $layout['html'] ?? "<!doctype html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><title>{{title}}</title></head><body>{{content}}</body></html>";
+        }
 
         $html = $this->replacePlaceholders($layoutHtml, [
             'content' => $contentHtml,
@@ -125,6 +138,18 @@ class Renderer
         ]);
 
         return $this->injectAssets($html, $layout, $extraHead);
+    }
+
+    /** Platzhalter für die Editor-Vorschau auflösen (echtes Menü, Marke usw.). */
+    public function fillForPreview(string $html): string
+    {
+        if (!str_contains($html, '{{')) {
+            return $html;
+        }
+        return $this->replacePlaceholders($html, [
+            'content' => '<div class="bwl-content-ph">▣ Hier erscheint der Inhalt der jeweiligen Seite</div>',
+            'title' => 'Seitentitel',
+        ]);
     }
 
     public function renderContent(?string $json): string
@@ -254,6 +279,14 @@ class Renderer
                 }
                 return $this->replacePlaceholders($template['html'], $vars, $depth + 1);
             },
+            $html
+        ) ?? $html;
+
+        // Globale Blöcke im Layout/Template: {{global:ID}} (ID steht in der
+        // Liste unter "Globale Blöcke") – erscheint damit auf jeder Seite.
+        $html = preg_replace_callback(
+            '/\{\{global:(\d+)\}\}/',
+            static fn (array $m): string => BlockRegistry::render(['type' => 'global', 'data' => ['page_id' => (int) $m[1]]]),
             $html
         ) ?? $html;
 

@@ -33,6 +33,8 @@
     let uidCounter = 0;
     const uid = (prefix) => prefix + '-' + Date.now().toString(36) + '-' + (uidCounter++);
 
+    const editorMode = root.dataset.mode || 'page';
+
     const VARIANTS = {
         heading: [['standard', 'Standard'], ['accent-line', 'Mit Akzentlinie'], ['boxed', 'Farbig hinterlegt'], ['centered', 'Zentriert']],
         text: [['standard', 'Standard'], ['infobox', 'Infobox'], ['note', 'Hinweis (Akzentfarbe)']],
@@ -43,7 +45,37 @@
     };
     const variantField = (type) => ({ key: 'variant', label: 'Designvorlage', type: 'select', options: VARIANTS[type] });
 
-    const blockDefs = {
+    // Layout-Baukasten: Spezialblöcke für Kopf-/Fußzeile & Inhaltsbereich.
+    const layoutDefs = {
+        'l-brand': {
+            label: 'Logo & Name', icon: '★',
+            defaults: { logo: '', show_name: 1 },
+            fields: [
+                { key: 'logo', label: 'Logo (optional)', type: 'image' },
+                { key: 'show_name', label: 'Website-Namen anzeigen', type: 'checkbox' },
+            ],
+        },
+        'l-menu': {
+            label: 'Menü', icon: '☰',
+            defaults: { variant: 'dropdown', align: 'left' },
+            fields: [
+                { key: 'variant', label: 'Menü-Vorlage', type: 'select', options: [['dropdown', 'Dropdown (Hover)'], ['mega', 'Mega-Menü'], ['vertical', 'Vertikal'], ['simple', 'Nur oberste Ebene']] },
+                { key: 'align', label: 'Ausrichtung', type: 'select', options: [['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] },
+            ],
+        },
+        'l-content': {
+            label: 'Inhaltsbereich', icon: '▣',
+            defaults: {},
+            fields: [],
+        },
+        'l-languages': {
+            label: 'Sprachumschalter', icon: '🌐',
+            defaults: {},
+            fields: [],
+        },
+    };
+
+    let blockDefs = {
         heading: {
             label: 'Überschrift', icon: 'H',
             defaults: { text: 'Neue Überschrift', level: 'h2', variant: 'standard' },
@@ -320,6 +352,10 @@
         { key: 'radius', label: 'Eckenrundung (px)', type: 'number' },
     ];
 
+    if (editorMode === 'layout') {
+        blockDefs = Object.assign({}, layoutDefs, blockDefs);
+    }
+
     const presets = [
         { label: '1', spans: [12], title: '1 Spalte' },
         { label: '½ ½', spans: [6, 6], title: '2 gleiche Spalten' },
@@ -357,6 +393,13 @@
 
     function newBlock(type) {
         return { id: uid('b'), type: type, data: JSON.parse(JSON.stringify(blockDefs[type].defaults)) };
+    }
+
+    function countBlocksOfType(type) {
+        let count = 0;
+        state.rows.forEach((row) => row.columns.forEach((col) =>
+            col.blocks.forEach((block) => { if (block.type === type) count++; })));
+        return count;
     }
 
     /* ---------- Serverseitige WYSIWYG-Vorschau ---------- */
@@ -975,6 +1018,13 @@
             const target = state.rows[r].columns[c];
 
             if (dragData.kind === 'new') {
+                // Der Inhaltsbereich darf im Layout nur einmal vorkommen.
+                if (dragData.type === 'l-content' && countBlocksOfType('l-content') > 0) {
+                    alert('Der Inhaltsbereich ist bereits im Layout vorhanden – er kann nur einmal eingesetzt werden. Verschiebe ihn stattdessen an die gewünschte Stelle.');
+                    dragData = null;
+                    clearDropHints();
+                    return;
+                }
                 target.blocks.splice(index, 0, newBlock(dragData.type));
             } else {
                 const from = dragData.from;

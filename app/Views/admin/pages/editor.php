@@ -1,30 +1,45 @@
+<?php
+/**
+ * WYSIWYG-Editor – genutzt für Seiteninhalte UND den visuellen
+ * Layout-Baukasten. Aufrufende Controller liefern:
+ * $saveUrl, $backUrl, $backLabel, $previewHref (oder null),
+ * $versionsUrl (oder null), $mode ('page' | 'layout'), $editorTitle,
+ * $contentJson, $designHead, $globalBlocks.
+ */
+$mode = $mode ?? 'page';
+?>
 <link rel="stylesheet" href="<?= e(url('/assets/css/cms-blocks.css')) ?>">
 <?= $designHead ?>
 
 <div id="editor"
-     data-save-url="<?= e(url('/admin/pages/' . $page['id'] . '/content')) ?>"
+     data-save-url="<?= e($saveUrl) ?>"
      data-preview-url="<?= e(url('/admin/preview/blocks')) ?>"
+     data-mode="<?= e($mode) ?>"
      data-csrf="<?= e(csrf_token()) ?>">
 
     <div class="ed-topbar">
-        <a class="btn btn-ghost" href="<?= e(url('/admin/pages')) ?>">← Seiten</a>
-        <strong class="ed-title"><?= e($page['title']) ?></strong>
+        <a class="btn btn-ghost" href="<?= e($backUrl) ?>"><?= e($backLabel) ?></a>
+        <strong class="ed-title"><?= e($editorTitle) ?></strong>
         <div class="ed-presets" title="Neue Zeile mit Spaltenaufteilung hinzufügen"></div>
         <span id="ed-status" class="ed-status"></span>
-        <a class="btn btn-ghost" href="<?= e(url('/admin/pages/' . $page['id'] . '/versions')) ?>" title="Frühere Stände wiederherstellen">Versionen</a>
-        <button type="button" id="ed-css-btn" class="btn btn-ghost" title="Eigenes CSS nur für diese Seite">CSS</button>
-        <a class="btn btn-ghost" href="<?= e(url('/' . $page['slug'])) ?>" target="_blank" rel="noopener">Vorschau ↗</a>
+        <?php if (!empty($versionsUrl)): ?>
+            <a class="btn btn-ghost" href="<?= e($versionsUrl) ?>" title="Frühere Stände wiederherstellen">Versionen</a>
+        <?php endif; ?>
+        <button type="button" id="ed-css-btn" class="btn btn-ghost" title="Eigenes CSS (<?= $mode === 'layout' ? 'für dieses Layout' : 'nur für diese Seite' ?>)">CSS</button>
+        <?php if (!empty($previewHref)): ?>
+            <a class="btn btn-ghost" href="<?= e($previewHref) ?>" target="_blank" rel="noopener">Vorschau ↗</a>
+        <?php endif; ?>
         <button type="button" id="ed-save" class="btn btn-primary">Speichern</button>
     </div>
 
     <div class="ed-css-panel" hidden>
-        <label>Eigenes CSS – gilt nur für diese Seite (optional)</label>
+        <label>Eigenes CSS – <?= $mode === 'layout' ? 'gilt auf allen Seiten mit diesem Layout' : 'gilt nur für diese Seite' ?> (optional)</label>
         <textarea id="ed-css-input" class="code" rows="7" spellcheck="false" placeholder="/* z. B. .cms-quote { font-size: 1.3em; } */"></textarea>
     </div>
 
     <div class="ed-main">
         <aside class="ed-palette">
-            <h3>Inhalts-Blöcke</h3>
+            <h3><?= $mode === 'layout' ? 'Layout- & Inhalts-Blöcke' : 'Inhalts-Blöcke' ?></h3>
             <p class="muted small">Per Drag &amp; Drop in eine Spalte ziehen</p>
             <div class="ed-palette-items"></div>
         </aside>

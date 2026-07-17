@@ -546,3 +546,27 @@ h1.cms-heading { font-size: 2.3em; }
 /* ===== Social – Feinschliff ===== */
 .cms-social a { box-shadow: 0 4px 12px color-mix(in srgb, var(--sc, #000) 35%, transparent); }
 .cms-social a span { line-height: 1; }
+
+/* ===== Visueller Layout-Baukasten (bwl-*) ===== */
+.bwl-body { margin: 0; }
+.bwl-page > .cms-row {
+    max-width: 1100px;
+    margin-left: auto; margin-right: auto;
+    padding-left: 20px; padding-right: 20px;
+}
+.bwl-page > .cms-row, .bwl-page .cms-section { margin-bottom: 0; }
+.bwl-content { padding: 24px 0 40px; }
+.bwl-brand {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-size: 21px; font-weight: 800; letter-spacing: -.4px;
+    color: var(--cms-text); text-decoration: none;
+    font-family: var(--cms-font-heading, inherit);
+    padding: 10px 0;
+}
+.bwl-brand img { height: 44px; width: auto; }
+.bwl-menu { display: flex; align-items: center; min-height: 100%; }
+.bwl-menu.is-left { justify-content: flex-start; }
+.bwl-menu.is-center { justify-content: center; }
+.bwl-menu.is-right { justify-content: flex-end; }
+/* Zeilen im Baukasten: Spalteninhalte vertikal mittig (typisch Kopfzeile) */
+.bwl-page .cms-col { display: flex; flex-direction: column; justify-content: center; }

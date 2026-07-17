@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.9.0 – 2026-07-17
+
+- **Visueller Layout-Baukasten:** Layouts lassen sich jetzt komplett per Drag & Drop bauen – mit denselben Zeilen und flexiblen Spalten wie im Seiten-Editor. Neue Layout-Blöcke: **Logo & Name** (optional mit Logo-Bild), **Menü** (mit wählbarer Menü-Vorlage und Ausrichtung), **Inhaltsbereich** (dort erscheint der Seiteninhalt; nur einmal einsetzbar) und **Sprachumschalter**. Alle normalen Inhalts-Blöcke (Text, Bild, Social Media, globale Blöcke …) funktionieren im Layout ebenfalls – z. B. für die Fußzeile. Vollbreite farbige Kopf-/Fußzeilen über die bekannten Zeilen-Einstellungen.
+- Unter Layouts: „+ Neues Layout (visuell)“ startet mit fertiger Grundstruktur (Kopfzeile, Inhaltsbereich, Fußzeile); bestehende Layouts können jederzeit visuell bearbeitet oder zurück in den HTML-Modus geschaltet werden. Designs (Themes) bleiben HTML-basiert.
+- **Globale Blöcke überall:** Neuer Platzhalter `{{global:ID}}` bettet einen globalen Block direkt in Layouts oder Templates ein – damit erscheint er auf jeder Seite (die ID steht in der Liste unter „Globale Blöcke“).
+
 ## 1.8.2 – 2026-07-17
 
 - **Update-Prüfung zuverlässiger:** Die Versionsabfrage nutzt bei GitHub-Quellen jetzt die GitHub-API (immer frisch) statt der bis zu 5 Minuten zwischengespeicherten Raw-URL – „Nach Updates suchen“ sieht neue Versionen damit sofort. Fällt bei Bedarf automatisch auf die normale URL zurück.

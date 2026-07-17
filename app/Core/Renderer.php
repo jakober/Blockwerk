@@ -36,13 +36,32 @@ class Renderer
     {
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
         $layout ??= Layout::first();
+        BlockRegistry::$pageId = (int) $page['id'];
 
         $data = json_decode((string) ($page['content'] ?? ''), true);
-        $extraHead = '';
+        $extraHead = $this->seoHead($page);
         if (is_array($data) && is_string($data['css'] ?? null) && trim($data['css']) !== '') {
-            $extraHead = '<style id="cms-page-css">' . $data['css'] . '</style>' . "\n";
+            $extraHead .= '<style id="cms-page-css">' . $data['css'] . '</style>' . "\n";
         }
-        return $this->renderWithLayout($layout, (string) $page['title'], $this->renderContentData($data), $extraHead);
+
+        $title = trim((string) ($page['meta_title'] ?? '')) !== '' ? (string) $page['meta_title'] : (string) $page['title'];
+        return $this->renderWithLayout($layout, $title, $this->renderContentData($data), $extraHead);
+    }
+
+    /** SEO-Metatags aus den Seiten-Einstellungen. */
+    private function seoHead(array $page): string
+    {
+        $head = '';
+        $description = trim((string) ($page['meta_description'] ?? ''));
+        if ($description !== '') {
+            $head .= '<meta name="description" content="' . e($description) . '">' . "\n";
+            $head .= '<meta property="og:description" content="' . e($description) . '">' . "\n";
+        }
+        $head .= '<meta property="og:title" content="' . e(trim((string) ($page['meta_title'] ?? '')) !== '' ? $page['meta_title'] : $page['title']) . '">' . "\n";
+        if (!empty($page['noindex'])) {
+            $head .= '<meta name="robots" content="noindex, nofollow">' . "\n";
+        }
+        return $head;
     }
 
     /** Detailseite für News/Events – nutzt das erste Layout. */

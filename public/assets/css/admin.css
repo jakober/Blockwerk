@@ -667,3 +667,10 @@ body.is-editor .ed-canvas {
 .ed-css-panel textarea { background: #1e293b; color: #e2e8f0; border-color: #334155; }
 .ed-css-panel textarea:focus { border-color: var(--primary); }
 #ed-css-btn.is-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ===== SEO-Bereich im Seiten-Formular ===== */
+.seo-details { border: 1px solid var(--border); border-radius: 9px; padding: 0 14px; margin: 4px 0 6px; background: #fafbfd; }
+.seo-details summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 11px 0; color: var(--muted); list-style: none; }
+.seo-details summary::before { content: "▸ "; }
+.seo-details[open] summary::before { content: "▾ "; }
+.seo-details .form-group { margin-bottom: 12px; }

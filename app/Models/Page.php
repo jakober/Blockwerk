@@ -58,13 +58,15 @@ class Page
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare(
-            'INSERT INTO pages (parent_id, title, slug, layout_id, in_menu, menu_order, published, content)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO pages (parent_id, title, slug, layout_id, in_menu, menu_order, published, content,
+                                meta_title, meta_description, noindex)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $data['parent_id'], $data['title'], self::uniqueSlug($data['slug']),
             $data['layout_id'], $data['in_menu'], $data['menu_order'], $data['published'],
             $data['content'] ?? null,
+            $data['meta_title'] ?? null, $data['meta_description'] ?? null, $data['noindex'] ?? 0,
         ]);
         return (int) $pdo->lastInsertId();
     }
@@ -72,12 +74,14 @@ class Page
     public static function update(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            'UPDATE pages SET parent_id = ?, title = ?, slug = ?, layout_id = ?, in_menu = ?, menu_order = ?, published = ?
+            'UPDATE pages SET parent_id = ?, title = ?, slug = ?, layout_id = ?, in_menu = ?, menu_order = ?, published = ?,
+                              meta_title = ?, meta_description = ?, noindex = ?
              WHERE id = ?'
         );
         $stmt->execute([
             $data['parent_id'], $data['title'], self::uniqueSlug($data['slug'], $id),
-            $data['layout_id'], $data['in_menu'], $data['menu_order'], $data['published'], $id,
+            $data['layout_id'], $data['in_menu'], $data['menu_order'], $data['published'],
+            $data['meta_title'] ?? null, $data['meta_description'] ?? null, $data['noindex'] ?? 0, $id,
         ]);
     }
 

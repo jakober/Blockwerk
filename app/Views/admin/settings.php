@@ -16,6 +16,11 @@
                 <?php endforeach; ?>
             </select>
         </div>
+        <div class="form-group">
+            <label for="contact_email">E-Mail-Empfänger für Kontaktformulare</label>
+            <input type="email" id="contact_email" name="contact_email" value="<?= e($contactEmail) ?>" placeholder="z. B. info@deine-domain.de">
+            <p class="muted small">Kontaktformular-Blöcke ohne eigenen Empfänger senden an diese Adresse.</p>
+        </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Speichern</button>
         </div>

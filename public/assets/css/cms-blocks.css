@@ -306,3 +306,22 @@ h1.cms-heading { font-size: 2.3em; }
 
 /* ===== Sonstiges ===== */
 .cms-divider { border: none; border-top: 1px solid color-mix(in srgb, var(--cms-text) 15%, transparent); margin: 8px 0; }
+
+/* ===== Kontaktformular ===== */
+.cms-form { display: grid; gap: 14px; max-width: 560px; }
+.cms-form label { display: block; font-weight: 600; font-size: .9em; }
+.cms-form input, .cms-form textarea {
+    display: block; width: 100%; margin-top: 5px;
+    padding: 10px 13px; font: inherit; color: inherit;
+    border: 1px solid color-mix(in srgb, var(--cms-text) 22%, transparent);
+    border-radius: 9px; background: var(--cms-bg); box-sizing: border-box;
+}
+.cms-form input:focus, .cms-form textarea:focus {
+    outline: none; border-color: var(--cms-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cms-primary) 18%, transparent);
+}
+.cms-form button { justify-self: start; border: none; cursor: pointer; font: inherit; }
+.cms-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
+.cms-form-note { border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; font-weight: 600; }
+.cms-form-note.is-success { background: #dcfce7; color: #166534; }
+.cms-form-note.is-error { background: #fee2e2; color: #991b1b; }

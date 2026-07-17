@@ -119,5 +119,31 @@ class Database
         foreach ($statements as $sql) {
             $pdo->exec($sql);
         }
+
+        self::migrate($pdo);
+    }
+
+    /**
+     * Spalten-Migrationen für bestehende Installationen – läuft bei jeder
+     * Installation UND bei jedem Update (Updater ruft createSchema auf).
+     * Neue Spalten hier ergänzen, nicht nur im CREATE TABLE.
+     */
+    private static function migrate(PDO $pdo): void
+    {
+        self::ensureColumn($pdo, 'pages', 'meta_title', 'VARCHAR(200) NULL');
+        self::ensureColumn($pdo, 'pages', 'meta_description', 'TEXT NULL');
+        self::ensureColumn($pdo, 'pages', 'noindex', 'TINYINT(1) NOT NULL DEFAULT 0');
+    }
+
+    private static function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void
+    {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+        );
+        $stmt->execute([$table, $column]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $pdo->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+        }
     }
 }

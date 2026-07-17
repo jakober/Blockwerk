@@ -135,6 +135,7 @@ class App
         $router->add('POST', '/admin/settings', [SettingsController::class, 'save']);
 
         // Öffentliche Seiten (Catch-all zuletzt)
+        $router->add('POST', '/form/submit', [SiteController::class, 'formSubmit']);
         $router->add('GET', '/news/{slug}', [SiteController::class, 'newsShow']);
         $router->add('GET', '/events/{slug}', [SiteController::class, 'eventShow']);
         $router->add('GET', '/', [SiteController::class, 'home']);

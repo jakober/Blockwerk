@@ -34,6 +34,7 @@ class MediaController extends AdminController
             'id' => (int) $m['id'],
             'name' => $m['filename'],
             'url' => url('/' . $m['path']),
+            'thumb' => self::thumbUrl($m['path']),
             'isImage' => str_starts_with($m['mime'], 'image/'),
         ], Media::all());
         echo json_encode(['items' => $items], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -79,6 +80,9 @@ class MediaController extends AdminController
                 continue;
             }
 
+            // Große Bilder automatisch verkleinern und Thumbnail erzeugen.
+            self::optimizeImage($dir . '/' . $filename, $mime);
+
             $width = $height = null;
             if (str_starts_with($mime, 'image/') && $mime !== 'image/svg+xml') {
                 $info = @getimagesize($dir . '/' . $filename);
@@ -87,7 +91,7 @@ class MediaController extends AdminController
                 }
             }
 
-            Media::create((string) $name, 'uploads/' . $filename, $mime, (int) $files['size'][$i], $width, $height);
+            Media::create((string) $name, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
             $uploaded++;
         }
         finfo_close($finfo);
@@ -108,9 +112,86 @@ class MediaController extends AdminController
             if (is_file($file)) {
                 unlink($file);
             }
+            $thumb = BASE_PATH . '/public/' . self::thumbPath($item['path']);
+            if (is_file($thumb)) {
+                unlink($thumb);
+            }
             Media::delete((int) $item['id']);
             flash('success', 'Datei gelöscht.');
         }
         redirect('/admin/media');
+    }
+
+    /** Pfad des Thumbnails zu einem Medienpfad ("bild.jpg" → "bild-thumb.jpg"). */
+    public static function thumbPath(string $path): string
+    {
+        $dot = strrpos($path, '.');
+        return $dot === false ? $path . '-thumb' : substr($path, 0, $dot) . '-thumb' . substr($path, $dot);
+    }
+
+    /** Thumbnail-URL, falls vorhanden – sonst das Original. */
+    public static function thumbUrl(string $path): string
+    {
+        $thumb = self::thumbPath($path);
+        return url('/' . (is_file(BASE_PATH . '/public/' . $thumb) ? $thumb : $path));
+    }
+
+    private const MAX_WIDTH = 1920;
+    private const THUMB_WIDTH = 480;
+
+    /**
+     * Verkleinert zu große Bilder auf max. 1920px Breite (schnellere Website)
+     * und legt ein Thumbnail für Mediathek/Auswahldialog an. Ohne GD-Erweiterung
+     * oder bei GIF/SVG/PDF passiert nichts.
+     */
+    private static function optimizeImage(string $file, string $mime): void
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            return;
+        }
+        $loaders = [
+            'image/jpeg' => 'imagecreatefromjpeg',
+            'image/png' => 'imagecreatefrompng',
+            'image/webp' => 'imagecreatefromwebp',
+        ];
+        if (!isset($loaders[$mime]) || !function_exists($loaders[$mime])) {
+            return;
+        }
+        $image = @$loaders[$mime]($file);
+        if ($image === false) {
+            return;
+        }
+
+        $save = static function ($img, string $target) use ($mime): void {
+            match ($mime) {
+                'image/jpeg' => imagejpeg($img, $target, 85),
+                'image/png' => imagepng($img, $target, 6),
+                'image/webp' => imagewebp($img, $target, 82),
+            };
+        };
+
+        if (imagesx($image) > self::MAX_WIDTH) {
+            $resized = imagescale($image, self::MAX_WIDTH, -1, IMG_BICUBIC);
+            if ($resized !== false) {
+                imagedestroy($image);
+                $image = $resized;
+                if ($mime === 'image/png') {
+                    imagesavealpha($image, true);
+                }
+                $save($image, $file);
+            }
+        }
+
+        if (imagesx($image) > self::THUMB_WIDTH) {
+            $thumb = imagescale($image, self::THUMB_WIDTH, -1, IMG_BICUBIC);
+            if ($thumb !== false) {
+                if ($mime === 'image/png') {
+                    imagesavealpha($thumb, true);
+                }
+                $save($thumb, dirname($file) . '/' . basename(self::thumbPath($file)));
+                imagedestroy($thumb);
+            }
+        }
+        imagedestroy($image);
     }
 }

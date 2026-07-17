@@ -18,10 +18,13 @@ use Models\Post;
  */
 class BlockRegistry
 {
+    /** Seiten-Kontext für Blöcke, die ihn brauchen (z. B. Formular-Ziel). */
+    public static ?int $pageId = null;
+
     public static function types(): array
     {
         return ['heading', 'text', 'image', 'gallery', 'slider', 'hero', 'button',
-            'video', 'quote', 'accordion', 'news', 'events', 'html', 'divider', 'spacer'];
+            'video', 'quote', 'accordion', 'news', 'events', 'form', 'html', 'divider', 'spacer'];
     }
 
     public static function render(array $block): string
@@ -120,6 +123,7 @@ class BlockRegistry
             'accordion' => self::accordion($data),
             'news' => self::news($data),
             'events' => self::events($data),
+            'form' => self::form($block, $data),
             'html' => (string) ($data['code'] ?? ''),
             'divider' => '<hr class="cms-divider">',
             'spacer' => '<div class="cms-spacer" style="height:' . max(0, (int) ($data['height'] ?? 40)) . 'px"></div>',
@@ -328,6 +332,38 @@ class BlockRegistry
                 . '<div class="cms-acc-body">' . (string) ($item['text'] ?? '') . '</div></details>';
         }
         return $html . '</div>';
+    }
+
+    private static function form(array $block, array $data): string
+    {
+        $fid = preg_replace('/[^a-z0-9\-]/i', '', (string) ($block['id'] ?? 'form')) ?: 'form';
+        $html = '<div class="cms-formwrap" id="f-' . $fid . '">';
+
+        if (($_GET['sent'] ?? '') === $fid) {
+            $success = (string) ($data['success'] ?? 'Vielen Dank! Deine Nachricht wurde gesendet.');
+            return $html . '<div class="cms-form-note is-success">' . e($success) . '</div></div>';
+        }
+        if (($_GET['formerror'] ?? '') === $fid) {
+            $html .= '<div class="cms-form-note is-error">Das hat leider nicht geklappt. Bitte alle Pflichtfelder korrekt ausfüllen und erneut versuchen.</div>';
+        }
+
+        $html .= '<form class="cms-form" method="post" action="' . e(url('/form/submit')) . '">';
+        $html .= csrf_field();
+        $html .= '<input type="hidden" name="form_page" value="' . (int) (self::$pageId ?? 0) . '">';
+        $html .= '<input type="hidden" name="form_block" value="' . e($fid) . '">';
+        // Honeypot gegen Spam-Bots – für Menschen unsichtbar.
+        $html .= '<input class="cms-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">';
+
+        if (!isset($data['show_name']) || !empty($data['show_name'])) {
+            $html .= '<label>Name*<input type="text" name="name" required></label>';
+        }
+        $html .= '<label>E-Mail*<input type="email" name="email" required></label>';
+        if (!empty($data['show_phone'])) {
+            $html .= '<label>Telefon<input type="text" name="phone"></label>';
+        }
+        $html .= '<label>Nachricht*<textarea name="message" rows="6" required></textarea></label>';
+        $html .= '<button type="submit" class="cms-btn cms-btn-primary">' . e((string) ($data['button_text'] ?? 'Nachricht senden')) . '</button>';
+        return $html . '</form></div>';
     }
 
     private static function news(array $data): string

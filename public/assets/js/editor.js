@@ -194,6 +194,18 @@
                 { key: 'show_excerpt', label: 'Kurzbeschreibung anzeigen', type: 'checkbox' },
             ],
         },
+        form: {
+            label: 'Kontaktformular', icon: '✉',
+            defaults: { recipient: '', subject: 'Neue Nachricht über das Kontaktformular', button_text: 'Nachricht senden', success: 'Vielen Dank! Deine Nachricht wurde gesendet.', show_name: 1, show_phone: 0 },
+            fields: [
+                { key: 'recipient', label: 'Empfänger-E-Mail (leer = aus den Einstellungen)', type: 'text' },
+                { key: 'subject', label: 'E-Mail-Betreff', type: 'text' },
+                { key: 'button_text', label: 'Button-Beschriftung', type: 'text' },
+                { key: 'success', label: 'Erfolgsmeldung', type: 'textarea' },
+                { key: 'show_name', label: 'Namensfeld anzeigen', type: 'checkbox' },
+                { key: 'show_phone', label: 'Telefonfeld anzeigen', type: 'checkbox' },
+            ],
+        },
         html: {
             label: 'HTML', icon: '</>',
             defaults: { code: '<!-- Eigener HTML-Code -->' },

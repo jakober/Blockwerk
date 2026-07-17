@@ -53,7 +53,7 @@
                     cell.type = 'button';
                     cell.className = 'mp-item';
                     cell.title = item.name;
-                    cell.innerHTML = '<img src="' + item.url + '" alt="" loading="lazy"><span>' + item.name + '</span>';
+                    cell.innerHTML = '<img src="' + (item.thumb || item.url) + '" alt="" loading="lazy"><span>' + item.name + '</span>';
                     cell.addEventListener('click', () => { onSelect(item.url); close(); });
                     grid.appendChild(cell);
                 });

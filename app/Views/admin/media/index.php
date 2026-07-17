@@ -18,7 +18,7 @@
                 <div class="media-item">
                     <div class="media-thumb">
                         <?php if (str_starts_with($item['mime'], 'image/')): ?>
-                            <img src="<?= e($fileUrl) ?>" alt="<?= e($item['filename']) ?>" loading="lazy">
+                            <img src="<?= e(\Controllers\Admin\MediaController::thumbUrl($item['path'])) ?>" alt="<?= e($item['filename']) ?>" loading="lazy">
                         <?php else: ?>
                             <span class="media-file-icon">📄</span>
                         <?php endif; ?>

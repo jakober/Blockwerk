@@ -47,6 +47,21 @@ $action = $isEdit ? '/admin/pages/' . $page['id'] : '/admin/pages';
                 <input type="number" id="menu_order" name="menu_order" value="<?= (int) ($page['menu_order'] ?? 0) ?>">
             </div>
         </div>
+        <details class="seo-details" <?= !empty($page['meta_title']) || !empty($page['meta_description']) || !empty($page['noindex']) ? 'open' : '' ?>>
+            <summary>SEO (Suchmaschinen-Einstellungen)</summary>
+            <div class="form-group">
+                <label for="meta_title">SEO-Titel (leer = Seitentitel)</label>
+                <input type="text" id="meta_title" name="meta_title" maxlength="200" value="<?= e($page['meta_title'] ?? '') ?>" placeholder="Titel für Google &amp; Browser-Tab">
+            </div>
+            <div class="form-group">
+                <label for="meta_description">Meta-Beschreibung (empfohlen: 120–160 Zeichen)</label>
+                <textarea id="meta_description" name="meta_description" rows="3" maxlength="500" placeholder="Kurze Beschreibung, die in Suchergebnissen angezeigt wird"><?= e($page['meta_description'] ?? '') ?></textarea>
+            </div>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" name="noindex" <?= !empty($page['noindex']) ? 'checked' : '' ?>> Von Suchmaschinen ausschließen (noindex)</label>
+            </div>
+        </details>
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Speichern' : 'Seite anlegen' ?></button>
             <a class="btn btn-ghost" href="<?= e(url('/admin/pages')) ?>">Abbrechen</a>

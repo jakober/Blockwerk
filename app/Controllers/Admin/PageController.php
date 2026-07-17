@@ -191,6 +191,9 @@ class PageController extends AdminController
             'in_menu' => isset($_POST['in_menu']) ? 1 : 0,
             'menu_order' => (int) ($_POST['menu_order'] ?? 0),
             'published' => isset($_POST['published']) ? 1 : 0,
+            'meta_title' => trim($_POST['meta_title'] ?? '') ?: null,
+            'meta_description' => trim($_POST['meta_description'] ?? '') ?: null,
+            'noindex' => isset($_POST['noindex']) ? 1 : 0,
         ];
     }
 

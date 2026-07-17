@@ -125,6 +125,12 @@ class App
         $router->add('POST', '/admin/fonts', [FontController::class, 'store']);
         $router->add('POST', '/admin/fonts/{id}/delete', [FontController::class, 'delete']);
 
+        $router->add('POST', '/admin/preview/blocks', [\Controllers\Admin\PreviewController::class, 'blocks']);
+
+        $router->add('GET', '/admin/update', [\Controllers\Admin\UpdateController::class, 'index']);
+        $router->add('POST', '/admin/update/check', [\Controllers\Admin\UpdateController::class, 'check']);
+        $router->add('POST', '/admin/update/run', [\Controllers\Admin\UpdateController::class, 'run']);
+
         $router->add('GET', '/admin/settings', [SettingsController::class, 'index']);
         $router->add('POST', '/admin/settings', [SettingsController::class, 'save']);
 

@@ -27,7 +27,86 @@ class BlockRegistry
     public static function render(array $block): string
     {
         $data = is_array($block['data'] ?? null) ? $block['data'] : [];
+        $html = self::renderInner($block, $data);
+        if ($html === '') {
+            return '';
+        }
+        // Grafische Einstellungen ohne CSS: Abstände, Farben, Ausrichtung,
+        // Eckenrundung aus data._style als Inline-Style-Wrapper.
+        $style = self::styleAttr(is_array($data['_style'] ?? null) ? $data['_style'] : []);
+        if ($style !== '') {
+            return '<div class="cms-block" style="' . $style . '">' . $html . '</div>';
+        }
+        return $html;
+    }
 
+    /**
+     * Block-Daten bereinigen: Skalare, Objekt-Maps (z. B. _style) und
+     * Element-Listen (Galerie-Bilder, Slides, …) mit skalaren Werten –
+     * tiefere Verschachtelung wird verworfen.
+     */
+    public static function sanitizeData(array $data): array
+    {
+        $clean = [];
+        foreach ($data as $key => $value) {
+            if (is_scalar($value)) {
+                $clean[(string) $key] = is_bool($value) ? (int) $value : $value;
+            } elseif (is_array($value)) {
+                if (array_is_list($value)) {
+                    $items = [];
+                    foreach ($value as $item) {
+                        if (!is_array($item)) {
+                            continue;
+                        }
+                        $itemClean = [];
+                        foreach ($item as $itemKey => $itemValue) {
+                            if (is_scalar($itemValue)) {
+                                $itemClean[(string) $itemKey] = is_bool($itemValue) ? (int) $itemValue : $itemValue;
+                            }
+                        }
+                        $items[] = $itemClean;
+                    }
+                    $clean[(string) $key] = $items;
+                } else {
+                    $map = [];
+                    foreach ($value as $mapKey => $mapValue) {
+                        if (is_scalar($mapValue)) {
+                            $map[(string) $mapKey] = is_bool($mapValue) ? (int) $mapValue : $mapValue;
+                        }
+                    }
+                    $clean[(string) $key] = $map;
+                }
+            }
+        }
+        return $clean;
+    }
+
+    private static function styleAttr(array $style): string
+    {
+        $css = '';
+        $lengths = ['mt' => 'margin-top', 'mb' => 'margin-bottom', 'p' => 'padding', 'radius' => 'border-radius'];
+        foreach ($lengths as $key => $prop) {
+            if (isset($style[$key]) && $style[$key] !== '' && (int) $style[$key] > 0) {
+                $css .= $prop . ':' . min(400, (int) $style[$key]) . 'px;';
+            }
+        }
+        foreach (['color' => 'color', 'bg' => 'background'] as $key => $prop) {
+            $value = (string) ($style[$key] ?? '');
+            if (preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+                $css .= $prop . ':' . strtolower($value) . ';';
+            }
+        }
+        if (in_array($style['align'] ?? '', ['left', 'center', 'right'], true)) {
+            $css .= 'text-align:' . $style['align'] . ';';
+        }
+        if (str_contains($css, 'border-radius') || str_contains($css, 'background')) {
+            $css .= 'overflow:hidden;';
+        }
+        return $css;
+    }
+
+    private static function renderInner(array $block, array $data): string
+    {
         return match ($block['type'] ?? '') {
             'heading' => self::heading($data),
             'text' => '<div class="cms-text' . self::variant($data) . '">' . (string) ($data['html'] ?? '') . '</div>',
@@ -66,7 +145,8 @@ class BlockRegistry
 
     private static function heading(array $data): string
     {
-        $level = in_array($data['level'] ?? 'h2', ['h1', 'h2', 'h3', 'h4'], true) ? $data['level'] : 'h2';
+        $level = $data['level'] ?? 'h2';
+        $level = in_array($level, ['h1', 'h2', 'h3', 'h4'], true) ? $level : 'h2';
         return "<{$level} class=\"cms-heading" . self::variant($data) . '">'
             . e((string) ($data['text'] ?? '')) . "</{$level}>";
     }
@@ -168,8 +248,8 @@ class BlockRegistry
             return '';
         }
         $height = min(100, max(30, (int) ($data['height'] ?? 65)));
-        $overlay = in_array($data['overlay'] ?? 'medium', ['none', 'light', 'medium', 'dark'], true)
-            ? $data['overlay'] : 'medium';
+        $overlay = $data['overlay'] ?? 'medium';
+        $overlay = in_array($overlay, ['none', 'light', 'medium', 'dark'], true) ? $overlay : 'medium';
 
         $html = '<div class="cms-hero cms-fullwidth"' . self::sliderAttrs($data, 6)
             . ' style="--hero-h:' . $height . 'vh">';
@@ -195,10 +275,10 @@ class BlockRegistry
 
     private static function button(array $data): string
     {
-        $style = in_array($data['style'] ?? 'primary', ['primary', 'outline', 'accent', 'ghost'], true)
-            ? $data['style'] : 'primary';
-        $size = in_array($data['size'] ?? 'normal', ['small', 'normal', 'large'], true)
-            ? $data['size'] : 'normal';
+        $style = $data['style'] ?? 'primary';
+        $style = in_array($style, ['primary', 'outline', 'accent', 'ghost'], true) ? $style : 'primary';
+        $size = $data['size'] ?? 'normal';
+        $size = in_array($size, ['small', 'normal', 'large'], true) ? $size : 'normal';
         $class = 'cms-btn cms-btn-' . $style
             . ($size === 'large' ? ' cms-btn-lg' : ($size === 'small' ? ' cms-btn-sm' : ''));
         return '<a class="' . $class . '" href="' . e((string) ($data['url'] ?? '#')) . '">'
@@ -272,8 +352,8 @@ class BlockRegistry
     private static function postCards(array $posts, array $data, string $type): string
     {
         $cols = min(4, max(1, (int) ($data['columns'] ?? 3)));
-        $mode = in_array($data['layout'] ?? 'cards', ['cards', 'list', 'minimal'], true)
-            ? $data['layout'] : 'cards';
+        $mode = $data['layout'] ?? 'cards';
+        $mode = in_array($mode, ['cards', 'list', 'minimal'], true) ? $mode : 'cards';
         $showImage = !isset($data['show_image']) || !empty($data['show_image']);
         $showDate = !isset($data['show_date']) || !empty($data['show_date']);
         $showExcerpt = !isset($data['show_excerpt']) || !empty($data['show_excerpt']);

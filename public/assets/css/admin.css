@@ -589,3 +589,81 @@ body.is-editor .content { padding: 0; display: flex; flex-direction: column; }
 .color-field { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
 .color-field input[type="color"] { width: 42px; height: 36px; padding: 2px; border: 1px solid var(--border); border-radius: 7px; background: #fff; cursor: pointer; flex-shrink: 0; }
 .color-field label { font-weight: 600; font-size: 13px; cursor: pointer; }
+
+/* ===== WYSIWYG-Canvas: Die Seite sieht aus wie im Frontend ===== */
+body.is-editor .ed-canvas {
+    max-width: 1140px;
+    background: var(--cms-bg, #fff);
+    color: var(--cms-text, #1e293b);
+    font-family: var(--cms-font-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+    font-size: 16px;
+    line-height: 1.65;
+    padding: 30px 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, .1);
+    border: 1px solid var(--border);
+}
+.ed-canvas :is(h1, h2, h3, h4, h5, h6) { font-family: var(--cms-font-heading, inherit); }
+/* Vollbreiten-Ausbrüche innerhalb des Canvas neutralisieren */
+.ed-canvas .cms-fullwidth, .ed-canvas .cms-section { width: 100%; margin-left: 0; }
+.ed-canvas .cms-section > .cms-row { padding-left: 0; padding-right: 0; max-width: none; }
+
+/* Zeilen/Spalten-Chrome dezenter, Raster wie im Frontend */
+.ed-row { background: transparent; border: 1px dashed transparent; border-radius: 10px; margin-bottom: 12px; overflow: visible; }
+.ed-row:hover { border-color: #cbd5e1; }
+.ed-row.is-selected { border-color: var(--primary); }
+.ed-row-bar { background: transparent; border-bottom: none; padding: 2px 6px; opacity: .35; transition: opacity .15s; }
+.ed-row:hover .ed-row-bar, .ed-row.is-selected .ed-row-bar { opacity: 1; }
+.ed-row-tools button { background: var(--surface); }
+.ed-cols { gap: 28px; padding: 12px; border-radius: 8px; }
+.ed-col { border: 1px dashed transparent; background: transparent; }
+.ed-row:hover .ed-col { border-color: #dbe3ec; }
+.ed-col-bar { border-bottom: none; opacity: 0; transition: opacity .15s; padding: 2px; }
+.ed-row:hover .ed-col-bar { opacity: 1; }
+.ed-col-bar button { background: var(--surface); }
+.ed-blocks { padding: 4px; min-height: 48px; }
+.ed-blocks.is-over { background: rgba(79, 70, 229, .06); border-radius: 8px; }
+
+/* Block-Chrome: unsichtbar bis Hover/Auswahl – Inhalt wirkt wie im Frontend */
+.ed-block { position: relative; background: transparent; border: 1px dashed transparent; border-radius: 8px; margin-bottom: 4px; overflow: visible; }
+.ed-block:hover { border-color: #94a3b8; }
+.ed-block.is-selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, .15); }
+.ed-block-head {
+    position: absolute; top: -11px; left: 8px; z-index: 20;
+    display: none; align-items: center; gap: 6px;
+    background: #0f172a; color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 9px 2px 4px; border-radius: 999px;
+    border-bottom: none; pointer-events: none; white-space: nowrap;
+}
+.ed-block:hover > .ed-block-head, .ed-block.is-selected > .ed-block-head { display: inline-flex; }
+.ed-block-head .ed-block-icon { width: 16px; height: 16px; font-size: 9px; }
+.ed-block-preview { padding: 4px; font-size: inherit; }
+.ed-block-preview .cms-row { margin-bottom: 0; }
+.ed-loading { color: #94a3b8; text-align: center; padding: 8px; }
+.ed-empty-block {
+    border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;
+    color: #94a3b8; font-size: 13px; text-align: center; padding: 14px;
+}
+/* Interaktionen der Vorschau im Editor stilllegen (nur ansehen, per Klick auswählen) */
+.ed-block-preview a, .ed-block-preview button, .ed-block-preview iframe, .ed-block-preview video, .ed-block-preview summary { pointer-events: none; }
+
+/* Gestaltungs-Panel im Inspektor */
+.ed-style-details { border: 1px solid var(--border); border-radius: 9px; padding: 0 12px; margin-bottom: 14px; background: #fafbfd; }
+.ed-style-details summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 10px 0; color: var(--muted); list-style: none; }
+.ed-style-details summary::before { content: "▸ "; }
+.ed-style-details[open] summary::before { content: "▾ "; }
+.ed-style-details .form-group { margin-bottom: 10px; }
+.ed-color { display: flex; gap: 6px; align-items: center; }
+.ed-color input[type="color"] { width: 44px; height: 32px; padding: 2px; border: 1px solid var(--border); border-radius: 7px; background: #fff; cursor: pointer; }
+.ed-color.is-unset input[type="color"] { opacity: .35; }
+.ed-color.is-unset::after { content: "Standard"; font-size: 12px; color: var(--muted); }
+.ed-color button { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer; }
+.ed-color button:hover { border-color: var(--danger); color: var(--danger); }
+
+/* CSS-Panel (eigenes CSS pro Seite) */
+.ed-css-panel { padding: 12px 16px; background: #0f172a; }
+.ed-css-panel label { display: block; color: #94a3b8; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.ed-css-panel textarea { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+.ed-css-panel textarea:focus { border-color: var(--primary); }
+#ed-css-btn.is-active { background: var(--primary); color: #fff; border-color: var(--primary); }

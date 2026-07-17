@@ -1,14 +1,17 @@
 /**
- * Drag-&-Drop-Inhalts-Editor.
+ * Drag-&-Drop-Inhalts-Editor mit WYSIWYG-Vorschau.
  *
- * Struktur des Inhalts: state.rows[] → columns[] (span im 12er-Raster) → blocks[].
+ * Die Blöcke im Canvas werden SERVERSEITIG gerendert (POST /admin/preview/blocks,
+ * gleiche Render-Logik wie das Frontend) – die Seite sieht im Editor also genauso
+ * aus wie live. Struktur: state.rows[] → columns[] (span 12er-Raster) → blocks[].
+ *
  * Neue Block-Typen: Eintrag in blockDefs ergänzen und serverseitig in
  * app/Core/BlockRegistry.php registrieren.
  *
- * Feldtypen im Inspektor: text, number, textarea, richtext, select, checkbox,
- * image (mit Mediathek-Auswahl). Zusätzlich kann ein Block eine Element-Liste
- * haben (items, z. B. Bilder einer Galerie oder Slides), deren Einträge eigene
- * Felder besitzen und sortierbar sind.
+ * Jeder Block hat zusätzlich unter data._style grafische Einstellungen ohne CSS
+ * (Abstände, Innenabstand, Farben, Ausrichtung, Eckenrundung); Zeilen haben
+ * row.style (vollbreite Hintergrundfarbe, Innenabstände). Eigenes CSS pro Seite
+ * liegt in state.css.
  */
 (function () {
     'use strict';
@@ -17,13 +20,15 @@
     if (!root) return;
 
     const saveUrl = root.dataset.saveUrl;
+    const previewUrl = root.dataset.previewUrl;
     const csrf = root.dataset.csrf;
 
     let state = { rows: [] };
     try {
         const initial = JSON.parse(document.getElementById('editor-data').textContent);
         if (initial && Array.isArray(initial.rows)) state = initial;
-    } catch (e) { /* leerer Editor */ }
+        if (typeof state.css !== 'string') state.css = state.css || '';
+    } catch (e) { state.css = ''; }
 
     let uidCounter = 0;
     const uid = (prefix) => prefix + '-' + Date.now().toString(36) + '-' + (uidCounter++);
@@ -36,7 +41,6 @@
         quote: [['standard', 'Standard'], ['card', 'Karte'], ['big', 'Groß & zentriert']],
         accordion: [['standard', 'Standard'], ['cards', 'Karten']],
     };
-
     const variantField = (type) => ({ key: 'variant', label: 'Designvorlage', type: 'select', options: VARIANTS[type] });
 
     const blockDefs = {
@@ -203,6 +207,17 @@
         },
     };
 
+    // Grafische Einstellungen ohne CSS – für jeden Block verfügbar.
+    const STYLE_FIELDS = [
+        { key: 'mt', label: 'Abstand oben (px)', type: 'number' },
+        { key: 'mb', label: 'Abstand unten (px)', type: 'number' },
+        { key: 'p', label: 'Innenabstand (px)', type: 'number' },
+        { key: 'align', label: 'Ausrichtung', type: 'select', options: [['', 'Standard'], ['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] },
+        { key: 'color', label: 'Textfarbe', type: 'colorclear' },
+        { key: 'bg', label: 'Hintergrundfarbe', type: 'colorclear' },
+        { key: 'radius', label: 'Eckenrundung (px)', type: 'number' },
+    ];
+
     const presets = [
         { label: '1', spans: [12], title: '1 Spalte' },
         { label: '½ ½', spans: [6, 6], title: '2 gleiche Spalten' },
@@ -219,12 +234,14 @@
     const presetBar = root.querySelector('.ed-presets');
     const saveBtn = document.getElementById('ed-save');
     const statusEl = document.getElementById('ed-status');
+    const cssBtn = document.getElementById('ed-css-btn');
+    const cssPanel = root.querySelector('.ed-css-panel');
+    const cssInput = document.getElementById('ed-css-input');
+    const pageCssTag = document.getElementById('ed-page-css');
 
-    let selected = null;   // { r, c, b }
-    let dragData = null;   // {kind:'new',type} | {kind:'move',from} | {kind:'row',from:r}
+    let selected = null;   // {kind:'block', r,c,b} | {kind:'row', r}
+    let dragData = null;   // {kind:'new',type} | {kind:'move',from} | {kind:'row',from}
     let dirty = false;
-
-    /* ---------- Hilfsfunktionen ---------- */
 
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -237,60 +254,72 @@
     }
 
     function newBlock(type) {
-        const data = JSON.parse(JSON.stringify(blockDefs[type].defaults));
-        return { id: uid('b'), type: type, data: data };
+        return { id: uid('b'), type: type, data: JSON.parse(JSON.stringify(blockDefs[type].defaults)) };
     }
 
-    function blockPreview(block) {
-        const d = block.data || {};
-        switch (block.type) {
-            case 'heading': {
-                const level = ['h1', 'h2', 'h3', 'h4'].includes(d.level) ? d.level : 'h2';
-                return '<' + level + '>' + esc(d.text) + '</' + level + '>';
-            }
-            case 'text': return '<div class="pv-text">' + (d.html || '') + '</div>';
-            case 'image': return d.src
-                ? '<img src="' + esc(d.src) + '" alt="' + esc(d.alt) + '">'
-                : '<div class="pv-placeholder">Bild – in den Eigenschaften wählen</div>';
-            case 'gallery': {
-                const imgs = (d.images || []).filter((i) => i.src);
-                if (!imgs.length) return '<div class="pv-placeholder">Galerie – Bilder in den Eigenschaften hinzufügen</div>';
-                let html = '<div class="pv-thumbs">';
-                imgs.slice(0, 4).forEach((i) => { html += '<img src="' + esc(i.src) + '" alt="">'; });
-                if (imgs.length > 4) html += '<span class="pv-more">+' + (imgs.length - 4) + '</span>';
-                return html + '</div>';
-            }
-            case 'slider': {
-                const imgs = (d.images || []).filter((i) => i.src);
-                return imgs.length
-                    ? '<div class="pv-slide"><img src="' + esc(imgs[0].src) + '" alt=""><span class="pv-badge">Slider · ' + imgs.length + ' Slides</span></div>'
-                    : '<div class="pv-placeholder">Slider – Slides in den Eigenschaften hinzufügen</div>';
-            }
-            case 'hero': {
-                const slides = (d.slides || []);
-                if (!slides.length) return '<div class="pv-placeholder">Hero – Slides in den Eigenschaften hinzufügen</div>';
-                const first = slides[0];
-                return '<div class="pv-hero"' + (first.src ? ' style="background-image:url(\'' + esc(first.src) + '\')"' : '') + '>' +
-                    '<span>' + esc(first.title || 'Hero') + '</span>' +
-                    '<span class="pv-badge">volle Breite · ' + slides.length + ' Slide(s)</span></div>';
-            }
-            case 'button': return '<span class="pv-btn ' + (d.style === 'outline' || d.style === 'ghost' ? 'is-outline' : '') + '">' + esc(d.text) + '</span>';
-            case 'video': return d.url
-                ? '<div class="pv-placeholder">▶ Video: ' + esc(d.url.slice(0, 60)) + '</div>'
-                : '<div class="pv-placeholder">Video – URL in den Eigenschaften setzen</div>';
-            case 'quote': return '<blockquote class="pv-quote">' + esc((d.text || '…').slice(0, 100)) + (d.author ? '<br><small>— ' + esc(d.author) + '</small>' : '') + '</blockquote>';
-            case 'accordion': {
-                const items = d.items || [];
-                if (!items.length) return '<div class="pv-placeholder">Akkordeon – Abschnitte in den Eigenschaften hinzufügen</div>';
-                return '<div class="pv-list">' + items.map((i) => '<div>▸ ' + esc(i.title || 'Abschnitt') + '</div>').join('') + '</div>';
-            }
-            case 'news': return '<div class="pv-placeholder">❑ Zeigt die ' + (parseInt(d.count, 10) || 3) + ' neuesten News (' + esc(d.layout || 'cards') + ')</div>';
-            case 'events': return '<div class="pv-placeholder">◷ Zeigt die nächsten ' + (parseInt(d.count, 10) || 3) + ' Events (' + esc(d.layout || 'cards') + ')</div>';
-            case 'html': return '<code class="pv-code">' + esc((d.code || '').slice(0, 120)) + '</code>';
-            case 'divider': return '<hr>';
-            case 'spacer': return '<div class="pv-spacer">Abstand: ' + (parseInt(d.height, 10) || 0) + 'px</div>';
-            default: return '';
+    /* ---------- Serverseitige WYSIWYG-Vorschau ---------- */
+
+    const previewCache = new Map();
+    const keyOf = (block) => JSON.stringify([block.type, block.data]);
+    let previewQueue = new Map(); // key -> { block, els: [] }
+    let flushScheduled = false;
+
+    const EMPTY_HTML = '<div class="ed-empty-block">Leerer Block – Eigenschaften rechts ausfüllen</div>';
+
+    function setPreviewHtml(el, html) {
+        el.innerHTML = html !== '' ? html : EMPTY_HTML;
+    }
+
+    function queuePreview(block, el) {
+        const key = keyOf(block);
+        if (previewCache.has(key)) {
+            setPreviewHtml(el, previewCache.get(key));
+            return;
         }
+        if (!previewQueue.has(key)) {
+            previewQueue.set(key, { block: { type: block.type, data: block.data }, els: [] });
+        }
+        previewQueue.get(key).els.push(el);
+        if (!flushScheduled) {
+            flushScheduled = true;
+            setTimeout(flushPreviews, 10);
+        }
+    }
+
+    async function flushPreviews() {
+        flushScheduled = false;
+        if (!previewQueue.size) return;
+        const entries = Array.from(previewQueue.entries());
+        previewQueue = new Map();
+        try {
+            const res = await fetch(previewUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+                body: JSON.stringify({ blocks: entries.map(([, entry]) => entry.block) }),
+            });
+            const json = await res.json();
+            entries.forEach(([key, entry], i) => {
+                const html = (json.html && json.html[i]) || '';
+                previewCache.set(key, html);
+                if (previewCache.size > 400) previewCache.delete(previewCache.keys().next().value);
+                entry.els.forEach((el) => { if (el.isConnected) setPreviewHtml(el, html); });
+            });
+        } catch (err) {
+            entries.forEach(([, entry]) => entry.els.forEach((el) => {
+                if (el.isConnected) el.innerHTML = '<div class="ed-empty-block">Vorschau nicht verfügbar</div>';
+            }));
+        }
+    }
+
+    let liveTimer = null;
+    function scheduleLivePreview() {
+        clearTimeout(liveTimer);
+        liveTimer = setTimeout(() => {
+            const block = selectedBlock();
+            const el = canvas.querySelector('.ed-block.is-selected .ed-block-preview');
+            if (block && el) queuePreview(block, el);
+            if (selected && selected.kind === 'row') applyRowStyles();
+        }, 300);
     }
 
     /* ---------- Rendern ---------- */
@@ -309,12 +338,13 @@
         state.rows.forEach((row, r) => {
             const rowEl = document.createElement('div');
             rowEl.className = 'ed-row';
+            if (selected && selected.kind === 'row' && selected.r === r) rowEl.classList.add('is-selected');
             bindRowDropzone(rowEl, r);
 
             const bar = document.createElement('div');
             bar.className = 'ed-row-bar';
             bar.innerHTML =
-                '<span class="ed-row-label" draggable="true" title="Ziehen zum Verschieben">⠿ Zeile ' + (r + 1) + '</span>' +
+                '<span class="ed-row-label" draggable="true" title="Klicken für Zeilen-Einstellungen, Ziehen zum Verschieben">⠿ Zeile ' + (r + 1) + '</span>' +
                 '<span class="ed-row-tools">' +
                 '<button type="button" data-act="row-up" title="Nach oben">↑</button>' +
                 '<button type="button" data-act="row-down" title="Nach unten">↓</button>' +
@@ -323,7 +353,8 @@
                 '</span>';
             bar.addEventListener('click', (e) => {
                 const act = e.target.dataset && e.target.dataset.act;
-                if (act) rowAction(act, r);
+                if (act) { rowAction(act, r); return; }
+                if (e.target.closest('.ed-row-label')) selectRow(r);
             });
 
             const handle = bar.querySelector('.ed-row-label');
@@ -382,8 +413,23 @@
             });
 
             rowEl.appendChild(colsEl);
+            applyRowStyleTo(rowEl, row);
             canvas.appendChild(rowEl);
         });
+    }
+
+    function applyRowStyleTo(rowEl, row) {
+        const style = row.style || {};
+        const colsEl = rowEl.querySelector('.ed-cols');
+        colsEl.style.background = /^#/.test(style.bg || '') ? style.bg : '';
+        colsEl.style.paddingTop = (12 + (parseInt(style.pt, 10) || 0)) + 'px';
+        colsEl.style.paddingBottom = (12 + (parseInt(style.pb, 10) || 0)) + 'px';
+    }
+
+    function applyRowStyles() {
+        if (!selected || selected.kind !== 'row') return;
+        const rowEl = canvas.querySelectorAll('.ed-row')[selected.r];
+        if (rowEl) applyRowStyleTo(rowEl, state.rows[selected.r]);
     }
 
     function renderBlock(block, r, c, b) {
@@ -391,16 +437,23 @@
         const el = document.createElement('div');
         el.className = 'ed-block';
         el.draggable = true;
-        if (selected && selected.r === r && selected.c === c && selected.b === b) {
+        if (selected && selected.kind === 'block' && selected.r === r && selected.c === c && selected.b === b) {
             el.classList.add('is-selected');
         }
-        el.innerHTML =
-            '<div class="ed-block-head"><span class="ed-block-icon">' + def.icon + '</span>' + esc(def.label) + '</div>' +
-            '<div class="ed-block-preview">' + blockPreview(block) + '</div>';
+        const head = document.createElement('div');
+        head.className = 'ed-block-head';
+        head.innerHTML = '<span class="ed-block-icon">' + def.icon + '</span>' + esc(def.label);
+        const preview = document.createElement('div');
+        preview.className = 'ed-block-preview';
+        preview.innerHTML = '<div class="ed-loading">⋯</div>';
+        el.appendChild(head);
+        el.appendChild(preview);
+        queuePreview(block, preview);
 
         el.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
-            select(r, c, b);
+            selectBlock(r, c, b);
         });
         el.addEventListener('dragstart', (e) => {
             dragData = { kind: 'move', from: { r: r, c: c, b: b } };
@@ -419,19 +472,40 @@
 
     /* ---------- Auswahl & Inspektor ---------- */
 
-    function select(r, c, b) {
-        selected = { r: r, c: c, b: b };
-        render();
+    function selectBlock(r, c, b) {
+        selected = { kind: 'block', r: r, c: c, b: b };
+        refreshSelection();
         buildInspector();
+    }
+
+    function selectRow(r) {
+        selected = { kind: 'row', r: r };
+        refreshSelection();
+        buildInspector();
+    }
+
+    function refreshSelection() {
+        canvas.querySelectorAll('.ed-block.is-selected, .ed-row.is-selected').forEach((el) => el.classList.remove('is-selected'));
+        if (!selected) return;
+        const rowEl = canvas.querySelectorAll('.ed-row')[selected.r];
+        if (!rowEl) return;
+        if (selected.kind === 'row') {
+            rowEl.classList.add('is-selected');
+        } else {
+            const colEl = rowEl.querySelectorAll(':scope > .ed-cols > .ed-col')[selected.c];
+            const blockEl = colEl && colEl.querySelectorAll(':scope > .ed-blocks > .ed-block')[selected.b];
+            if (blockEl) blockEl.classList.add('is-selected');
+        }
     }
 
     function deselect() {
         selected = null;
-        inspectorBody.innerHTML = '<p class="muted small">Klicke auf einen Block, um ihn zu bearbeiten.</p>';
+        refreshSelection();
+        inspectorBody.innerHTML = '<p class="muted small">Klicke auf einen Block oder eine Zeilen-Leiste, um Einstellungen zu sehen.</p>';
     }
 
     function selectedBlock() {
-        if (!selected) return null;
+        if (!selected || selected.kind !== 'block') return null;
         const row = state.rows[selected.r];
         const col = row && row.columns[selected.c];
         return (col && col.blocks[selected.b]) || null;
@@ -471,6 +545,29 @@
             label.appendChild(cb);
             label.appendChild(document.createTextNode(' ' + field.label));
             return label;
+        } else if (field.type === 'colorclear') {
+            const wrap = document.createElement('div');
+            wrap.className = 'ed-color';
+            const input2 = document.createElement('input');
+            input2.type = 'color';
+            const isSet = /^#[0-9a-fA-F]{6}$/.test(value || '');
+            input2.value = isSet ? value : '#888888';
+            if (!isSet) wrap.classList.add('is-unset');
+            input2.addEventListener('input', () => {
+                wrap.classList.remove('is-unset');
+                onChange(input2.value);
+            });
+            const clear = document.createElement('button');
+            clear.type = 'button';
+            clear.textContent = '✕';
+            clear.title = 'Zurücksetzen (Standard)';
+            clear.addEventListener('click', () => {
+                wrap.classList.add('is-unset');
+                onChange('');
+            });
+            wrap.appendChild(input2);
+            wrap.appendChild(clear);
+            return wrap;
         } else if (field.type === 'image') {
             const wrap = document.createElement('div');
             wrap.className = 'ed-image-field';
@@ -509,12 +606,28 @@
             input.value = value != null ? value : '';
         }
         input.addEventListener('input', () => {
-            onChange(field.type === 'number' ? (parseInt(input.value, 10) || 0) : input.value);
+            onChange(field.type === 'number' ? (input.value === '' ? '' : (parseInt(input.value, 10) || 0)) : input.value);
         });
         return input;
     }
 
+    function addField(container, field, value, onChange) {
+        const wrap = document.createElement('div');
+        wrap.className = 'form-group';
+        if (field.type !== 'checkbox') {
+            const label = document.createElement('label');
+            label.textContent = field.label;
+            wrap.appendChild(label);
+        }
+        wrap.appendChild(fieldInput(field, value, onChange));
+        container.appendChild(wrap);
+    }
+
     function buildInspector() {
+        if (selected && selected.kind === 'row') {
+            buildRowInspector();
+            return;
+        }
         const block = selectedBlock();
         if (!block) { deselect(); return; }
         const def = blockDefs[block.type];
@@ -528,27 +641,33 @@
         if (def.items) buildItemsEditor(block, def.items);
 
         (def.fields || []).forEach((field) => {
-            const wrap = document.createElement('div');
-            wrap.className = 'form-group';
-            if (field.type !== 'checkbox') {
-                const label = document.createElement('label');
-                label.textContent = field.label;
-                wrap.appendChild(label);
-            }
-            wrap.appendChild(fieldInput(field, block.data[field.key], (v) => {
+            addField(inspectorBody, field, block.data[field.key], (v) => {
                 block.data[field.key] = v;
                 markDirty();
-                updateSelectedPreview();
-            }));
-            inspectorBody.appendChild(wrap);
+                scheduleLivePreview();
+            });
         });
 
-        if (!def.fields.length && !def.items) {
-            const note = document.createElement('p');
-            note.className = 'muted small';
-            note.textContent = 'Dieser Block hat keine Einstellungen.';
-            inspectorBody.appendChild(note);
+        // Gestaltung (Abstände & Farben) – für jeden Block, ohne CSS-Kenntnisse.
+        const styleDetails = document.createElement('details');
+        styleDetails.className = 'ed-style-details';
+        const summary = document.createElement('summary');
+        summary.textContent = 'Gestaltung (Abstände & Farben)';
+        styleDetails.appendChild(summary);
+        if (!block.data._style || typeof block.data._style !== 'object' || Array.isArray(block.data._style)) {
+            block.data._style = {};
         }
+        const styleObj = block.data._style;
+        STYLE_FIELDS.forEach((field) => {
+            addField(styleDetails, field, styleObj[field.key], (v) => {
+                if (v === '' || v === 0) delete styleObj[field.key];
+                else styleObj[field.key] = v;
+                markDirty();
+                scheduleLivePreview();
+            });
+        });
+        if (Object.keys(styleObj).length) styleDetails.open = true;
+        inspectorBody.appendChild(styleDetails);
 
         const del = document.createElement('button');
         del.type = 'button';
@@ -562,6 +681,38 @@
             render();
         });
         inspectorBody.appendChild(del);
+    }
+
+    function buildRowInspector() {
+        const row = state.rows[selected.r];
+        if (!row) { deselect(); return; }
+        inspectorBody.innerHTML = '';
+
+        const heading = document.createElement('div');
+        heading.className = 'ed-insp-type';
+        heading.textContent = 'Zeile ' + (selected.r + 1) + ' – Gestaltung';
+        inspectorBody.appendChild(heading);
+
+        if (!row.style || typeof row.style !== 'object' || Array.isArray(row.style)) row.style = {};
+        const style = row.style;
+
+        const note = document.createElement('p');
+        note.className = 'muted small';
+        note.textContent = 'Die Hintergrundfarbe wird auf der Website über die volle Browserbreite angezeigt (farbige Sektion).';
+        inspectorBody.appendChild(note);
+
+        [
+            { key: 'bg', label: 'Hintergrundfarbe (vollbreit)', type: 'colorclear' },
+            { key: 'pt', label: 'Innenabstand oben (px)', type: 'number' },
+            { key: 'pb', label: 'Innenabstand unten (px)', type: 'number' },
+        ].forEach((field) => {
+            addField(inspectorBody, field, style[field.key], (v) => {
+                if (v === '' || v === 0) delete style[field.key];
+                else style[field.key] = v;
+                markDirty();
+                applyRowStyles();
+            });
+        });
     }
 
     /** Editor für Element-Listen (Galerie-Bilder, Slides, Akkordeon-Abschnitte). */
@@ -604,17 +755,11 @@
                 itemEl.appendChild(head);
 
                 spec.fields.forEach((field) => {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'form-group';
-                    const label = document.createElement('label');
-                    label.textContent = field.label;
-                    wrap.appendChild(label);
-                    wrap.appendChild(fieldInput(field, item[field.key], (v) => {
+                    addField(itemEl, field, item[field.key], (v) => {
                         item[field.key] = v;
                         markDirty();
-                        updateSelectedPreview();
-                    }));
-                    itemEl.appendChild(wrap);
+                        scheduleLivePreview();
+                    });
                 });
                 list.appendChild(itemEl);
             });
@@ -622,7 +767,7 @@
 
         const changed = () => {
             markDirty();
-            updateSelectedPreview();
+            scheduleLivePreview();
             rebuild();
         };
 
@@ -632,33 +777,20 @@
         add.className = 'btn btn-small btn-block';
         add.textContent = '+ ' + spec.itemLabel + ' hinzufügen';
         add.addEventListener('click', () => {
-            if (hasImage) {
-                window.AdminTools.openMediaPicker((url) => {
-                    const item = {};
-                    spec.fields.forEach((f) => { item[f.key] = ''; });
-                    item[spec.fields.find((f) => f.type === 'image').key] = url;
-                    items().push(item);
-                    changed();
-                });
-            } else {
+            const pushItem = (url) => {
                 const item = {};
                 spec.fields.forEach((f) => { item[f.key] = ''; });
+                if (url) item[spec.fields.find((f) => f.type === 'image').key] = url;
                 items().push(item);
                 changed();
-            }
+            };
+            if (hasImage) window.AdminTools.openMediaPicker(pushItem);
+            else pushItem(null);
         });
         container.appendChild(add);
 
         rebuild();
         inspectorBody.appendChild(container);
-    }
-
-    // Nur die Vorschau des ausgewählten Blocks aktualisieren, damit die
-    // Eingabefelder im Inspektor den Fokus behalten.
-    function updateSelectedPreview() {
-        const block = selectedBlock();
-        const el = canvas.querySelector('.ed-block.is-selected .ed-block-preview');
-        if (block && el) el.innerHTML = blockPreview(block);
     }
 
     /* ---------- Zeilen & Spalten ---------- */
@@ -866,6 +998,21 @@
         presetBar.appendChild(btn);
     });
 
+    /* ---------- Eigenes CSS (nur diese Seite) ---------- */
+
+    cssInput.value = state.css || '';
+    pageCssTag.textContent = state.css || '';
+    cssBtn.addEventListener('click', () => {
+        cssPanel.hidden = !cssPanel.hidden;
+        cssBtn.classList.toggle('is-active', !cssPanel.hidden);
+        if (!cssPanel.hidden) cssInput.focus();
+    });
+    cssInput.addEventListener('input', () => {
+        state.css = cssInput.value;
+        pageCssTag.textContent = state.css;
+        markDirty();
+    });
+
     /* ---------- Speichern ---------- */
 
     async function save() {
@@ -905,7 +1052,9 @@
             e.returnValue = '';
         }
     });
-    canvas.addEventListener('click', deselect);
+    canvas.addEventListener('click', (e) => {
+        if (e.target === canvas) deselect();
+    });
 
     render();
 })();

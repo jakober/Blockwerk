@@ -16,12 +16,14 @@
     --cms-surface: #f1f5f9;
 }
 
-body {
+/* :where() hält die Spezifität bei 0, damit der Admin-Editor (der diese
+   Datei für die WYSIWYG-Vorschau lädt) sein eigenes Body-Styling behält. */
+:where(body) {
     background: var(--cms-bg);
     color: var(--cms-text);
     font-family: var(--cms-font-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
 }
-h1, h2, h3, h4, h5, h6 {
+:where(h1, h2, h3, h4, h5, h6) {
     font-family: var(--cms-font-heading, inherit);
 }
 
@@ -43,6 +45,22 @@ h1, h2, h3, h4, h5, h6 {
     width: 100vw;
     margin-left: calc(50% - 50vw);
 }
+
+/* Zeile mit vollbreiter Hintergrundfarbe (aus den Zeilen-Einstellungen) */
+.cms-section {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-bottom: 28px;
+}
+.cms-section > .cms-row {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Wrapper für Block-Gestaltung (Abstände/Farben ohne CSS) */
+.cms-block { min-width: 0; }
 
 /* ===== Überschrift ===== */
 .cms-heading { margin: 0 0 .5em; letter-spacing: -.3px; }

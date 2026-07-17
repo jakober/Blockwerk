@@ -62,15 +62,22 @@ class PageController extends AdminController
     {
         $page = Page::find((int) $id) ?? $this->abort();
         $content = json_decode((string) ($page['content'] ?? ''), true);
-        if (!is_array($content) || !is_array($content['rows'] ?? null)) {
-            $content = ['rows' => []];
+        if (!is_array($content)) {
+            $content = [];
         }
+        if (!is_array($content['rows'] ?? null)) {
+            $content['rows'] = [];
+        }
+
+        $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
+        $layout ??= Layout::first();
 
         $this->view('admin/pages/editor', [
             'title' => 'Inhalt: ' . $page['title'],
             'active' => 'pages',
             'page' => $page,
             'contentJson' => json_encode($content, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE),
+            'designHead' => (new \Core\Renderer())->designHead($layout),
             'bodyClass' => 'is-editor',
         ]);
     }
@@ -119,7 +126,7 @@ class PageController extends AdminController
                     $blocks[] = [
                         'id' => substr((string) ($block['id'] ?? uniqid('b-')), 0, 40),
                         'type' => $block['type'],
-                        'data' => $this->sanitizeBlockData((array) ($block['data'] ?? [])),
+                        'data' => BlockRegistry::sanitizeData((array) ($block['data'] ?? [])),
                     ];
                 }
                 $columns[] = [
@@ -129,42 +136,26 @@ class PageController extends AdminController
                 ];
             }
             if ($columns !== []) {
-                $rows[] = [
+                $rowOut = [
                     'id' => substr((string) ($row['id'] ?? uniqid('row-')), 0, 40),
                     'columns' => $columns,
                 ];
+                $rowStyle = [];
+                foreach ((array) ($row['style'] ?? []) as $styleKey => $styleValue) {
+                    if (is_scalar($styleValue)) {
+                        $rowStyle[(string) $styleKey] = is_bool($styleValue) ? (int) $styleValue : $styleValue;
+                    }
+                }
+                if ($rowStyle !== []) {
+                    $rowOut['style'] = $rowStyle;
+                }
+                $rows[] = $rowOut;
             }
         }
-        return ['rows' => $rows];
-    }
 
-    /**
-     * Block-Daten: Skalare Werte plus Element-Listen (z. B. Galerie-Bilder,
-     * Hero-Slides, Akkordeon-Abschnitte) als Arrays von Objekten mit
-     * skalaren Werten – tiefere Verschachtelung wird verworfen.
-     */
-    private function sanitizeBlockData(array $data): array
-    {
-        $clean = [];
-        foreach ($data as $key => $value) {
-            if (is_scalar($value)) {
-                $clean[(string) $key] = is_bool($value) ? (int) $value : $value;
-            } elseif (is_array($value)) {
-                $items = [];
-                foreach ($value as $item) {
-                    if (!is_array($item)) {
-                        continue;
-                    }
-                    $itemClean = [];
-                    foreach ($item as $itemKey => $itemValue) {
-                        if (is_scalar($itemValue)) {
-                            $itemClean[(string) $itemKey] = is_bool($itemValue) ? (int) $itemValue : $itemValue;
-                        }
-                    }
-                    $items[] = $itemClean;
-                }
-                $clean[(string) $key] = $items;
-            }
+        $clean = ['rows' => $rows];
+        if (is_string($data['css'] ?? null) && trim($data['css']) !== '') {
+            $clean['css'] = substr($data['css'], 0, 100000);
         }
         return $clean;
     }

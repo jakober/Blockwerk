@@ -36,7 +36,13 @@ class Renderer
     {
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
         $layout ??= Layout::first();
-        return $this->renderWithLayout($layout, (string) $page['title'], $this->renderContent($page['content'] ?? null));
+
+        $data = json_decode((string) ($page['content'] ?? ''), true);
+        $extraHead = '';
+        if (is_array($data) && is_string($data['css'] ?? null) && trim($data['css']) !== '') {
+            $extraHead = '<style id="cms-page-css">' . $data['css'] . '</style>' . "\n";
+        }
+        return $this->renderWithLayout($layout, (string) $page['title'], $this->renderContentData($data), $extraHead);
     }
 
     /** Detailseite für News/Events – nutzt das erste Layout. */
@@ -75,7 +81,7 @@ class Renderer
         return $this->renderWithLayout(Layout::first(), (string) $post['title'], $html);
     }
 
-    private function renderWithLayout(?array $layout, string $title, string $contentHtml): string
+    private function renderWithLayout(?array $layout, string $title, string $contentHtml, string $extraHead = ''): string
     {
         $layoutHtml = $layout['html'] ?? "<!doctype html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><title>{{title}}</title></head><body>{{content}}</body></html>";
 
@@ -84,12 +90,16 @@ class Renderer
             'title' => $title,
         ]);
 
-        return $this->injectAssets($html, $layout);
+        return $this->injectAssets($html, $layout, $extraHead);
     }
 
     public function renderContent(?string $json): string
     {
-        $data = json_decode((string) $json, true);
+        return $this->renderContentData(json_decode((string) $json, true));
+    }
+
+    private function renderContentData(mixed $data): string
+    {
         if (!is_array($data) || !is_array($data['rows'] ?? null)) {
             return '';
         }
@@ -99,31 +109,44 @@ class Renderer
             if (!is_array($row['columns'] ?? null)) {
                 continue;
             }
-            $html .= '<div class="cms-row">';
+            $inner = '';
             foreach ($row['columns'] as $column) {
                 $span = min(12, max(1, (int) ($column['span'] ?? 12)));
-                $html .= '<div class="cms-col" style="--span:' . $span . '">';
+                $inner .= '<div class="cms-col" style="--span:' . $span . '">';
                 foreach (($column['blocks'] ?? []) as $block) {
                     if (is_array($block)) {
-                        $html .= BlockRegistry::render($block);
+                        $inner .= BlockRegistry::render($block);
                     }
                 }
-                $html .= '</div>';
+                $inner .= '</div>';
             }
-            $html .= '</div>';
+
+            // Zeilen-Gestaltung: vollbreite Hintergrundfarbe und Innenabstände.
+            $style = is_array($row['style'] ?? null) ? $row['style'] : [];
+            $bg = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($style['bg'] ?? '')) ? strtolower((string) $style['bg']) : '';
+            $pt = min(400, max(0, (int) ($style['pt'] ?? 0)));
+            $pb = min(400, max(0, (int) ($style['pb'] ?? 0)));
+            $padding = ($pt ? 'padding-top:' . $pt . 'px;' : '') . ($pb ? 'padding-bottom:' . $pb . 'px;' : '');
+
+            if ($bg !== '') {
+                $html .= '<div class="cms-section" style="background:' . $bg . ';' . $padding . '">'
+                    . '<div class="cms-row">' . $inner . '</div></div>';
+            } else {
+                $html .= '<div class="cms-row"' . ($padding !== '' ? ' style="' . $padding . '"' : '') . '>' . $inner . '</div>';
+            }
         }
         return $html;
     }
 
     /* ---------- Design (Farben & Schriften) + Block-Assets ---------- */
 
-    private function injectAssets(string $html, ?array $layout): string
+    private function injectAssets(string $html, ?array $layout, string $extraHead = ''): string
     {
         $head = '';
         if (stripos($html, 'cms-blocks.css') === false) {
             $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css">' . "\n";
         }
-        $head .= $this->designStyles($layout);
+        $head .= $this->designHead($layout) . $extraHead;
 
         if ($head !== '' && ($pos = stripos($html, '</head>')) !== false) {
             $html = substr_replace($html, $head, $pos, 0);
@@ -140,7 +163,8 @@ class Renderer
         return $html;
     }
 
-    private function designStyles(?array $layout): string
+    /** Font-Links, CSS-Variablen und optionales Layout-CSS für den <head>. */
+    public function designHead(?array $layout): string
     {
         $design = json_decode((string) ($layout['design'] ?? ''), true);
         if (!is_array($design)) {
@@ -173,6 +197,9 @@ class Renderer
                 $css .= $name . ':' . $value . ';';
             }
             $out .= '<style id="cms-design">' . $css . '}</style>' . "\n";
+        }
+        if (is_string($design['css'] ?? null) && trim($design['css']) !== '') {
+            $out .= '<style id="cms-layout-css">' . $design['css'] . '</style>' . "\n";
         }
         return $out;
     }

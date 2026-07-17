@@ -76,6 +76,9 @@ class LayoutController extends AdminController
                 $design['fonts'][$key] = $id;
             }
         }
+        if (is_string($input['css'] ?? null) && trim($input['css']) !== '') {
+            $design['css'] = substr($input['css'], 0, 100000);
+        }
         return json_encode($design, JSON_UNESCAPED_UNICODE) ?: null;
     }
 

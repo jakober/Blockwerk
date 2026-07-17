@@ -63,6 +63,10 @@ $colorDefaults = [
                 <?php if (empty($fonts)): ?>
                     <p class="muted small">Noch keine Schriften installiert – unter <a href="<?= e(url('/admin/fonts')) ?>">Schriften</a> kannst du Google Fonts herunterladen und lokal einbinden.</p>
                 <?php endif; ?>
+                <div class="form-group" style="margin-top:16px">
+                    <label for="design-css">Eigenes CSS (optional – wird auf allen Seiten mit diesem Layout geladen)</label>
+                    <textarea id="design-css" name="design[css]" class="code" rows="8" spellcheck="false" placeholder="/* z. B. .cms-heading { text-transform: uppercase; } */"><?= e($design['css'] ?? '') ?></textarea>
+                </div>
             </div>
 
             <div class="form-actions">

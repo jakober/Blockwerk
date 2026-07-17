@@ -8,6 +8,7 @@ $nav = [
     'layouts' => ['Layouts', '/admin/layouts', '▦'],
     'templates' => ['Templates', '/admin/templates', '⧉'],
     'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
+    'update' => ['Updates', '/admin/update', '⟳'],
     'settings' => ['Einstellungen', '/admin/settings', '⚙'],
 ];
 ?>

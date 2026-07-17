@@ -7,6 +7,12 @@ use Core\Themes;
 
 class ThemeController extends AdminController
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $this->requireAdmin();
+    }
+
     public function index(): void
     {
         $this->view('admin/themes/index', [

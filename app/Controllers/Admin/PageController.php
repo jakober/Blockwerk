@@ -46,16 +46,84 @@ class PageController extends AdminController
     public function update(string $id): void
     {
         $page = Page::find((int) $id) ?? $this->abort();
-        Page::update((int) $page['id'], $this->validated((int) $page['id']));
+        $data = $this->validated((int) $page['id']);
+        Page::update((int) $page['id'], $data);
+
+        // Slug geändert? Automatische 301-Weiterleitung von der alten Adresse.
+        $newPage = Page::find((int) $page['id']);
+        if ($newPage !== null && $newPage['slug'] !== $page['slug'] && !(int) $page['is_global']) {
+            \Models\Redirect::set($page['slug'], $newPage['slug']);
+        }
+
         flash('success', 'Seite gespeichert.');
         redirect('/admin/pages');
     }
 
     public function delete(string $id): void
     {
-        Page::delete((int) $id);
-        flash('success', 'Seite gelöscht.');
-        redirect('/admin/pages');
+        $page = Page::find((int) $id);
+        Page::softDelete((int) $id);
+        flash('success', 'In den Papierkorb verschoben. Wiederherstellen unter Seiten → Papierkorb.');
+        redirect(!empty($page['is_global']) ? '/admin/globals' : '/admin/pages');
+    }
+
+    public function trash(): void
+    {
+        $this->view('admin/pages/trash', [
+            'title' => 'Papierkorb',
+            'active' => 'pages',
+            'pages' => Page::trashed(),
+        ]);
+    }
+
+    public function restore(string $id): void
+    {
+        Page::restore((int) $id);
+        flash('success', 'Seite wiederhergestellt.');
+        redirect('/admin/pages/trash');
+    }
+
+    public function destroy(string $id): void
+    {
+        Page::destroy((int) $id);
+        flash('success', 'Seite endgültig gelöscht.');
+        redirect('/admin/pages/trash');
+    }
+
+    public function duplicate(string $id): void
+    {
+        $newId = Page::duplicate((int) $id);
+        if ($newId === null) {
+            $this->abort();
+        }
+        flash('success', 'Seite dupliziert (als Entwurf). Du bearbeitest jetzt die Kopie.');
+        redirect('/admin/pages/' . $newId . '/edit');
+    }
+
+    public function versions(string $id): void
+    {
+        $page = Page::find((int) $id) ?? $this->abort();
+        $this->view('admin/pages/versions', [
+            'title' => 'Versionen: ' . $page['title'],
+            'active' => 'pages',
+            'page' => $page,
+            'versions' => \Models\PageVersion::forPage((int) $page['id']),
+        ]);
+    }
+
+    public function restoreVersion(string $id, string $vid): void
+    {
+        $page = Page::find((int) $id) ?? $this->abort();
+        $version = \Models\PageVersion::find((int) $vid);
+        if ($version === null || (int) $version['page_id'] !== (int) $page['id']) {
+            flash('error', 'Version nicht gefunden.');
+            redirect('/admin/pages/' . $page['id'] . '/versions');
+        }
+        // Aktuellen Stand sichern, dann alte Version zurückholen.
+        \Models\PageVersion::add((int) $page['id'], (string) $page['title'], $page['content'], $_SESSION['username'] ?? null);
+        Page::saveContent((int) $page['id'], (string) ($version['content'] ?? '{"rows":[]}'));
+        flash('success', 'Version vom ' . format_date_de($version['created_at'], true) . ' wiederhergestellt.');
+        redirect('/admin/pages/' . $page['id'] . '/editor');
     }
 
     public function editor(string $id): void
@@ -74,10 +142,14 @@ class PageController extends AdminController
 
         $this->view('admin/pages/editor', [
             'title' => 'Inhalt: ' . $page['title'],
-            'active' => 'pages',
+            'active' => !empty($page['is_global']) ? 'globals' : 'pages',
             'page' => $page,
             'contentJson' => json_encode($content, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE),
             'designHead' => (new \Core\Renderer())->designHead($layout),
+            'globalBlocks' => array_map(
+                static fn (array $g): array => [(string) $g['id'], $g['title']],
+                Page::globals()
+            ),
             'bodyClass' => 'is-editor',
         ]);
     }
@@ -100,8 +172,12 @@ class PageController extends AdminController
             return;
         }
 
+        // Alten Stand als Version sichern (Versionsverlauf).
+        \Models\PageVersion::add((int) $page['id'], (string) $page['title'], $page['content'], $_SESSION['username'] ?? null);
+
         $clean = $this->sanitizeContent($data);
         Page::saveContent((int) $page['id'], json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{"rows":[]}');
+        \Core\Cache::clear();
         echo json_encode(['ok' => true]);
     }
 
@@ -194,6 +270,7 @@ class PageController extends AdminController
             'meta_title' => trim($_POST['meta_title'] ?? '') ?: null,
             'meta_description' => trim($_POST['meta_description'] ?? '') ?: null,
             'noindex' => isset($_POST['noindex']) ? 1 : 0,
+            'lang' => in_array($_POST['lang'] ?? '', cms_langs(), true) ? $_POST['lang'] : cms_default_lang(),
         ];
     }
 

@@ -1,5 +1,6 @@
-<div class="page-actions">
+<div class="page-actions" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
     <a class="btn btn-primary" href="<?= e(url('/admin/pages/new')) ?>">+ Neue Seite</a>
+    <a class="btn btn-ghost" href="<?= e(url('/admin/pages/trash')) ?>">🗑 Papierkorb</a>
 </div>
 
 <div class="card">
@@ -31,7 +32,11 @@
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url('/admin/pages/' . $page['id'] . '/editor')) ?>">Inhalt</a>
                             <a class="btn btn-small btn-ghost" href="<?= e(url('/admin/pages/' . $page['id'] . '/edit')) ?>">Eigenschaften</a>
-                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Seite „<?= e($page['title']) ?>“ wirklich löschen?')">
+                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/duplicate')) ?>" class="inline">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-small btn-ghost" title="Seite als Entwurf duplizieren">⧉</button>
+                            </form>
+                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Seite „<?= e($page['title']) ?>“ in den Papierkorb verschieben?')">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

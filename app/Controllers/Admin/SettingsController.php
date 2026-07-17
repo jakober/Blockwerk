@@ -9,6 +9,12 @@ use Models\Setting;
 
 class SettingsController extends AdminController
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $this->requireAdmin();
+    }
+
     public function index(): void
     {
         $this->view('admin/settings', [
@@ -43,6 +49,16 @@ class SettingsController extends AdminController
         if ($contactEmail === '' || filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
             Setting::set('contact_email', $contactEmail);
         }
+
+        // Sprachen (z. B. "de,en") – nur gültige zweibuchstabige Codes.
+        $langs = array_values(array_unique(array_filter(array_map(
+            static fn (string $l): string => strtolower(trim($l)),
+            explode(',', $_POST['languages'] ?? 'de')
+        ), static fn (string $l): bool => preg_match('/^[a-z]{2}$/', $l) === 1)));
+        Setting::set('languages', $langs !== [] ? implode(',', $langs) : 'de');
+
+        Setting::set('cache_enabled', isset($_POST['cache_enabled']) ? '1' : '0');
+        \Core\Cache::clear();
 
         $this->saveMailSettings();
 

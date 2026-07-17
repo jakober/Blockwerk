@@ -18,4 +18,13 @@ abstract class AdminController
         $data['flash'] ??= flash();
         View::render($template, $data, 'admin/_shell');
     }
+
+    /** Nur für Administratoren – Redakteure werden zum Dashboard umgeleitet. */
+    protected function requireAdmin(): void
+    {
+        if (!Auth::isAdmin()) {
+            flash('error', 'Dafür brauchst du Administrator-Rechte.');
+            redirect('/admin');
+        }
+    }
 }

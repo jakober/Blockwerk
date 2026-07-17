@@ -47,6 +47,19 @@ $action = $isEdit ? '/admin/pages/' . $page['id'] : '/admin/pages';
                 <input type="number" id="menu_order" name="menu_order" value="<?= (int) ($page['menu_order'] ?? 0) ?>">
             </div>
         </div>
+        <?php if (count(cms_langs()) > 1): ?>
+            <div class="form-group">
+                <label for="lang">Sprache</label>
+                <select id="lang" name="lang">
+                    <?php foreach (cms_langs() as $langCode): ?>
+                        <option value="<?= e($langCode) ?>" <?= ($page['lang'] ?? cms_default_lang()) === $langCode ? 'selected' : '' ?>>
+                            <?= e(strtoupper($langCode)) ?><?= $langCode === cms_default_lang() ? ' (Standard)' : '' ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="muted small">Seiten in anderen Sprachen sind unter /<?= e(implode('/… bzw. /', array_slice(cms_langs(), 1))) ?>/… erreichbar; das Menü zeigt nur Seiten der jeweiligen Sprache. Sprachumschalter: <code>{{languages}}</code> im Layout.</p>
+            </div>
+        <?php endif; ?>
         <details class="seo-details" <?= !empty($page['meta_title']) || !empty($page['meta_description']) || !empty($page['noindex']) ? 'open' : '' ?>>
             <summary>SEO (Suchmaschinen-Einstellungen)</summary>
             <div class="form-group">

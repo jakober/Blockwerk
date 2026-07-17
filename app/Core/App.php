@@ -51,10 +51,39 @@ class App
 
         if ($method === 'POST') {
             csrf_check();
+            // Inhaltsänderungen im Admin leeren den Seiten-Cache.
+            if ($installed && str_starts_with($path, '/admin')) {
+                Cache::clear();
+            }
         }
 
         $router = new Router();
-        $this->registerRoutes($router);
+        $this->registerRoutes($router, $installed);
+
+        // Seiten-Cache: nur anonyme GET-Anfragen ohne Query-String.
+        $cacheable = $installed && $method === 'GET'
+            && !str_starts_with($path, '/admin') && $path !== '/login'
+            && empty($_SESSION['user_id'])
+            && ($_SERVER['QUERY_STRING'] ?? '') === ''
+            && Cache::enabled();
+
+        if ($cacheable) {
+            $cached = Cache::get($path);
+            if ($cached !== null) {
+                echo $cached;
+                return;
+            }
+            ob_start();
+            $router->dispatch($method, $path);
+            $html = (string) ob_get_clean();
+            // Seiten mit Formularen (Session-CSRF-Token) nie cachen.
+            if (http_response_code() === 200 && !str_contains($html, 'name="_csrf"')) {
+                Cache::put($path, $html);
+            }
+            echo $html;
+            return;
+        }
+
         $router->dispatch($method, $path);
     }
 
@@ -68,7 +97,7 @@ class App
         self::$base = $base;
     }
 
-    private function registerRoutes(Router $router): void
+    private function registerRoutes(Router $router, bool $installed = true): void
     {
         // Installation
         $router->add('GET', '/install', [InstallController::class, 'index']);
@@ -92,6 +121,20 @@ class App
         $router->add('POST', '/admin/pages/{id}/delete', [PageController::class, 'delete']);
         $router->add('GET', '/admin/pages/{id}/editor', [PageController::class, 'editor']);
         $router->add('POST', '/admin/pages/{id}/content', [PageController::class, 'saveContent']);
+        $router->add('GET', '/admin/pages/trash', [PageController::class, 'trash']);
+        $router->add('POST', '/admin/pages/{id}/restore', [PageController::class, 'restore']);
+        $router->add('POST', '/admin/pages/{id}/destroy', [PageController::class, 'destroy']);
+        $router->add('POST', '/admin/pages/{id}/duplicate', [PageController::class, 'duplicate']);
+        $router->add('GET', '/admin/pages/{id}/versions', [PageController::class, 'versions']);
+        $router->add('POST', '/admin/pages/{id}/versions/{vid}/restore', [PageController::class, 'restoreVersion']);
+
+        $router->add('GET', '/admin/forms', [\Controllers\Admin\FormEntriesController::class, 'index']);
+        $router->add('POST', '/admin/forms/{id}/delete', [\Controllers\Admin\FormEntriesController::class, 'delete']);
+
+        $router->add('GET', '/admin/globals', [\Controllers\Admin\GlobalBlockController::class, 'index']);
+        $router->add('POST', '/admin/globals', [\Controllers\Admin\GlobalBlockController::class, 'store']);
+
+        $router->add('POST', '/admin/backup', [\Controllers\Admin\BackupController::class, 'download']);
 
         $router->add('GET', '/admin/themes', [\Controllers\Admin\ThemeController::class, 'index']);
         $router->add('POST', '/admin/themes/{key}/apply', [\Controllers\Admin\ThemeController::class, 'apply']);
@@ -146,8 +189,19 @@ class App
 
         // Öffentliche Seiten (Catch-all zuletzt)
         $router->add('POST', '/form/submit', [SiteController::class, 'formSubmit']);
+        $router->add('GET', '/sitemap.xml', [SiteController::class, 'sitemap']);
+        $router->add('GET', '/suche', [SiteController::class, 'search']);
         $router->add('GET', '/news/{slug}', [SiteController::class, 'newsShow']);
         $router->add('GET', '/events/{slug}', [SiteController::class, 'eventShow']);
+
+        // Sprach-Präfixe für alle Nicht-Standardsprachen (z. B. /en, /en/about)
+        if ($installed) {
+            foreach (array_slice(cms_langs(), 1) as $lang) {
+                $router->add('GET', '/' . $lang, [SiteController::class, 'homeLang'], [$lang]);
+                $router->add('GET', '/' . $lang . '/{slug}', [SiteController::class, 'showLang'], [$lang]);
+            }
+        }
+
         $router->add('GET', '/', [SiteController::class, 'home']);
         $router->add('GET', '/{slug}', [SiteController::class, 'show']);
     }

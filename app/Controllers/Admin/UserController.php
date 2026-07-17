@@ -9,6 +9,7 @@ class UserController extends AdminController
 {
     public function index(): void
     {
+        $this->requireAdmin();
         $this->view('admin/users/index', [
             'title' => 'Benutzer',
             'active' => 'users',
@@ -19,17 +20,23 @@ class UserController extends AdminController
 
     public function create(): void
     {
+        $this->requireAdmin();
         $this->form(null);
     }
 
     public function edit(string $id): void
     {
+        // Redakteure dürfen nur das eigene Profil bearbeiten.
+        if (!\Core\Auth::isAdmin() && (int) $id !== (int) ($_SESSION['user_id'] ?? 0)) {
+            $this->requireAdmin();
+        }
         $user = User::find((int) $id) ?? $this->abort();
         $this->form($user);
     }
 
     public function store(): void
     {
+        $this->requireAdmin();
         $username = $this->validUsername('/admin/users/new');
         $password = $this->validPassword('/admin/users/new', required: true);
         if (User::findByUsername($username) !== null) {
@@ -37,12 +44,16 @@ class UserController extends AdminController
             redirect('/admin/users/new');
         }
         User::createUser($username, $password);
+        $this->applyRole((int) \Core\Database::pdo()->lastInsertId() ?: 0, $username);
         flash('success', 'Benutzer "' . $username . '" angelegt.');
         redirect('/admin/users');
     }
 
     public function update(string $id): void
     {
+        if (!\Core\Auth::isAdmin() && (int) $id !== (int) ($_SESSION['user_id'] ?? 0)) {
+            $this->requireAdmin();
+        }
         $user = User::find((int) $id) ?? $this->abort();
         $back = '/admin/users/' . $user['id'] . '/edit';
 
@@ -60,16 +71,40 @@ class UserController extends AdminController
             User::updatePassword((int) $user['id'], $password);
         }
 
+        $this->applyRole((int) $user['id'], $username);
+
         if ((int) $user['id'] === (int) ($_SESSION['user_id'] ?? 0)) {
             $_SESSION['username'] = $username;
         }
 
         flash('success', 'Benutzer gespeichert.' . ($password !== null ? ' Das neue Passwort gilt ab der nächsten Anmeldung.' : ''));
-        redirect('/admin/users');
+        redirect(\Core\Auth::isAdmin() ? '/admin/users' : '/admin');
+    }
+
+    /** Rolle setzen – nur durch Admins, nie für das eigene Konto, nie den letzten Admin entfernen. */
+    private function applyRole(int $userId, string $username): void
+    {
+        if (!\Core\Auth::isAdmin() || !isset($_POST['role']) || $userId <= 0) {
+            return;
+        }
+        $role = $_POST['role'] === 'editor' ? 'editor' : 'admin';
+        if ($userId === (int) ($_SESSION['user_id'] ?? 0)) {
+            return; // Eigene Rolle nicht ändern (Aussperr-Schutz).
+        }
+        if ($role === 'editor') {
+            $admins = (int) \Core\Database::pdo()
+                ->query("SELECT COUNT(*) FROM users WHERE role = 'admin' AND id != " . $userId)->fetchColumn();
+            if ($admins < 1) {
+                flash('error', 'Der letzte Administrator kann nicht zum Redakteur gemacht werden.');
+                return;
+            }
+        }
+        \Core\Database::pdo()->prepare('UPDATE users SET role = ? WHERE id = ?')->execute([$role, $userId]);
     }
 
     public function delete(string $id): void
     {
+        $this->requireAdmin();
         $user = User::find((int) $id) ?? $this->abort();
         if ((int) $user['id'] === (int) ($_SESSION['user_id'] ?? 0)) {
             flash('error', 'Du kannst dein eigenes Konto nicht löschen.');

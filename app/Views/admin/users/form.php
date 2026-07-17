@@ -19,6 +19,15 @@ $action = $isEdit ? '/admin/users/' . $user['id'] : '/admin/users';
                 <input type="password" id="password_repeat" name="password_repeat" minlength="8" <?= $isEdit ? '' : 'required' ?> autocomplete="new-password">
             </div>
         </div>
+        <?php if (\Core\Auth::isAdmin() && empty($isSelf)): ?>
+            <div class="form-group">
+                <label for="role">Rolle</label>
+                <select id="role" name="role">
+                    <option value="admin" <?= ($user['role'] ?? 'admin') === 'admin' ? 'selected' : '' ?>>Administrator (voller Zugriff)</option>
+                    <option value="editor" <?= ($user['role'] ?? '') === 'editor' ? 'selected' : '' ?>>Redakteur (nur Inhalte: Seiten, News, Events, Formulare, Medien, globale Blöcke)</option>
+                </select>
+            </div>
+        <?php endif; ?>
         <?php if (!empty($isSelf)): ?>
             <p class="muted small">Das ist dein eigenes Konto – nach einer Passwort-Änderung meldest du dich beim nächsten Mal mit dem neuen Passwort an, die aktuelle Sitzung bleibt bestehen.</p>
         <?php endif; ?>

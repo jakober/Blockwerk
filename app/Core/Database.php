@@ -114,6 +114,31 @@ class Database
                 folder VARCHAR(120) NOT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS page_versions (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                page_id INT UNSIGNED NOT NULL,
+                title VARCHAR(200) NOT NULL,
+                content MEDIUMTEXT NULL,
+                username VARCHAR(64) NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_page (page_id, created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS form_entries (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                page_title VARCHAR(200) NULL,
+                data TEXT NOT NULL,
+                is_read TINYINT(1) NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS redirects (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                from_slug VARCHAR(200) NOT NULL UNIQUE,
+                to_slug VARCHAR(200) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
         ];
 
         foreach ($statements as $sql) {
@@ -133,6 +158,10 @@ class Database
         self::ensureColumn($pdo, 'pages', 'meta_title', 'VARCHAR(200) NULL');
         self::ensureColumn($pdo, 'pages', 'meta_description', 'TEXT NULL');
         self::ensureColumn($pdo, 'pages', 'noindex', 'TINYINT(1) NOT NULL DEFAULT 0');
+        self::ensureColumn($pdo, 'pages', 'deleted_at', 'DATETIME NULL');
+        self::ensureColumn($pdo, 'pages', 'lang', "VARCHAR(5) NOT NULL DEFAULT 'de'");
+        self::ensureColumn($pdo, 'pages', 'is_global', 'TINYINT(1) NOT NULL DEFAULT 0');
+        self::ensureColumn($pdo, 'users', 'role', "VARCHAR(20) NOT NULL DEFAULT 'admin'");
     }
 
     private static function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void

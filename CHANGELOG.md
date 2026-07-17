@@ -2,6 +2,23 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.8.0 – 2026-07-17
+
+Das große Komfort- und Sicherheits-Update:
+
+- **Papierkorb:** Gelöschte Seiten landen im Papierkorb (Seiten → Papierkorb) und lassen sich wiederherstellen oder endgültig löschen.
+- **Versionsverlauf:** Jedes Speichern im Editor sichert den vorherigen Stand (letzte 20 Versionen, „Versionen“-Knopf im Editor); Wiederherstellen mit einem Klick – der aktuelle Stand wird dabei ebenfalls gesichert.
+- **Backup mit einem Klick:** Komplette Sicherung (Datenbank-Dump, Uploads, Konfiguration, Wiederherstellungs-Anleitung) als ZIP – auf der Updates-Seite.
+- **Formular-Baukasten & Posteingang:** Kontaktformulare können eigene Felder bekommen (Textzeile, Textbereich, Auswahlliste, Checkbox, Pflichtfeld-Option). Alle Einsendungen werden zusätzlich zur E-Mail im neuen Bereich „Formulare“ gespeichert.
+- **Sitemap & Weiterleitungen:** Automatische `/sitemap.xml` (Seiten, News, Events); bei Slug-Änderungen entsteht automatisch eine 301-Weiterleitung von der alten Adresse.
+- **Website-Suche:** Neuer Block „Suchfeld“ und Ergebnisseite unter `/suche` – durchsucht Seiten, News und Events.
+- **Globale Blöcke:** Wiederverwendbare Inhaltsbereiche, gepflegt mit dem normalen Editor, einsetzbar über den Block „Globaler Block“ – eine Änderung wirkt überall.
+- **Seiten duplizieren:** Kopier-Knopf in der Seitenliste (Kopie als Entwurf).
+- **Rollen:** Neben Administratoren gibt es jetzt Redakteure – sie sehen nur Inhalte (Seiten, News, Events, Formulare, Medien, globale Blöcke) und kommen nicht an Layouts, Designs, Benutzer, Updates oder Einstellungen.
+- **Seiten-Cache:** Zuschaltbar in den Einstellungen – fertige Seiten werden zwischengespeichert (deutlich schneller); jede Änderung im Admin leert den Cache automatisch, Seiten mit Formularen sind ausgenommen.
+- **Mehrsprachigkeit:** Sprachen in den Einstellungen festlegen (z. B. `de,en`); jede Seite bekommt eine Sprache, weitere Sprachen sind unter `/en/…` erreichbar, das Menü zeigt nur die passende Sprache, Sprachumschalter per `{{languages}}`.
+- **Neue Blöcke:** Karte (OpenStreetMap), Team-Mitglieder, Preistabelle (mit Hervorhebung), Countdown und Social-Media-Leiste.
+
 ## 1.7.0 – 2026-07-17
 
 - **Menü-Vorlagen:** Das Menü (Baumstruktur aus den Seiten, beliebig tiefe Unterpunkte über „Übergeordnete Seite“) kann jetzt in vier Darstellungen ausgegeben werden: `{{menu}}` Hover-Dropdown (Standard, mit Aufklapp-Pfeilen und Flyout für tiefere Ebenen), `{{menu:mega}}` **Mega-Menü** (breites Panel, Unterseiten als Spalten mit ihren Unterpunkten), `{{menu:vertical}}` vertikale Baum-Liste für Sidebar/Footer, `{{menu:simple}}` nur oberste Ebene.

@@ -24,7 +24,8 @@ class BlockRegistry
     public static function types(): array
     {
         return ['heading', 'text', 'image', 'gallery', 'slider', 'hero', 'button',
-            'video', 'quote', 'accordion', 'news', 'events', 'form', 'html', 'divider', 'spacer'];
+            'video', 'quote', 'accordion', 'news', 'events', 'form', 'search', 'global',
+            'map', 'team', 'pricing', 'countdown', 'social', 'html', 'divider', 'spacer'];
     }
 
     public static function render(array $block): string
@@ -124,6 +125,13 @@ class BlockRegistry
             'news' => self::news($data),
             'events' => self::events($data),
             'form' => self::form($block, $data),
+            'search' => self::searchForm($data),
+            'global' => self::globalBlock($data),
+            'map' => self::map($data),
+            'team' => self::team($data),
+            'pricing' => self::pricing($data),
+            'countdown' => self::countdown($data),
+            'social' => self::social($data),
             'html' => (string) ($data['code'] ?? ''),
             'divider' => '<hr class="cms-divider">',
             'spacer' => '<div class="cms-spacer" style="height:' . max(0, (int) ($data['height'] ?? 40)) . 'px"></div>',
@@ -361,9 +369,175 @@ class BlockRegistry
         if (!empty($data['show_phone'])) {
             $html .= '<label>Telefon<input type="text" name="phone"></label>';
         }
+        // Eigene Felder aus dem Formular-Baukasten.
+        foreach (self::items($data, 'fields') as $index => $field) {
+            $label = trim((string) ($field['label'] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+            $required = !empty($field['required']);
+            $labelHtml = e($label) . ($required ? '*' : '');
+            $name = 'custom[' . (int) $index . ']';
+            $html .= '<label>' . $labelHtml;
+            $html .= match ($field['type'] ?? 'text') {
+                'textarea' => '<textarea name="' . $name . '" rows="4"' . ($required ? ' required' : '') . '></textarea>',
+                'select' => '<select name="' . $name . '"' . ($required ? ' required' : '') . '><option value="">Bitte wählen …</option>'
+                    . implode('', array_map(
+                        static fn (string $option): string => '<option>' . e(trim($option)) . '</option>',
+                        array_filter(explode(',', (string) ($field['options'] ?? '')))
+                    )) . '</select>',
+                'checkbox' => '<span class="cms-form-check"><input type="checkbox" name="' . $name . '" value="Ja"' . ($required ? ' required' : '') . '></span>',
+                default => '<input type="text" name="' . $name . '"' . ($required ? ' required' : '') . '>',
+            };
+            $html .= '</label>';
+        }
+
         $html .= '<label>Nachricht*<textarea name="message" rows="6" required></textarea></label>';
         $html .= '<button type="submit" class="cms-btn cms-btn-primary">' . e((string) ($data['button_text'] ?? 'Nachricht senden')) . '</button>';
         return $html . '</form></div>';
+    }
+
+    private static function searchForm(array $data): string
+    {
+        return '<form class="cms-search" method="get" action="' . e(url('/suche')) . '">'
+            . '<input type="search" name="q" placeholder="' . e((string) ($data['placeholder'] ?? 'Suchbegriff …')) . '" value="' . e((string) ($_GET['q'] ?? '')) . '">'
+            . '<button type="submit" class="cms-btn cms-btn-primary">' . e((string) ($data['button_text'] ?? 'Suchen')) . '</button></form>';
+    }
+
+    private static int $globalDepth = 0;
+
+    private static function globalBlock(array $data): string
+    {
+        $pageId = (int) ($data['page_id'] ?? 0);
+        if ($pageId <= 0 || self::$globalDepth >= 3) {
+            return '';
+        }
+        $page = \Models\Page::find($pageId);
+        if ($page === null || !(int) $page['is_global'] || $page['deleted_at'] !== null) {
+            return '<!-- Globaler Block nicht gefunden -->';
+        }
+        self::$globalDepth++;
+        $html = '<div class="cms-globalblock">' . (new Renderer())->renderContent($page['content'] ?? null) . '</div>';
+        self::$globalDepth--;
+        return $html;
+    }
+
+    private static function map(array $data): string
+    {
+        $lat = max(-85.0, min(85.0, (float) ($data['lat'] ?? 51.1634)));
+        $lon = max(-180.0, min(180.0, (float) ($data['lon'] ?? 10.4477)));
+        $zoom = max(2, min(19, (int) ($data['zoom'] ?? 14)));
+        $height = max(200, min(800, (int) ($data['height'] ?? 380)));
+
+        $span = 360 / (2 ** $zoom);
+        $bbox = sprintf('%F,%F,%F,%F', $lon - $span, $lat - $span / 2.2, $lon + $span, $lat + $span / 2.2);
+        $src = 'https://www.openstreetmap.org/export/embed.html?bbox=' . rawurlencode($bbox)
+            . '&layer=mapnik&marker=' . rawurlencode($lat . ',' . $lon);
+
+        return '<div class="cms-map" style="height:' . $height . 'px">'
+            . '<iframe src="' . e($src) . '" loading="lazy" title="Karte"></iframe>'
+            . '<a class="cms-map-link" href="' . e('https://www.openstreetmap.org/?mlat=' . $lat . '&mlon=' . $lon . '#map=' . $zoom . '/' . $lat . '/' . $lon) . '" target="_blank" rel="noopener">Größere Karte öffnen ↗</a></div>';
+    }
+
+    private static function team(array $data): string
+    {
+        $members = self::items($data, 'members');
+        if ($members === []) {
+            return '';
+        }
+        $cols = min(4, max(1, (int) ($data['columns'] ?? 3)));
+        $html = '<div class="cms-team" style="--cols:' . $cols . '">';
+        foreach ($members as $member) {
+            $html .= '<div class="cms-team-card">';
+            if (!empty($member['src'])) {
+                $html .= '<img src="' . e((string) $member['src']) . '" alt="' . e((string) ($member['name'] ?? '')) . '" loading="lazy">';
+            }
+            $html .= '<h3>' . e((string) ($member['name'] ?? '')) . '</h3>';
+            if (!empty($member['role'])) {
+                $html .= '<div class="cms-team-role">' . e((string) $member['role']) . '</div>';
+            }
+            if (!empty($member['text'])) {
+                $html .= '<p>' . e((string) $member['text']) . '</p>';
+            }
+            $html .= '</div>';
+        }
+        return $html . '</div>';
+    }
+
+    private static function pricing(array $data): string
+    {
+        $plans = self::items($data, 'plans');
+        if ($plans === []) {
+            return '';
+        }
+        $html = '<div class="cms-pricing" style="--cols:' . min(4, max(1, count($plans))) . '">';
+        foreach ($plans as $plan) {
+            $html .= '<div class="cms-price-card' . (!empty($plan['highlight']) ? ' is-highlight' : '') . '">';
+            $html .= '<h3>' . e((string) ($plan['title'] ?? '')) . '</h3>';
+            $html .= '<div class="cms-price">' . e((string) ($plan['price'] ?? ''));
+            if (!empty($plan['period'])) {
+                $html .= '<span>/ ' . e((string) $plan['period']) . '</span>';
+            }
+            $html .= '</div>';
+            $features = array_filter(array_map('trim', explode("\n", (string) ($plan['features'] ?? ''))));
+            if ($features !== []) {
+                $html .= '<ul>';
+                foreach ($features as $feature) {
+                    $html .= '<li>' . e($feature) . '</li>';
+                }
+                $html .= '</ul>';
+            }
+            if (!empty($plan['button_text'])) {
+                $html .= '<a class="cms-btn ' . (!empty($plan['highlight']) ? 'cms-btn-primary' : 'cms-btn-outline') . '" href="'
+                    . e((string) ($plan['button_url'] ?? '#')) . '">' . e((string) $plan['button_text']) . '</a>';
+            }
+            $html .= '</div>';
+        }
+        return $html . '</div>';
+    }
+
+    private static function countdown(array $data): string
+    {
+        $target = trim((string) ($data['target'] ?? ''));
+        $ts = $target !== '' ? strtotime($target) : false;
+        if ($ts === false) {
+            return '<!-- Countdown: kein gültiges Zieldatum -->';
+        }
+        $html = '<div class="cms-countdown" data-countdown="' . e(date('c', $ts)) . '" data-expired="' . e((string) ($data['expired_text'] ?? 'Es ist so weit!')) . '">';
+        if (!empty($data['title'])) {
+            $html .= '<div class="cms-cd-title">' . e((string) $data['title']) . '</div>';
+        }
+        $html .= '<div class="cms-cd-grid">';
+        foreach (['d' => 'Tage', 'h' => 'Stunden', 'm' => 'Minuten', 's' => 'Sekunden'] as $key => $label) {
+            $html .= '<div class="cms-cd-cell"><b data-cd="' . $key . '">–</b><span>' . $label . '</span></div>';
+        }
+        return $html . '</div></div>';
+    }
+
+    private static function social(array $data): string
+    {
+        $networks = [
+            'facebook' => ['f', '#1877f2'], 'instagram' => ['IG', '#e4405f'], 'x' => ['𝕏', '#111111'],
+            'youtube' => ['▶', '#ff0000'], 'linkedin' => ['in', '#0a66c2'], 'tiktok' => ['TT', '#111111'],
+            'whatsapp' => ['WA', '#25d366'], 'mail' => ['✉', '#64748b'], 'phone' => ['☎', '#16a34a'],
+        ];
+        $links = self::items($data, 'links');
+        if ($links === []) {
+            return '';
+        }
+        $size = in_array($data['size'] ?? 'normal', ['small', 'normal', 'large'], true) ? $data['size'] : 'normal';
+        $html = '<div class="cms-social is-' . $size . '">';
+        foreach ($links as $link) {
+            $network = (string) ($link['network'] ?? '');
+            $url = (string) ($link['url'] ?? '');
+            if (!isset($networks[$network]) || $url === '') {
+                continue;
+            }
+            [$label, $color] = $networks[$network];
+            $html .= '<a href="' . e($url) . '" target="_blank" rel="noopener" aria-label="' . e(ucfirst($network))
+                . '" style="--sc:' . $color . '"><span>' . $label . '</span></a>';
+        }
+        return $html . '</div>';
     }
 
     private static function news(array $data): string

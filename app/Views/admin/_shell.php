@@ -4,7 +4,9 @@ $nav = [
     'pages' => ['Seiten', '/admin/pages', '▤'],
     'news' => ['News', '/admin/news', '❑'],
     'events' => ['Events', '/admin/events', '◷'],
+    'forms' => ['Formulare', '/admin/forms', '✉'],
     'media' => ['Mediathek', '/admin/media', '▧'],
+    'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
     'themes' => ['Designs', '/admin/themes', '✦'],
     'layouts' => ['Layouts', '/admin/layouts', '▦'],
     'templates' => ['Templates', '/admin/templates', '⧉'],
@@ -13,6 +15,10 @@ $nav = [
     'update' => ['Updates', '/admin/update', '⟳'],
     'settings' => ['Einstellungen', '/admin/settings', '⚙'],
 ];
+// Redakteure sehen nur die Inhalts-Bereiche.
+if (!\Core\Auth::isAdmin()) {
+    $nav = array_diff_key($nav, array_flip(['themes', 'layouts', 'templates', 'fonts', 'users', 'update', 'settings']));
+}
 ?>
 <!doctype html>
 <html lang="de">

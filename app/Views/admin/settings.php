@@ -22,6 +22,16 @@
             <p class="muted small">Kontaktformular-Blöcke ohne eigenen Empfänger senden an diese Adresse.</p>
         </div>
 
+        <div class="form-group">
+            <label for="languages">Sprachen (Komma-getrennt, erste = Standardsprache)</label>
+            <input type="text" id="languages" name="languages" value="<?= e(implode(',', cms_langs())) ?>" placeholder="de,en">
+            <p class="muted small">Bei mehreren Sprachen bekommt jede Seite eine Sprach-Zuordnung; andere Sprachen sind unter /en/… usw. erreichbar. Sprachumschalter im Layout: <code>{{languages}}</code></p>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <label><input type="checkbox" name="cache_enabled" <?= \Models\Setting::get('cache_enabled', '0') === '1' ? 'checked' : '' ?>> Seiten-Cache aktivieren (schnellere Website – fertige Seiten werden zwischengespeichert; jede Änderung im Admin leert den Cache automatisch)</label>
+        </div>
+
         <h2 style="margin-top:28px">E-Mail-Versand</h2>
         <div class="form-group checkbox-group">
             <label><input type="radio" name="mail_transport" value="mail" <?= $mail['transport'] !== 'smtp' ? 'checked' : '' ?> data-mail-toggle> Über den Mailserver des Hosters (PHP <code>mail()</code>) – Standard</label>

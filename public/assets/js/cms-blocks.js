@@ -118,3 +118,33 @@
         document.addEventListener('keydown', onKey);
     }
 })();
+
+/* ---------- Countdown ---------- */
+(function () {
+    'use strict';
+    document.querySelectorAll('[data-countdown]').forEach(function (el) {
+        const target = new Date(el.getAttribute('data-countdown')).getTime();
+        if (isNaN(target)) return;
+        const cells = {};
+        el.querySelectorAll('[data-cd]').forEach(function (cell) { cells[cell.getAttribute('data-cd')] = cell; });
+        const tick = function () {
+            let diff = Math.floor((target - Date.now()) / 1000);
+            if (diff <= 0) {
+                const grid = el.querySelector('.cms-cd-grid');
+                if (grid) grid.outerHTML = '<div class="cms-cd-done">' + (el.getAttribute('data-expired') || 'Es ist so weit!') + '</div>';
+                clearInterval(timer);
+                return;
+            }
+            const d = Math.floor(diff / 86400); diff %= 86400;
+            const h = Math.floor(diff / 3600); diff %= 3600;
+            const m = Math.floor(diff / 60);
+            const s = diff % 60;
+            if (cells.d) cells.d.textContent = d;
+            if (cells.h) cells.h.textContent = h;
+            if (cells.m) cells.m.textContent = m;
+            if (cells.s) cells.s.textContent = s;
+        };
+        tick();
+        const timer = setInterval(tick, 1000);
+    });
+})();

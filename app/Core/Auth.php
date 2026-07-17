@@ -29,12 +29,18 @@ class Auth
         session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role'] ?? 'admin';
         return true;
+    }
+
+    public static function isAdmin(): bool
+    {
+        return ($_SESSION['role'] ?? 'admin') === 'admin';
     }
 
     public static function logout(): void
     {
-        unset($_SESSION['user_id'], $_SESSION['username']);
+        unset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['role']);
         session_regenerate_id(true);
     }
 

@@ -196,7 +196,16 @@
         },
         form: {
             label: 'Kontaktformular', icon: '✉',
-            defaults: { recipient: '', subject: 'Neue Nachricht über das Kontaktformular', button_text: 'Nachricht senden', success: 'Vielen Dank! Deine Nachricht wurde gesendet.', show_name: 1, show_phone: 0 },
+            defaults: { recipient: '', subject: 'Neue Nachricht über das Kontaktformular', button_text: 'Nachricht senden', success: 'Vielen Dank! Deine Nachricht wurde gesendet.', show_name: 1, show_phone: 0, fields: [] },
+            items: {
+                key: 'fields', label: 'Eigene Felder (optional)', itemLabel: 'Feld',
+                fields: [
+                    { key: 'label', label: 'Beschriftung', type: 'text' },
+                    { key: 'type', label: 'Feldtyp', type: 'select', options: [['text', 'Textzeile'], ['textarea', 'Textbereich'], ['select', 'Auswahlliste'], ['checkbox', 'Checkbox']] },
+                    { key: 'options', label: 'Optionen (bei Auswahlliste, mit Komma trennen)', type: 'text' },
+                    { key: 'required', label: 'Pflichtfeld', type: 'checkbox' },
+                ],
+            },
             fields: [
                 { key: 'recipient', label: 'Empfänger-E-Mail (leer = aus den Einstellungen)', type: 'text' },
                 { key: 'subject', label: 'E-Mail-Betreff', type: 'text' },
@@ -204,6 +213,87 @@
                 { key: 'success', label: 'Erfolgsmeldung', type: 'textarea' },
                 { key: 'show_name', label: 'Namensfeld anzeigen', type: 'checkbox' },
                 { key: 'show_phone', label: 'Telefonfeld anzeigen', type: 'checkbox' },
+            ],
+        },
+        search: {
+            label: 'Suchfeld', icon: '🔍',
+            defaults: { placeholder: 'Suchbegriff …', button_text: 'Suchen' },
+            fields: [
+                { key: 'placeholder', label: 'Platzhalter-Text', type: 'text' },
+                { key: 'button_text', label: 'Button-Beschriftung', type: 'text' },
+            ],
+        },
+        global: {
+            label: 'Globaler Block', icon: '∞',
+            defaults: { page_id: '' },
+            fields: [
+                { key: 'page_id', label: 'Globaler Block (unter "Globale Blöcke" pflegen)', type: 'select', options: (window.CMS_GLOBAL_BLOCKS && window.CMS_GLOBAL_BLOCKS.length ? window.CMS_GLOBAL_BLOCKS : [['', '– Noch keine globalen Blöcke angelegt –']]) },
+            ],
+        },
+        map: {
+            label: 'Karte (OSM)', icon: '🗺',
+            defaults: { lat: 51.1634, lon: 10.4477, zoom: 14, height: 380 },
+            fields: [
+                { key: 'lat', label: 'Breitengrad (z. B. 48.1372)', type: 'text' },
+                { key: 'lon', label: 'Längengrad (z. B. 11.5756)', type: 'text' },
+                { key: 'zoom', label: 'Zoom (2–19)', type: 'number' },
+                { key: 'height', label: 'Höhe (px)', type: 'number' },
+            ],
+        },
+        team: {
+            label: 'Team', icon: '☺',
+            defaults: { members: [], columns: 3 },
+            items: {
+                key: 'members', label: 'Team-Mitglieder', itemLabel: 'Person',
+                fields: [
+                    { key: 'src', label: 'Foto', type: 'image' },
+                    { key: 'name', label: 'Name', type: 'text' },
+                    { key: 'role', label: 'Position', type: 'text' },
+                    { key: 'text', label: 'Kurzbeschreibung', type: 'textarea' },
+                ],
+            },
+            fields: [
+                { key: 'columns', label: 'Spalten', type: 'select', options: [['2', '2'], ['3', '3'], ['4', '4']] },
+            ],
+        },
+        pricing: {
+            label: 'Preistabelle', icon: '€',
+            defaults: { plans: [] },
+            items: {
+                key: 'plans', label: 'Tarife', itemLabel: 'Tarif',
+                fields: [
+                    { key: 'title', label: 'Name (z. B. Basis)', type: 'text' },
+                    { key: 'price', label: 'Preis (z. B. 19 €)', type: 'text' },
+                    { key: 'period', label: 'Zeitraum (z. B. Monat)', type: 'text' },
+                    { key: 'features', label: 'Leistungen (eine pro Zeile)', type: 'textarea' },
+                    { key: 'button_text', label: 'Button-Beschriftung', type: 'text' },
+                    { key: 'button_url', label: 'Button-Ziel', type: 'text' },
+                    { key: 'highlight', label: 'Hervorheben (empfohlen)', type: 'checkbox' },
+                ],
+            },
+            fields: [],
+        },
+        countdown: {
+            label: 'Countdown', icon: '⏳',
+            defaults: { target: '', title: '', expired_text: 'Es ist so weit!' },
+            fields: [
+                { key: 'target', label: 'Zieldatum (z. B. 2026-12-31 18:00)', type: 'text' },
+                { key: 'title', label: 'Überschrift (optional)', type: 'text' },
+                { key: 'expired_text', label: 'Text nach Ablauf', type: 'text' },
+            ],
+        },
+        social: {
+            label: 'Social Media', icon: '♥',
+            defaults: { links: [], size: 'normal' },
+            items: {
+                key: 'links', label: 'Profile', itemLabel: 'Profil',
+                fields: [
+                    { key: 'network', label: 'Netzwerk', type: 'select', options: [['facebook', 'Facebook'], ['instagram', 'Instagram'], ['x', 'X (Twitter)'], ['youtube', 'YouTube'], ['linkedin', 'LinkedIn'], ['tiktok', 'TikTok'], ['whatsapp', 'WhatsApp'], ['mail', 'E-Mail'], ['phone', 'Telefon']] },
+                    { key: 'url', label: 'Link (bei E-Mail: mailto:…, Telefon: tel:…)', type: 'text' },
+                ],
+            },
+            fields: [
+                { key: 'size', label: 'Größe', type: 'select', options: [['small', 'Klein'], ['normal', 'Normal'], ['large', 'Groß']] },
             ],
         },
         html: {

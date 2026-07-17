@@ -11,6 +11,7 @@
         <strong class="ed-title"><?= e($page['title']) ?></strong>
         <div class="ed-presets" title="Neue Zeile mit Spaltenaufteilung hinzufügen"></div>
         <span id="ed-status" class="ed-status"></span>
+        <a class="btn btn-ghost" href="<?= e(url('/admin/pages/' . $page['id'] . '/versions')) ?>" title="Frühere Stände wiederherstellen">Versionen</a>
         <button type="button" id="ed-css-btn" class="btn btn-ghost" title="Eigenes CSS nur für diese Seite">CSS</button>
         <a class="btn btn-ghost" href="<?= e(url('/' . $page['slug'])) ?>" target="_blank" rel="noopener">Vorschau ↗</a>
         <button type="button" id="ed-save" class="btn btn-primary">Speichern</button>
@@ -38,6 +39,7 @@
 </div>
 
 <style id="ed-page-css"></style>
+<script>window.CMS_GLOBAL_BLOCKS = <?= json_encode($globalBlocks ?? [], JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) ?>;</script>
 <script type="application/json" id="editor-data"><?= $contentJson ?></script>
 <script src="<?= e(url('/assets/js/admin-tools.js')) ?>"></script>
 <script src="<?= e(url('/assets/js/editor.js')) ?>"></script>

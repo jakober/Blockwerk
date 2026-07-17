@@ -72,6 +72,36 @@ function format_date_de(?string $datetime, bool $withTime = false): string
     return $out;
 }
 
+/** Konfigurierte Sprachen (erste = Standardsprache). */
+function cms_langs(): array
+{
+    static $langs = null;
+    if ($langs === null) {
+        $raw = \Models\Setting::get('languages', 'de');
+        $langs = array_values(array_filter(array_map(
+            static fn (string $l): string => strtolower(trim($l)),
+            explode(',', $raw)
+        ), static fn (string $l): bool => preg_match('/^[a-z]{2}$/', $l) === 1));
+        if ($langs === []) {
+            $langs = ['de'];
+        }
+    }
+    return $langs;
+}
+
+function cms_default_lang(): string
+{
+    return cms_langs()[0];
+}
+
+/** Öffentliche URL einer Seite (mit Sprach-Präfix für Nicht-Standardsprachen). */
+function page_url(array $page): string
+{
+    $lang = (string) ($page['lang'] ?? cms_default_lang());
+    $prefix = $lang !== cms_default_lang() ? '/' . $lang : '';
+    return url($prefix . '/' . $page['slug']);
+}
+
 function slugify(string $text): string
 {
     $text = mb_strtolower(trim($text));

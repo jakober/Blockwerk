@@ -8,6 +8,12 @@ use Models\Setting;
 
 class UpdateController extends AdminController
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $this->requireAdmin();
+    }
+
     public function index(): void
     {
         $this->view('admin/update', [

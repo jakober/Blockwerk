@@ -29,7 +29,7 @@ class User
 
     public static function all(): array
     {
-        return Database::pdo()->query('SELECT id, username, created_at FROM users ORDER BY username')->fetchAll();
+        return Database::pdo()->query('SELECT id, username, role, created_at FROM users ORDER BY username')->fetchAll();
     }
 
     public static function count(): int

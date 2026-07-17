@@ -54,6 +54,25 @@ class Post
         return $stmt->fetchAll();
     }
 
+    public static function allPublished(): array
+    {
+        return Database::pdo()
+            ->query('SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC')
+            ->fetchAll();
+    }
+
+    public static function search(string $query, int $limit = 20): array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT * FROM posts WHERE published = 1
+             AND (title LIKE ? OR excerpt LIKE ? OR body LIKE ?)
+             ORDER BY created_at DESC LIMIT ' . max(1, $limit)
+        );
+        $like = '%' . $query . '%';
+        $stmt->execute([$like, $like, $like]);
+        return $stmt->fetchAll();
+    }
+
     public static function create(array $data): int
     {
         $pdo = Database::pdo();

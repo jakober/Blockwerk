@@ -4,9 +4,11 @@ $stats = [
     ['/admin/news', $counts['news'], 'News'],
     ['/admin/events', $counts['events'], 'Events'],
     ['/admin/media', $counts['media'], 'Medien'],
-    ['/admin/layouts', $counts['layouts'], 'Layouts'],
-    ['/admin/templates', $counts['templates'], 'Templates'],
 ];
+if (\Core\Auth::isAdmin()) {
+    $stats[] = ['/admin/layouts', $counts['layouts'], 'Layouts'];
+    $stats[] = ['/admin/templates', $counts['templates'], 'Templates'];
+}
 ?>
 <div class="cards">
     <?php foreach ($stats as [$href, $count, $label]): ?>

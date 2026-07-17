@@ -32,11 +32,26 @@ class Renderer
 {
     private const MAX_TEMPLATE_DEPTH = 5;
 
+    /** Aktuelle Sprache der gerenderten Seite (für Menü & Sprachumschalter). */
+    public static ?string $lang = null;
+
+    public static function lang(): string
+    {
+        return self::$lang ?? cms_default_lang();
+    }
+
+    /** Beliebiges HTML im Standard-Layout ausgeben (Suche, Fehlerseiten …). */
+    public function renderRaw(string $title, string $html): string
+    {
+        return $this->renderWithLayout(Layout::first(), $title, $html);
+    }
+
     public function renderPage(array $page): string
     {
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
         $layout ??= Layout::first();
         BlockRegistry::$pageId = (int) $page['id'];
+        self::$lang ??= (string) ($page['lang'] ?? cms_default_lang());
 
         $data = json_decode((string) ($page['content'] ?? ''), true);
         $extraHead = $this->seoHead($page);
@@ -259,7 +274,24 @@ class Renderer
             '{{site_name}}' => e(Setting::get('site_name', 'Meine Website')),
             '{{base_url}}' => App::base(),
             '{{year}}' => date('Y'),
+            '{{languages}}' => $this->renderLanguageSwitcher(),
         ]);
+    }
+
+    /** Sprachumschalter ({{languages}}) – nur sichtbar bei mehreren Sprachen. */
+    private function renderLanguageSwitcher(): string
+    {
+        $langs = cms_langs();
+        if (count($langs) < 2) {
+            return '';
+        }
+        $html = '<ul class="cms-langswitch">';
+        foreach ($langs as $lang) {
+            $href = $lang === cms_default_lang() ? url('/') : url('/' . $lang);
+            $active = $lang === self::lang() ? ' class="is-active"' : '';
+            $html .= '<li' . $active . '><a href="' . e($href) . '">' . e(strtoupper($lang)) . '</a></li>';
+        }
+        return $html . '</ul>';
     }
 
     /* ---------- Menü (Baumstruktur, mehrere Darstellungen) ---------- */
@@ -271,7 +303,7 @@ class Renderer
         }
 
         $byParent = [];
-        foreach (Page::menuPages() as $page) {
+        foreach (Page::menuPages(self::lang()) as $page) {
             $byParent[(int) ($page['parent_id'] ?? 0)][] = $page;
         }
 
@@ -292,7 +324,7 @@ class Renderer
         foreach ($byParent[$parentId] as $page) {
             $children = $this->menuNested($byParent, (int) $page['id'], 'submenu');
             $html .= '<li' . ($children !== '' ? ' class="has-children"' : '') . '>';
-            $html .= '<a href="' . e(url('/' . $page['slug'])) . '">' . e($page['title']) . '</a>';
+            $html .= '<a href="' . e(page_url($page)) . '">' . e($page['title']) . '</a>';
             $html .= $children . '</li>';
         }
         return $html . '</ul>';
@@ -305,7 +337,7 @@ class Renderer
         }
         $html = '<ul class="menu cms-menu cms-menu-simple">';
         foreach ($byParent[0] as $page) {
-            $html .= '<li><a href="' . e(url('/' . $page['slug'])) . '">' . e($page['title']) . '</a></li>';
+            $html .= '<li><a href="' . e(page_url($page)) . '">' . e($page['title']) . '</a></li>';
         }
         return $html . '</ul>';
     }
@@ -323,18 +355,18 @@ class Renderer
         foreach ($byParent[0] as $page) {
             $children = $byParent[(int) $page['id']] ?? [];
             $html .= '<li' . ($children !== [] ? ' class="has-children"' : '') . '>';
-            $html .= '<a href="' . e(url('/' . $page['slug'])) . '">' . e($page['title']) . '</a>';
+            $html .= '<a href="' . e(page_url($page)) . '">' . e($page['title']) . '</a>';
 
             if ($children !== []) {
                 $html .= '<div class="cms-mega-panel">';
                 foreach ($children as $child) {
                     $html .= '<div class="cms-mega-col">';
-                    $html .= '<a class="cms-mega-head" href="' . e(url('/' . $child['slug'])) . '">' . e($child['title']) . '</a>';
+                    $html .= '<a class="cms-mega-head" href="' . e(page_url($child)) . '">' . e($child['title']) . '</a>';
                     $grandchildren = $byParent[(int) $child['id']] ?? [];
                     if ($grandchildren !== []) {
                         $html .= '<ul>';
                         foreach ($grandchildren as $grandchild) {
-                            $html .= '<li><a href="' . e(url('/' . $grandchild['slug'])) . '">' . e($grandchild['title']) . '</a></li>';
+                            $html .= '<li><a href="' . e(page_url($grandchild)) . '">' . e($grandchild['title']) . '</a></li>';
                         }
                         $html .= '</ul>';
                     }

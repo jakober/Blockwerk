@@ -7,6 +7,12 @@ use Models\Template;
 
 class TemplateController extends AdminController
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $this->requireAdmin();
+    }
+
     public function index(): void
     {
         $this->view('admin/templates/index', [

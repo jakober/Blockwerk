@@ -13,6 +13,7 @@
                     <td>
                         <strong><?= e($user['username']) ?></strong>
                         <?= (int) $user['id'] === $ownId ? '<span class="badge badge-green">Das bist du</span>' : '' ?>
+                        <?= ($user['role'] ?? 'admin') === 'editor' ? '<span class="badge">Redakteur</span>' : '<span class="badge badge-amber">Admin</span>' ?>
                     </td>
                     <td class="muted"><?= e(format_date_de($user['created_at'])) ?></td>
                     <td class="actions-col">

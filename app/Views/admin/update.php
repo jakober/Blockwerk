@@ -43,6 +43,15 @@
 <?php endif; ?>
 
 <div class="card narrow">
+    <h2>Backup</h2>
+    <p class="muted small">Lädt eine komplette Sicherung als ZIP herunter: <strong>Datenbank</strong> (alle Inhalte, Seiten, Einstellungen), <strong>Uploads</strong> (Medien &amp; Schriften) und die Konfigurationsdatei – inklusive Anleitung zur Wiederherstellung. Empfohlen vor jedem Update.</p>
+    <form method="post" action="<?= e(url('/admin/backup')) ?>">
+        <?= csrf_field() ?>
+        <button type="submit" class="btn btn-primary">Backup jetzt herunterladen</button>
+    </form>
+</div>
+
+<div class="card narrow">
     <h2>So funktioniert's</h2>
     <ol class="quickstart">
         <li>„Nach Updates suchen“ vergleicht deine installierte Version mit der VERSION-Datei im Repository.</li>

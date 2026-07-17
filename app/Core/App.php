@@ -49,6 +49,10 @@ class App
             redirect('/');
         }
 
+        if ($installed) {
+            $this->ensureSchema();
+        }
+
         if ($method === 'POST') {
             csrf_check();
             // Inhaltsänderungen im Admin leeren den Seiten-Cache.
@@ -85,6 +89,27 @@ class App
         }
 
         $router->dispatch($method, $path);
+    }
+
+    /**
+     * Selbstheilende Migration: Passt das Datenbankschema automatisch an,
+     * sobald die Code-Version wechselt. Wichtig, weil der Updater während
+     * des Update-Requests noch mit den ALTEN Klassen läuft und dessen
+     * Schema-Update deshalb einen Versionsstand hinterherhinken kann.
+     */
+    private function ensureSchema(): void
+    {
+        try {
+            $codeVersion = Updater::currentVersion();
+            if (\Models\Setting::get('schema_version', '') !== $codeVersion) {
+                Database::createSchema(Database::pdo());
+                \Models\Setting::set('schema_version', $codeVersion);
+                Cache::clear();
+            }
+        } catch (\Throwable) {
+            // Bewusst still: Ist die Datenbank nicht erreichbar, meldet
+            // sich der eigentliche Seitenaufruf mit einer klaren Meldung.
+        }
     }
 
     private function resolveBase(string $uriPath): void

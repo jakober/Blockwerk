@@ -702,3 +702,22 @@ body.is-editor .ed-canvas {
 
 /* ===== Menü-Vorlagen-Buttons im Template-Formular ===== */
 .menu-insert-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+
+/* ===== Formular-Posteingang: Detail-Ansicht ===== */
+.entry-details summary { cursor: pointer; list-style: none; padding: 2px 0; }
+.entry-details summary::-webkit-details-marker { display: none; }
+.entry-details summary::before { content: "▸ "; color: var(--primary); font-weight: 700; }
+.entry-details[open] summary::before { content: "▾ "; }
+.entry-details summary:hover strong { color: var(--primary); }
+.entry-data {
+    display: grid; grid-template-columns: 150px 1fr; gap: 8px 18px;
+    background: #f8fafc; border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; margin: 12px 0;
+}
+.entry-data dt {
+    font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+    color: var(--muted); padding-top: 3px;
+}
+.entry-data dd { margin: 0; overflow-wrap: anywhere; }
+.entry-details .btn { margin-bottom: 6px; }
+@media (max-width: 700px) { .entry-data { grid-template-columns: 1fr; gap: 2px; } .entry-data dd { margin-bottom: 8px; } }

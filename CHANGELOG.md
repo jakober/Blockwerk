@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.8.1 – 2026-07-17
+
+- **Wichtige Fehlerbehebung (Error 500 nach Update auf 1.8.0):** Der Updater führte die Datenbank-Migration noch mit den alten, bereits geladenen Programmklassen aus – dadurch fehlten nach dem Update die neuen Tabellen/Spalten und die neuen Bereiche zeigten Fehler 500. Das CMS prüft jetzt bei jedem Aufruf selbst, ob das Datenbankschema zur Code-Version passt, und **migriert automatisch nach** (selbstheilend). Einmal erneut „Aktualisieren“ klicken genügt.
+- **Optik-Feinschliff:** Preistabelle komplett überarbeitet (weiße Karten mit Schatten, „Empfohlen“-Badge, Häkchen vor Leistungen, bündige Buttons, Preis mit Zeitraum sauber gesetzt), Team-Karten und Countdown aufgehübscht, durchgängige Abstände zwischen gestapelten Blöcken.
+- **Formular-Posteingang gestaltet:** Aufklappbare Detail-Ansicht als saubere Tabelle mit beschrifteten Feldern statt roher Browser-Darstellung.
+
 ## 1.8.0 – 2026-07-17
 
 Das große Komfort- und Sicherheits-Update:

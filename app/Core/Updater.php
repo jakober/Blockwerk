@@ -39,7 +39,11 @@ class Updater
 
     public static function remoteVersion(): ?string
     {
-        $raw = self::fetch(self::versionUrl());
+        // Cache-Buster: raw.githubusercontent.com cached bis zu mehreren
+        // Minuten – ein eindeutiger Query-Parameter erzwingt frische Daten.
+        $url = self::versionUrl();
+        $url .= (str_contains($url, '?') ? '&' : '?') . 'nocache=' . time();
+        $raw = self::fetch($url);
         if ($raw === null) {
             return null;
         }

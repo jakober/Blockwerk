@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.8.2 – 2026-07-17
+
+- **Update-Prüfung zuverlässiger:** Die Versionsabfrage umgeht jetzt den GitHub-Zwischenspeicher (der bis zu mehreren Minuten alte Stände liefern konnte) – „Nach Updates suchen“ sieht neue Versionen damit sofort.
+
 ## 1.8.1 – 2026-07-17
 
 - **Wichtige Fehlerbehebung (Error 500 nach Update auf 1.8.0):** Der Updater führte die Datenbank-Migration noch mit den alten, bereits geladenen Programmklassen aus – dadurch fehlten nach dem Update die neuen Tabellen/Spalten und die neuen Bereiche zeigten Fehler 500. Das CMS prüft jetzt bei jedem Aufruf selbst, ob das Datenbankschema zur Code-Version passt, und **migriert automatisch nach** (selbstheilend). Einmal erneut „Aktualisieren“ klicken genügt.

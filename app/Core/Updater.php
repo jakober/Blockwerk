@@ -13,10 +13,8 @@ use ZipArchive;
  */
 class Updater
 {
-    // Hinweis: Zeigt auf den aktuellen Entwicklungs-Branch. Sobald das
-    // Repository einen main-Branch hat, beide URLs auf main umstellen.
-    public const DEFAULT_ZIP_URL = 'https://github.com/jakober/Cms/archive/refs/heads/claude/claude-md-docs-e7ae7u.zip';
-    public const DEFAULT_VERSION_URL = 'https://raw.githubusercontent.com/jakober/Cms/claude/claude-md-docs-e7ae7u/VERSION';
+    public const DEFAULT_ZIP_URL = 'https://github.com/jakober/Cms/archive/refs/heads/main.zip';
+    public const DEFAULT_VERSION_URL = 'https://raw.githubusercontent.com/jakober/Cms/main/VERSION';
 
     /** Diese Pfade werden beim Update niemals überschrieben. */
     private const PROTECTED = ['config/', 'public/uploads/', '.git/'];

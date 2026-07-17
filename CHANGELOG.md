@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.6.2 – 2026-07-17
+
+- Das Repository hat jetzt einen `main`-Branch als stabile Release-Quelle. Installer und Updater zeigen wieder auf die dauerhaften `main`-URLs.
+
 ## 1.6.1 – 2026-07-17
 
 - **Fehlerbehebung Installation/Updates:** Der Ein-Datei-Installer und der Updater zeigten auf den GitHub-Branch `main`, den es im Repository (noch) nicht gibt – der Download schlug deshalb mit „konnte nicht heruntergeladen werden“ fehl. Die Standard-URLs zeigen jetzt auf den tatsächlichen Branch.

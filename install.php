@@ -15,9 +15,7 @@ declare(strict_types=1);
 
 session_start();
 
-// Hinweis: Zeigt auf den aktuellen Entwicklungs-Branch. Sobald das Repository
-// einen main-Branch hat, hier auf .../refs/heads/main.zip umstellen.
-const DEFAULT_PACKAGE_URL = 'https://github.com/jakober/Cms/archive/refs/heads/claude/claude-md-docs-e7ae7u.zip';
+const DEFAULT_PACKAGE_URL = 'https://github.com/jakober/Cms/archive/refs/heads/main.zip';
 
 $dir = __DIR__;
 $alreadyExtracted = is_file($dir . '/public/index.php');

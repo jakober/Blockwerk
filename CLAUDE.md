@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A small, extensible CMS written in dependency-free PHP 8 (no Composer, no framework) with a MySQL/MariaDB backend and a vanilla-JS drag-and-drop content editor. UI language is German — keep all user-facing strings (admin UI, flash messages, seed content) in German.
+**Blockwerk** — a small, extensible CMS written in dependency-free PHP 8 (no Composer, no framework) with a MySQL/MariaDB backend and a vanilla-JS drag-and-drop content editor. The product name "Blockwerk" appears in the admin shell, login/install screens, installer and docs. UI language is German — keep all user-facing strings (admin UI, flash messages, seed content) in German.
 
 ## Running
 

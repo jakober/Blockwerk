@@ -32,14 +32,14 @@ function fetchUrl(string $url): ?string
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_TIMEOUT => 120,
-            CURLOPT_USERAGENT => 'CMS-Installer',
+            CURLOPT_USERAGENT => 'Blockwerk-Installer',
         ]);
         $data = curl_exec($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         curl_close($ch);
         return is_string($data) && $status < 400 ? $data : null;
     }
-    $context = stream_context_create(['http' => ['timeout' => 120, 'header' => 'User-Agent: CMS-Installer']]);
+    $context = stream_context_create(['http' => ['timeout' => 120, 'header' => 'User-Agent: Blockwerk-Installer']]);
     $data = @file_get_contents($url, false, $context);
     return $data !== false ? $data : null;
 }
@@ -154,7 +154,7 @@ $extractedNow = is_file($dir . '/public/index.php');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CMS-Installation</title>
+<title>Blockwerk-Installation</title>
 <style>
 * { box-sizing: border-box; }
 body {
@@ -185,7 +185,7 @@ input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(7
 </head>
 <body>
 <div class="card">
-    <div class="brand">CMS<span>Installation</span></div>
+    <div class="brand">Blockwerk<span>Installation</span></div>
 
     <?php foreach ($errors as $error): ?>
         <div class="alert"><?= htmlspecialchars($error) ?></div>

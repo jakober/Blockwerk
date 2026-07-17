@@ -8,7 +8,7 @@
 </head>
 <body class="auth-body">
 <div class="auth-card">
-    <div class="auth-brand">CMS<span>Anmeldung</span></div>
+    <div class="auth-brand">Blockwerk<span>Anmeldung</span></div>
 
     <?php if (!empty($flash)): ?>
         <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>

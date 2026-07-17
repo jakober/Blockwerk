@@ -8,7 +8,7 @@
 </head>
 <body class="auth-body">
 <div class="auth-card wide">
-    <div class="auth-brand">CMS<span>Installation</span></div>
+    <div class="auth-brand">Blockwerk<span>Installation</span></div>
     <div class="steps"><span class="step active">1. Datenbank</span><span class="step">2. Website &amp; Admin</span></div>
     <p class="muted">Gib die Zugangsdaten deiner MySQL/MariaDB-Datenbank ein. Alle Tabellen werden automatisch angelegt – falls die Datenbank noch nicht existiert, wird versucht, sie zu erstellen.</p>
 

@@ -8,7 +8,7 @@
 </head>
 <body class="auth-body">
 <div class="auth-card wide">
-    <div class="auth-brand">CMS<span>Installation</span></div>
+    <div class="auth-brand">Blockwerk<span>Installation</span></div>
     <div class="steps"><span class="step done">1. Datenbank ✓</span><span class="step active">2. Website &amp; Admin</span></div>
     <p class="muted">Fast geschafft! Lege den Namen deiner Website und deinen Admin-Zugang fest.</p>
 

@@ -1,6 +1,6 @@
-# CMS
+# Blockwerk
 
-Ein kleines, modernes und erweiterbares Content-Management-System — ohne Framework, ohne Composer-Abhängigkeiten. Einfach hochladen, Installations-Assistent durchklicken, loslegen.
+**Blockwerk** ist ein kleines, modernes und erweiterbares Content-Management-System — Inhalte werden aus Blöcken zusammengesteckt, per Drag & Drop, mit echter WYSIWYG-Ansicht. Ohne Framework, ohne Composer-Abhängigkeiten: einfach hochladen, Installations-Assistent durchklicken, loslegen.
 
 ## Funktionen
 

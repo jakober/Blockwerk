@@ -122,7 +122,7 @@ class Updater
 
     public static function fetch(string $url): ?string
     {
-        $ua = 'CMS-Updater';
+        $ua = 'Blockwerk-Updater';
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
             curl_setopt_array($ch, [

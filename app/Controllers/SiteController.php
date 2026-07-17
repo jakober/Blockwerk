@@ -114,14 +114,8 @@ class SiteController
         $lines[] = '';
         $lines[] = $message;
 
-        $host = explode(':', $_SERVER['HTTP_HOST'] ?? 'localhost')[0];
-        $host = preg_replace('/[^a-z0-9.\-]/i', '', $host) ?: 'localhost';
-        $headers = 'From: ' . Setting::get('site_name', 'Website') . ' <noreply@' . $host . '>' . "\r\n"
-            . 'Reply-To: ' . str_replace(["\r", "\n"], '', $email) . "\r\n"
-            . 'Content-Type: text/plain; charset=UTF-8';
-
-        $ok = @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), implode("\n", $lines), $headers);
-        redirect($back . ($ok ? '?sent=' : '?formerror=') . $blockId . '#f-' . $blockId);
+        $error = \Core\Mailer::send($to, $subject, implode("\n", $lines), $email);
+        redirect($back . ($error === null ? '?sent=' : '?formerror=') . $blockId . '#f-' . $blockId);
     }
 
     public function notFound(): never

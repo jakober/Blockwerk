@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.6.4 – 2026-07-17
+
+- **Fehlerbehebung:** „Neues Template“ und „Template bearbeiten“ führten zu einem Fehler 500. Ursache war ein interner Variablen-Namenskonflikt in der View-Engine (der Daten-Schlüssel `template` kollidierte mit der internen Pfad-Variable). Zusätzlich wurden alle Admin-Seiten einmal komplett durchgetestet.
+
 ## 1.6.3 – 2026-07-17
 
 - **Verständliche Datenbank-Fehlermeldungen im Install-Assistenten:** Häufige MySQL-Fehler (1130 „Host is not allowed to connect“, 1045 „Access denied“, 1044 fehlende Rechte, Server nicht erreichbar) werden jetzt in Klartext erklärt – inklusive konkreter Lösungsschritte statt kryptischer SQLSTATE-Meldungen.

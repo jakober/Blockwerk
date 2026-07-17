@@ -15,11 +15,16 @@ class View
         }
     }
 
-    public static function fetch(string $template, array $data = []): string
+    /**
+     * Interne Variablen sind mit __ geprefixt, damit extract() sie nicht
+     * mit View-Daten gleichen Namens verwechselt (z. B. dem Schlüssel
+     * "template" im Template-Formular).
+     */
+    public static function fetch(string $__template, array $__data = []): string
     {
-        extract($data, EXTR_SKIP);
+        extract($__data, EXTR_SKIP);
         ob_start();
-        include APP_PATH . '/Views/' . $template . '.php';
+        include APP_PATH . '/Views/' . $__template . '.php';
         return (string) ob_get_clean();
     }
 }

@@ -1,0 +1,5 @@
+# Leitet alle Anfragen in das public/-Verzeichnis um, falls die Domain
+# direkt auf das Projektverzeichnis zeigt (typisch bei Shared Hosting).
+RewriteEngine On
+RewriteRule ^$ public/ [L]
+RewriteRule (.*) public/$1 [L]

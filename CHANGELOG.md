@@ -4,7 +4,7 @@ Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Dat
 
 ## 1.8.2 – 2026-07-17
 
-- **Update-Prüfung zuverlässiger:** Die Versionsabfrage umgeht jetzt den GitHub-Zwischenspeicher (der bis zu mehreren Minuten alte Stände liefern konnte) – „Nach Updates suchen“ sieht neue Versionen damit sofort.
+- **Update-Prüfung zuverlässiger:** Die Versionsabfrage nutzt bei GitHub-Quellen jetzt die GitHub-API (immer frisch) statt der bis zu 5 Minuten zwischengespeicherten Raw-URL – „Nach Updates suchen“ sieht neue Versionen damit sofort. Fällt bei Bedarf automatisch auf die normale URL zurück.
 
 ## 1.8.1 – 2026-07-17
 

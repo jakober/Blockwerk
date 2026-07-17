@@ -39,11 +39,20 @@ class Updater
 
     public static function remoteVersion(): ?string
     {
-        // Cache-Buster: raw.githubusercontent.com cached bis zu mehreren
-        // Minuten – ein eindeutiger Query-Parameter erzwingt frische Daten.
+        // raw.githubusercontent.com cached bis zu 5 Minuten (auch mit
+        // Query-Parametern). Für GitHub-URLs deshalb zuerst die API fragen –
+        // sie liefert immer den frischen Stand.
         $url = self::versionUrl();
-        $url .= (str_contains($url, '?') ? '&' : '?') . 'nocache=' . time();
-        $raw = self::fetch($url);
+        $raw = null;
+        if (preg_match('#^https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/(.+)/VERSION$#', $url, $m)) {
+            $api = 'https://api.github.com/repos/' . $m[1] . '/' . $m[2] . '/contents/VERSION?ref=' . rawurlencode($m[3]);
+            $apiRaw = self::fetch($api, ['Accept: application/vnd.github.raw']);
+            // Nur übernehmen, wenn die Antwort wirklich wie eine Version aussieht.
+            if ($apiRaw !== null && preg_match('/^\d+\.\d+\.\d+\s*$/', $apiRaw)) {
+                $raw = $apiRaw;
+            }
+        }
+        $raw ??= self::fetch($url);
         if ($raw === null) {
             return null;
         }
@@ -124,7 +133,7 @@ class Updater
         return null;
     }
 
-    public static function fetch(string $url): ?string
+    public static function fetch(string $url, array $headers = []): ?string
     {
         $ua = 'Blockwerk-Updater';
         if (function_exists('curl_init')) {
@@ -134,13 +143,15 @@ class Updater
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_TIMEOUT => 120,
                 CURLOPT_USERAGENT => $ua,
+                CURLOPT_HTTPHEADER => $headers,
             ]);
             $data = curl_exec($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
             curl_close($ch);
             return is_string($data) && $status < 400 ? $data : null;
         }
-        $context = stream_context_create(['http' => ['timeout' => 120, 'header' => 'User-Agent: ' . $ua]]);
+        $headerLines = implode("\r\n", array_merge(['User-Agent: ' . $ua], $headers));
+        $context = stream_context_create(['http' => ['timeout' => 120, 'header' => $headerLines]]);
         $data = @file_get_contents($url, false, $context);
         return $data !== false ? $data : null;
     }

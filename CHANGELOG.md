@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.29.2 – 2026-07-18
+
+- **KI-Assistent: Fehlermeldung nach ausgeführter Anweisung behoben.** Rief die KI ein Werkzeug ohne Parameter auf (z. B. Vorlagen oder globale Blöcke auflisten), meldete Anthropic beim nächsten Schritt der Anweisung `messages…tool_use.input: Input should be an object` – die Anweisung wurde zwar korrekt ausgeführt, doch statt der Abschlussmeldung erschien der Fehler. Ursache: Der zentrale KI-Dienst wandelte beim Weiterreichen den leeren Werkzeug-Aufruf `{}` in ein leeres Array `[]` um, das die API ablehnt. Der Dienst stellt leere Objekte an allen relevanten Stellen (`tool_use.input` im Gesprächsverlauf, `input_schema.properties` in den Werkzeug-Definitionen) jetzt zuverlässig wieder her. **Hinweis:** Die Korrektur betrifft den zentralen KI-Dienst – nach einem einmaligen Update von `blockwerk.bairle.de` funktioniert der KI-Assistent auf allen angebundenen Installationen wieder fehlerfrei.
+
 ## 1.29.1 – 2026-07-18
 
 - **Horizontaler Scrollbalken im Frontend behoben:** Zwei Ursachen sorgten für ungewolltes seitliches Scrollen auf der Website:

@@ -108,19 +108,25 @@ function upstream(string $url, array $headers, string $body, int $timeout = 180)
 }
 
 /**
- * Wandelt leere „properties"-Arrays (die durch json_decode aus {} entstehen)
- * rekursiv zurück in Objekte, damit die Anthropic-API sie akzeptiert.
+ * json_decode(...true) macht aus leeren JSON-Objekten ({}) leere Arrays ([]).
+ * Die Anthropic-API verlangt aber Objekte an bestimmten Stellen: bei
+ * Tool-Definitionen (input_schema.properties) UND bei Tool-Aufrufen im
+ * Gesprächsverlauf (tool_use.input). Diese leeren Arrays rekursiv wieder in
+ * Objekte umwandeln, sonst schlägt die Anfrage fehl.
  */
-function fixEmptyProperties(mixed $node): mixed
+function normalizeForApi(mixed $node): mixed
 {
     if (!is_array($node)) {
         return $node;
     }
+    $isToolUse = ($node['type'] ?? null) === 'tool_use';
     foreach ($node as $key => $value) {
         if ($key === 'properties' && $value === []) {
             $node[$key] = new stdClass();
+        } elseif ($key === 'input' && $isToolUse && $value === []) {
+            $node[$key] = new stdClass();
         } elseif (is_array($value)) {
-            $node[$key] = fixEmptyProperties($value);
+            $node[$key] = normalizeForApi($value);
         }
     }
     return $node;
@@ -286,13 +292,12 @@ if ($method === 'POST' && str_ends_with($path, '/v1/chat')) {
             'model' => (string) ($config['model'] ?? 'claude-sonnet-5'),
             'max_tokens' => min(16000, max(1000, (int) ($body['max_tokens'] ?? 8000))),
             'system' => (string) ($body['system'] ?? ''),
-            'messages' => $messages,
+            // Leere Objekte im Verlauf (z. B. tool_use.input eines Werkzeugs
+            // ohne Parameter) wieder als Objekte, nicht als Listen senden.
+            'messages' => normalizeForApi($messages),
         ];
         if (is_array($body['tools'] ?? null) && $body['tools'] !== []) {
-            // json_decode(...true) macht aus leeren JSON-Objekten leere Arrays.
-            // Anthropic verlangt aber, dass z. B. input_schema.properties ein
-            // Objekt ({}) ist – leere „properties" wieder zu Objekten machen.
-            $payload['tools'] = fixEmptyProperties($body['tools']);
+            $payload['tools'] = normalizeForApi($body['tools']);
         }
         $response = upstream('https://api.anthropic.com/v1/messages', [
             'Content-Type: application/json',

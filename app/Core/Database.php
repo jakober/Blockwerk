@@ -151,6 +151,90 @@ class Database
                 to_slug VARCHAR(200) NOT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            /* ===== Shop ===== */
+            'CREATE TABLE IF NOT EXISTS shop_categories (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                parent_id INT UNSIGNED NULL,
+                name VARCHAR(150) NOT NULL,
+                slug VARCHAR(180) NOT NULL UNIQUE,
+                description TEXT NULL,
+                image VARCHAR(255) NULL,
+                position INT NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_parent (parent_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_products (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                category_id INT UNSIGNED NULL,
+                name VARCHAR(200) NOT NULL,
+                slug VARCHAR(220) NOT NULL UNIQUE,
+                sku VARCHAR(80) NULL,
+                price INT NOT NULL DEFAULT 0,
+                compare_price INT NULL,
+                description MEDIUMTEXT NULL,
+                short_desc TEXT NULL,
+                image VARCHAR(255) NULL,
+                gallery TEXT NULL,
+                stock INT NULL,
+                weight INT NULL,
+                active TINYINT(1) NOT NULL DEFAULT 1,
+                featured TINYINT(1) NOT NULL DEFAULT 0,
+                position INT NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_cat (category_id, active)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_shipping (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(150) NOT NULL,
+                description VARCHAR(255) NULL,
+                price INT NOT NULL DEFAULT 0,
+                free_from INT NULL,
+                active TINYINT(1) NOT NULL DEFAULT 1,
+                position INT NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_orders (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                number VARCHAR(32) NOT NULL UNIQUE,
+                token VARCHAR(64) NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT \'new\',
+                email VARCHAR(190) NOT NULL,
+                first_name VARCHAR(120) NULL,
+                last_name VARCHAR(120) NULL,
+                company VARCHAR(160) NULL,
+                street VARCHAR(200) NULL,
+                zip VARCHAR(20) NULL,
+                city VARCHAR(120) NULL,
+                country VARCHAR(80) NULL,
+                phone VARCHAR(60) NULL,
+                note TEXT NULL,
+                subtotal INT NOT NULL DEFAULT 0,
+                shipping_cost INT NOT NULL DEFAULT 0,
+                total INT NOT NULL DEFAULT 0,
+                currency VARCHAR(8) NOT NULL DEFAULT \'EUR\',
+                shipping_method VARCHAR(150) NULL,
+                payment_method VARCHAR(40) NULL,
+                payment_status VARCHAR(20) NOT NULL DEFAULT \'pending\',
+                paypal_order_id VARCHAR(64) NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_status (status, created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_order_items (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                order_id INT UNSIGNED NOT NULL,
+                product_id INT UNSIGNED NULL,
+                name VARCHAR(200) NOT NULL,
+                sku VARCHAR(80) NULL,
+                price INT NOT NULL DEFAULT 0,
+                qty INT NOT NULL DEFAULT 1,
+                INDEX idx_order (order_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
         ];
 
         foreach ($statements as $sql) {

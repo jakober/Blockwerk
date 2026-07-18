@@ -1,0 +1,116 @@
+<?php
+$priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number_format(((int) $cents) / 100, 2, ',', '');
+?>
+<form method="post" action="<?= e(url('/admin/shop/settings')) ?>">
+    <?= csrf_field() ?>
+    <div class="card">
+        <h2>Shop</h2>
+        <div class="form-group checkbox-group">
+            <label><input type="checkbox" name="enabled" <?= $s['enabled'] === '1' ? 'checked' : '' ?>> Shop aktivieren</label>
+        </div>
+        <p class="muted small">Ist der Shop aktiv, wird die gewählte Hauptseite und alles darunter (Kategorien, Produkte, Warenkorb, Kasse) vom Shop übernommen.</p>
+
+        <div class="form-row">
+            <div class="form-group grow">
+                <label for="root_page">Shop-Hauptseite</label>
+                <select id="root_page" name="root_page">
+                    <option value="0">– bitte wählen –</option>
+                    <?php foreach ($pages as $pg): ?>
+                        <option value="<?= (int) $pg['id'] ?>" <?= (int) $s['root_page'] === (int) $pg['id'] ? 'selected' : '' ?>>
+                            <?= str_repeat('— ', (int) $pg['depth']) . e($pg['title']) ?> (/<?= e($pg['slug']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="muted small">Diese Seite wird zur Shop-Startseite. Produkt- und Kategorieseiten liegen darunter, z. B. <code>/<em>seite</em>/kategorie/…</code>.</p>
+            </div>
+            <div class="form-group">
+                <label for="currency">Währung</label>
+                <input type="text" id="currency" name="currency" value="<?= e($s['currency']) ?>" style="max-width:90px">
+            </div>
+            <div class="form-group">
+                <label for="symbol">Symbol</label>
+                <input type="text" id="symbol" name="symbol" value="<?= e($s['symbol']) ?>" style="max-width:70px">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="email">Benachrichtigungs-E-Mail für neue Bestellungen (optional)</label>
+            <input type="email" id="email" name="email" value="<?= e($s['email']) ?>">
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Zahlungsarten</h2>
+        <div class="form-group checkbox-group">
+            <label><input type="checkbox" name="pay_invoice" <?= $s['pay_invoice'] === '1' ? 'checked' : '' ?>> Kauf auf Rechnung</label>
+            <label><input type="checkbox" name="pay_prepay" <?= $s['pay_prepay'] === '1' ? 'checked' : '' ?>> Vorkasse (Überweisung)</label>
+            <label><input type="checkbox" name="pay_paypal" <?= $s['pay_paypal'] === '1' ? 'checked' : '' ?>> PayPal</label>
+        </div>
+        <div class="form-group">
+            <label for="bank_info">Bankverbindung (wird bei Vorkasse angezeigt)</label>
+            <textarea id="bank_info" name="bank_info" rows="3" placeholder="Kontoinhaber, IBAN, BIC …"><?= e($s['bank_info']) ?></textarea>
+        </div>
+
+        <h3>PayPal</h3>
+        <p class="muted small">Zugangsdaten aus dem <a href="https://developer.paypal.com/" target="_blank" rel="noopener">PayPal-Entwicklerportal</a> (REST-App: Client-ID &amp; Secret).</p>
+        <div class="form-group checkbox-group">
+            <label><input type="checkbox" name="paypal_sandbox" <?= $s['paypal_sandbox'] === '1' ? 'checked' : '' ?>> Testmodus (Sandbox)</label>
+        </div>
+        <div class="form-row">
+            <div class="form-group grow">
+                <label for="paypal_client_id">PayPal Client-ID</label>
+                <input type="text" id="paypal_client_id" name="paypal_client_id" value="<?= e($s['paypal_client_id']) ?>" autocomplete="off">
+            </div>
+            <div class="form-group grow">
+                <label for="paypal_secret">PayPal Secret <?= $s['paypal_secret'] !== '' ? '<span class="badge badge-green">hinterlegt</span>' : '' ?></label>
+                <input type="password" id="paypal_secret" name="paypal_secret" value="<?= $s['paypal_secret'] !== '' ? '••••••••••' : '' ?>" autocomplete="off">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Einstellungen speichern</button>
+    </div>
+</form>
+
+<div class="card">
+    <h2>Versandarten</h2>
+    <?php if (!empty($shipping)): ?>
+        <table class="table">
+            <thead><tr><th>Name</th><th>Preis</th><th>Gratis ab</th><th>Aktiv</th><th class="actions-col"></th></tr></thead>
+            <tbody>
+                <?php foreach ($shipping as $sh): ?>
+                    <tr>
+                        <td><form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'])) ?>" class="inline shipping-row"><?= csrf_field() ?>
+                            <input type="text" name="name" value="<?= e($sh['name']) ?>" required>
+                            <input type="text" name="description" value="<?= e($sh['description'] ?? '') ?>" placeholder="Beschreibung">
+                        </td>
+                        <td><input type="text" name="price" value="<?= e($priceStr($sh['price'])) ?>" style="max-width:90px" inputmode="decimal"></td>
+                        <td><input type="text" name="free_from" value="<?= e($priceStr($sh['free_from'] ?? '')) ?>" placeholder="—" style="max-width:90px" inputmode="decimal"></td>
+                        <td><input type="checkbox" name="active" <?= (int) $sh['active'] ? 'checked' : '' ?>></td>
+                        <td class="actions-col">
+                            <button type="submit" class="btn btn-small btn-primary">Speichern</button>
+                            </form>
+                            <form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'] . '/delete')) ?>" class="inline" data-confirm="Versandart löschen?" data-confirm-danger data-confirm-ok="Löschen"><?= csrf_field() ?>
+                                <button type="submit" class="btn btn-small btn-danger">✕</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p class="muted small">Noch keine Versandarten. Ohne Versandart ist die Kasse trotzdem nutzbar (Versand = 0).</p>
+    <?php endif; ?>
+
+    <h3>Versandart hinzufügen</h3>
+    <form method="post" action="<?= e(url('/admin/shop/shipping')) ?>" class="shipping-add">
+        <?= csrf_field() ?>
+        <div class="form-row">
+            <div class="form-group grow"><label>Name</label><input type="text" name="name" placeholder="z. B. Standardversand" required></div>
+            <div class="form-group"><label>Preis (€)</label><input type="text" name="price" placeholder="4,90" inputmode="decimal"></div>
+            <div class="form-group"><label>Gratis ab (€, optional)</label><input type="text" name="free_from" placeholder="50,00" inputmode="decimal"></div>
+        </div>
+        <div class="form-group checkbox-group"><label><input type="checkbox" name="active" checked> Aktiv</label></div>
+        <button type="submit" class="btn">+ Versandart hinzufügen</button>
+    </form>
+</div>

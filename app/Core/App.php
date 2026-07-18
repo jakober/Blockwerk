@@ -242,6 +242,49 @@ class App
         $router->add('GET', '/admin/settings', [SettingsController::class, 'index']);
         $router->add('POST', '/admin/settings', [SettingsController::class, 'save']);
 
+        // Shop-Verwaltung
+        $router->add('GET', '/admin/shop/products', [\Controllers\Admin\ShopProductController::class, 'index']);
+        $router->add('GET', '/admin/shop/products/new', [\Controllers\Admin\ShopProductController::class, 'create']);
+        $router->add('POST', '/admin/shop/products', [\Controllers\Admin\ShopProductController::class, 'store']);
+        $router->add('GET', '/admin/shop/products/{id}/edit', [\Controllers\Admin\ShopProductController::class, 'edit']);
+        $router->add('POST', '/admin/shop/products/{id}', [\Controllers\Admin\ShopProductController::class, 'update']);
+        $router->add('POST', '/admin/shop/products/{id}/delete', [\Controllers\Admin\ShopProductController::class, 'delete']);
+
+        $router->add('GET', '/admin/shop/categories', [\Controllers\Admin\ShopCategoryController::class, 'index']);
+        $router->add('GET', '/admin/shop/categories/new', [\Controllers\Admin\ShopCategoryController::class, 'create']);
+        $router->add('POST', '/admin/shop/categories', [\Controllers\Admin\ShopCategoryController::class, 'store']);
+        $router->add('GET', '/admin/shop/categories/{id}/edit', [\Controllers\Admin\ShopCategoryController::class, 'edit']);
+        $router->add('POST', '/admin/shop/categories/{id}', [\Controllers\Admin\ShopCategoryController::class, 'update']);
+        $router->add('POST', '/admin/shop/categories/{id}/delete', [\Controllers\Admin\ShopCategoryController::class, 'delete']);
+
+        $router->add('GET', '/admin/shop/orders', [\Controllers\Admin\ShopOrderController::class, 'index']);
+        $router->add('GET', '/admin/shop/orders/{id}', [\Controllers\Admin\ShopOrderController::class, 'show']);
+        $router->add('POST', '/admin/shop/orders/{id}/status', [\Controllers\Admin\ShopOrderController::class, 'setStatus']);
+        $router->add('POST', '/admin/shop/orders/{id}/delete', [\Controllers\Admin\ShopOrderController::class, 'delete']);
+
+        $router->add('GET', '/admin/shop/settings', [\Controllers\Admin\ShopSettingsController::class, 'index']);
+        $router->add('POST', '/admin/shop/settings', [\Controllers\Admin\ShopSettingsController::class, 'save']);
+        $router->add('POST', '/admin/shop/shipping', [\Controllers\Admin\ShopSettingsController::class, 'shippingStore']);
+        $router->add('POST', '/admin/shop/shipping/{id}', [\Controllers\Admin\ShopSettingsController::class, 'shippingUpdate']);
+        $router->add('POST', '/admin/shop/shipping/{id}/delete', [\Controllers\Admin\ShopSettingsController::class, 'shippingDelete']);
+
+        // Shop-Frontend – nur wenn aktiviert; Basis ist der Slug der Shop-Hauptseite.
+        if ($installed && \Core\Shop::enabled()) {
+            $b = '/' . trim(\Core\Shop::rootSlug(), '/');
+            $router->add('GET', $b, [\Controllers\ShopController::class, 'index']);
+            $router->add('GET', $b . '/warenkorb', [\Controllers\ShopController::class, 'cart']);
+            $router->add('POST', $b . '/warenkorb/add', [\Controllers\ShopController::class, 'cartAdd']);
+            $router->add('POST', $b . '/warenkorb/update', [\Controllers\ShopController::class, 'cartUpdate']);
+            $router->add('POST', $b . '/warenkorb/remove', [\Controllers\ShopController::class, 'cartRemove']);
+            $router->add('GET', $b . '/kasse', [\Controllers\ShopController::class, 'checkout']);
+            $router->add('POST', $b . '/kasse', [\Controllers\ShopController::class, 'placeOrder']);
+            $router->add('POST', $b . '/paypal/create', [\Controllers\ShopController::class, 'paypalCreate']);
+            $router->add('POST', $b . '/paypal/capture', [\Controllers\ShopController::class, 'paypalCapture']);
+            $router->add('GET', $b . '/bestellung/{token}', [\Controllers\ShopController::class, 'orderConfirm']);
+            $router->add('GET', $b . '/produkt/{slug}', [\Controllers\ShopController::class, 'product']);
+            $router->add('GET', $b . '/kategorie/{slug}', [\Controllers\ShopController::class, 'category']);
+        }
+
         // Öffentliche Seiten (Catch-all zuletzt)
         $router->add('POST', '/form/submit', [SiteController::class, 'formSubmit']);
         $router->add('GET', '/sitemap.xml', [SiteController::class, 'sitemap']);

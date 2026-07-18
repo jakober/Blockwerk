@@ -13,6 +13,12 @@ $navGroups = [
         'media' => ['Mediathek', '/admin/media', '▧'],
         'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
     ],
+    'Shop' => [
+        'shop-products' => ['Produkte', '/admin/shop/products', '◰'],
+        'shop-categories' => ['Kategorien', '/admin/shop/categories', '≡'],
+        'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
+        'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
+    ],
     'Gestaltung' => [
         'themes' => ['Designs', '/admin/themes', '✦'],
         'menu' => ['Menü', '/admin/menu', '☰'],

@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.36.0 – 2026-07-18
+
+- **Shop-Funktion (optional zuschaltbar):** Blockwerk Orange kann jetzt einen vollständigen Online-Shop betreiben. Neuer Bereich **„Shop"** im Backend mit:
+  - **Produkten** (Name, Preis, Streichpreis, Artikelnummer, Bild, Kurz- &amp; Langbeschreibung, Lagerbestand, Kategorie, „empfohlen") und **Kategorien** (mit Unterkategorien).
+  - **Shop-Einstellungen:** Shop aktivieren, **Hauptseite wählen** (darunter liegen automatisch Kategorie- und Produktseiten, z. B. `/shop/kategorie/…`), Währung, **Zahlungsarten** (Kauf auf Rechnung, Vorkasse mit Bankverbindung, **PayPal**) und **Versandarten** (mit „gratis ab"-Grenze).
+  - **Storefront** im Design der Website: Startseite mit Kategorien &amp; empfohlenen Produkten, Kategorieseiten mit **Filtern** (Suche, Preis von/bis, Sortierung), Produktdetailseiten, **Warenkorb** und **Kasse** mit Adresse, Versand- und Zahlungsart-Auswahl sowie Bestellbestätigung.
+  - **PayPal** über die offiziellen PayPal-Buttons (Client-ID &amp; Secret in den Shop-Einstellungen, Sandbox- oder Live-Modus).
+  - **Bestellverwaltung** im Backend: Bestellungen ansehen, Status setzen (Neu/Bezahlt/Versendet/Storniert), Kundendaten und Positionen einsehen. Optionale Benachrichtigungs-E-Mail bei neuen Bestellungen.
+  - Ist der Shop nicht aktiviert, ändert sich nichts an der Website.
+
 ## 1.35.0 – 2026-07-18
 
 - **Spalten auch auf dem Smartphone nebeneinander:** In den Zeilen-Einstellungen (Inhalts-Editor **und** visueller Layout-Baukasten) gibt es jetzt die klare Auswahl **„Spalten auf dem Smartphone"** mit drei Optionen: „Automatisch untereinander (empfohlen)", „Nebeneinander lassen" (die Spalten bleiben auch auf schmalen Handys in einer Reihe) und „Ab eigener Breite stapeln …" (eigener Umbruchpunkt). Standardmäßig stapeln die Spalten wie bisher – nur wo gewünscht bleiben sie nebeneinander. Die **Smartphone-Vorschau** im Editor zeigt das Verhalten jetzt korrekt an (bislang wurden dort immer alle Spalten gestapelt). Ersetzt das frühere, wenig verständliche Zahlenfeld.

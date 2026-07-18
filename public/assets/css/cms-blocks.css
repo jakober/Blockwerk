@@ -735,9 +735,12 @@ h1.cms-heading { font-size: 2.3em; }
 .cms-align-right :where(.cms-form) button { justify-self: end; }
 
 /* Erstes Element ganz oben ohne Abstand darüber: Hero/Vollbreit-Sektion soll
-   in Theme-Layouts bündig unter dem Kopfbereich sitzen. Steht hier statt in
-   der pro-Theme-CSS, damit die Regel nach einem Update sofort greift – ohne
-   das Theme neu aktivieren zu müssen. Höhere Spezifität als .t-main{padding}. */
+   bündig unter dem Kopfbereich sitzen – sowohl bei den Design-Themes (.t-main)
+   als auch im visuellen Baukasten (.bwl-content). Steht hier (global) statt in
+   der pro-Theme-CSS, damit die Regel nach einem Update sofort greift. */
 .t-main:has(> .cms-row:first-child .cms-hero),
 .t-main:has(> .cms-section:first-child),
-.t-main:has(> .cms-row:first-child .cms-fullwidth) { padding-top: 0 !important; }
+.t-main:has(> .cms-row:first-child .cms-fullwidth),
+.bwl-content:has(> .cms-row:first-child .cms-hero),
+.bwl-content:has(> .cms-section:first-child),
+.bwl-content:has(> .cms-row:first-child .cms-fullwidth) { padding-top: 0 !important; }

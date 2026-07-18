@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.28.5 – 2026-07-18
+
+- **Hero bündig auch im visuellen Baukasten:** Die Abstands-Korrektur für Hero/Vollbreit-Sektionen ganz oben gilt jetzt auch für visuell gebaute Layouts (Inhaltsbereich `.bwl-content`) – der Hero-Slider wird nicht mehr durch den oberen Innenabstand nach unten geschoben. Normale Seiten behalten ihren gewohnten oberen Abstand.
+
 ## 1.28.4 – 2026-07-18
 
 - **Hero-Abstand-Korrektur wirkt jetzt sofort:** Der Fix aus 1.28.3 (kein Abstand über einem Hero/einer vollbreiten Sektion ganz oben) steckte in der pro-Design gespeicherten CSS – er griff dadurch erst nach erneutem Aktivieren des Designs. Die Regel liegt jetzt in der global eingebundenen Stylesheet-Datei und wirkt direkt nach dem Update, ohne dass das Design neu aktiviert werden muss.

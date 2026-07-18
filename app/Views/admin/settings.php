@@ -32,6 +32,18 @@
             <label><input type="checkbox" name="cache_enabled" <?= \Models\Setting::get('cache_enabled', '0') === '1' ? 'checked' : '' ?>> Seiten-Cache aktivieren (schnellere Website – fertige Seiten werden zwischengespeichert; jede Änderung im Admin leert den Cache automatisch)</label>
         </div>
 
+        <h2 style="margin-top:28px" id="ki">✨ KI-Assistent</h2>
+        <p class="muted small">Der KI-Assistent erstellt Seiten, Texte und Bilder direkt im CMS. Dafür brauchst du einen Lizenzschlüssel mit Token-Guthaben vom Blockwerk-Orange-Anbieter.</p>
+        <div class="form-group">
+            <label for="ai_service_url">Dienst-URL</label>
+            <input type="url" id="ai_service_url" name="ai_service_url" value="<?= e(\Models\Setting::get('ai_service_url', '')) ?>" placeholder="https://ki.anbieter-domain.de">
+        </div>
+        <div class="form-group">
+            <label for="ai_license_key">Lizenzschlüssel</label>
+            <input type="text" id="ai_license_key" name="ai_license_key" value="<?= e(\Models\Setting::get('ai_license_key', '')) ?>" placeholder="bw-…">
+            <p class="muted small">Nach dem Speichern zeigt der <a href="<?= e(url('/admin/ai')) ?>">KI-Assistent</a> dein Token-Guthaben an.</p>
+        </div>
+
         <h2 style="margin-top:28px">E-Mail-Versand</h2>
         <div class="form-group checkbox-group">
             <label><input type="radio" name="mail_transport" value="mail" <?= $mail['transport'] !== 'smtp' ? 'checked' : '' ?> data-mail-toggle> Über den Mailserver des Hosters (PHP <code>mail()</code>) – Standard</label>

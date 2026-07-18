@@ -1,0 +1,4 @@
+
+# Zentraler KI-Dienst: Konfiguration & Daten bleiben auf dem Anbieter-Server
+ai-server/config.php
+ai-server/data.sqlite

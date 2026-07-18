@@ -6,6 +6,7 @@
 
 ## Funktionen
 
+- **✨ KI-Assistent** – Seiten samt Texten, generierten Bildern und modernem Design einfach per Chat erstellen und ändern lassen (Claude-API über den zentralen Blockwerk-Dienst, Token-Guthaben pro Installation).
 - **Ein-Datei-Installer** – `install.php` allein auf den Webspace laden und im Browser öffnen: Server-Check, das CMS-Paket wird automatisch heruntergeladen und entpackt, danach übernimmt der Einrichtungs-Assistent.
 - **Install-Assistent** – Datenbank-Zugangsdaten eingeben, alle Tabellen und Beispieldaten werden automatisch angelegt (inkl. Admin-Konto).
 - **Seitenverwaltung** – hierarchische Seitenstruktur; pro Seite wählbar, ob sie im Menü erscheint (inkl. Reihenfolge und Entwurfs-Status).

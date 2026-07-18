@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.22.0 – 2026-07-18
+
+- **✨ KI-Assistent:** Neuer Bereich im Backend (Inhalte → KI-Assistent, nur für Administratoren). Einfach beschreiben, was gebraucht wird – die KI (Claude) erstellt komplette Seiten direkt im CMS: Struktur mit Zeilen/Spalten, deutsche Texte, moderne Gestaltung mit den Layout-Farben und **per KI generierte Bilder**, die automatisch in der Mediathek landen. Bestehende Seiten lassen sich per Chat ändern („Mach die Überschrift knackiger"); vor jeder Änderung wird der alte Stand als Version gesichert. Die KI kennt die komplette Blockwerk-Architektur und die jeweilige Installation (Seiten, Layouts, Mediathek) – alles läuft durch dieselbe Validierung wie der normale Editor.
+- **Token-Guthaben:** Jede Installation nutzt einen Lizenzschlüssel mit Token-Guthaben (Einstellungen → KI-Assistent: Dienst-URL + Schlüssel). Das Restguthaben wird im Chat angezeigt; Chat-Anfragen kosten die tatsächlichen Tokens, generierte Bilder einen festen Preis.
+- **Zentraler KI-Dienst für Anbieter:** Neues Verzeichnis `ai-server/` – eigenständiger Dienst (PHP + SQLite) mit Lizenz-Verwaltung (`admin.php`: Lizenzen anlegen, Guthaben aufladen), Weiterleitung an die Claude- und Bild-APIs, Verbrauchs-Log, Rate-Limit und Mock-Modus für Tests. Nicht Teil der CMS-Installation – wird nur auf dem Anbieter-Server deployt (siehe `ai-server/README.md`).
+
 ## 1.21.0 – 2026-07-18
 
 - **Moderner Drag-&-Drop-Upload in der Mediathek:** Statt des klassischen Formulars gibt es jetzt eine große Upload-Zone – Dateien einfach irgendwo auf die Seite ziehen (die Zone leuchtet orange auf) oder klicken zum Auswählen. Mehrere Dateien gleichzeitig, mit **Fortschrittsbalken** beim Hochladen.

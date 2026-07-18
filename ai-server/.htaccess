@@ -1,0 +1,6 @@
+# Alle /v1/*-Anfragen auf index.php leiten; config & Datenbank schützen.
+RewriteEngine On
+RewriteRule ^config\.php$ - [F]
+RewriteRule ^data\.sqlite$ - [F]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]

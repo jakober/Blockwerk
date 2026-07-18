@@ -172,6 +172,9 @@ class App
         $router->add('GET', '/admin/themes', [\Controllers\Admin\ThemeController::class, 'index']);
         $router->add('POST', '/admin/themes/{key}/apply', [\Controllers\Admin\ThemeController::class, 'apply']);
 
+        $router->add('GET', '/admin/ai', [\Controllers\Admin\AiController::class, 'index']);
+        $router->add('POST', '/admin/ai/chat', [\Controllers\Admin\AiController::class, 'chat']);
+
         $router->add('GET', '/admin/menu', [\Controllers\Admin\MenuController::class, 'edit']);
         $router->add('POST', '/admin/menu', [\Controllers\Admin\MenuController::class, 'save']);
         $router->add('POST', '/admin/menu/reset', [\Controllers\Admin\MenuController::class, 'reset']);

@@ -155,6 +155,44 @@ class MediaController extends AdminController
         redirect('/admin/media');
     }
 
+    /**
+     * Speichert rohe Bilddaten als Mediathek-Eintrag (inkl. Verkleinerung
+     * und Thumbnail) – genutzt vom KI-Assistenten für generierte Bilder.
+     * Liefert null bei nicht erlaubtem Typ oder Schreibfehler.
+     */
+    public static function storeBytes(string $bytes, string $niceName, string $mime): ?array
+    {
+        if (!isset(self::ALLOWED[$mime])) {
+            return null;
+        }
+        $dir = BASE_PATH . '/public/uploads';
+        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+            return null;
+        }
+        $base = slugify(pathinfo($niceName, PATHINFO_FILENAME)) ?: 'datei';
+        $filename = $base . '-' . substr(bin2hex(random_bytes(4)), 0, 6) . '.' . self::ALLOWED[$mime];
+        if (file_put_contents($dir . '/' . $filename, $bytes) === false) {
+            return null;
+        }
+        self::optimizeImage($dir . '/' . $filename, $mime);
+
+        $width = $height = null;
+        if (str_starts_with($mime, 'image/') && $mime !== 'image/svg+xml') {
+            $info = @getimagesize($dir . '/' . $filename);
+            if ($info !== false) {
+                [$width, $height] = $info;
+            }
+        }
+        $id = \Models\Media::create($niceName, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
+
+        return [
+            'id' => $id,
+            'url' => url('/uploads/' . $filename),
+            'thumb' => self::thumbUrl('uploads/' . $filename),
+            'path' => 'uploads/' . $filename,
+        ];
+    }
+
     /** Pfad des Thumbnails zu einem Medienpfad ("bild.jpg" → "bild-thumb.jpg"). */
     public static function thumbPath(string $path): string
     {

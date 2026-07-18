@@ -60,6 +60,13 @@ class SettingsController extends AdminController
         Setting::set('cache_enabled', isset($_POST['cache_enabled']) ? '1' : '0');
         \Core\Cache::clear();
 
+        // KI-Assistent: Dienst-URL + Lizenzschlüssel.
+        $aiUrl = trim($_POST['ai_service_url'] ?? '');
+        if ($aiUrl === '' || preg_match('~^https?://~i', $aiUrl)) {
+            Setting::set('ai_service_url', $aiUrl);
+        }
+        Setting::set('ai_license_key', trim($_POST['ai_license_key'] ?? ''));
+
         $this->saveMailSettings();
 
         // Zweiter Absende-Knopf: speichern UND Testmail schicken.

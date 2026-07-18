@@ -5,6 +5,7 @@ $navGroups = [
         'dashboard' => ['Dashboard', '/admin', '◈'],
     ],
     'Inhalte' => [
+        'ai' => ['KI-Assistent', '/admin/ai', '✨'],
         'pages' => ['Seiten', '/admin/pages', '▤'],
         'news' => ['News', '/admin/news', '❑'],
         'events' => ['Events', '/admin/events', '◷'],
@@ -25,9 +26,9 @@ $navGroups = [
         'settings' => ['Einstellungen', '/admin/settings', '⚙'],
     ],
 ];
-// Redakteure sehen nur die Inhalts-Bereiche.
+// Redakteure sehen nur die Inhalts-Bereiche (und keinen KI-Assistenten).
 if (!\Core\Auth::isAdmin()) {
-    unset($navGroups['Gestaltung'], $navGroups['System']);
+    unset($navGroups['Gestaltung'], $navGroups['System'], $navGroups['Inhalte']['ai']);
 }
 ?>
 <!doctype html>

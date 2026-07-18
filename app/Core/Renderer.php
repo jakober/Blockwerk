@@ -241,17 +241,30 @@ class Renderer
             $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css?v=' . e(rawurlencode(cms_version())) . '">' . "\n";
         }
         $head .= $this->designHead($layout) . $extraHead;
+        // Eigene Einbindungen des Layouts (z. B. Analytics) – unverändert.
+        $headCode = trim((string) ($layout['head_code'] ?? ''));
+        if ($headCode !== '') {
+            $head .= $headCode . "\n";
+        }
 
         if ($head !== '' && ($pos = stripos($html, '</head>')) !== false) {
             $html = substr_replace($html, $head, $pos, 0);
         }
 
+        $bodyEnd = '';
         if (stripos($html, 'cms-blocks.js') === false) {
-            $script = '<script src="' . e(App::base()) . '/assets/js/cms-blocks.js?v=' . e(rawurlencode(cms_version())) . '" defer></script>' . "\n";
+            $bodyEnd .= '<script src="' . e(App::base()) . '/assets/js/cms-blocks.js?v=' . e(rawurlencode(cms_version())) . '" defer></script>' . "\n";
+        }
+        // Eigene Einbindungen des Layouts direkt vor </body> (z. B. Widgets).
+        $bodyCode = trim((string) ($layout['body_code'] ?? ''));
+        if ($bodyCode !== '') {
+            $bodyEnd .= $bodyCode . "\n";
+        }
+        if ($bodyEnd !== '') {
             if (($pos = stripos($html, '</body>')) !== false) {
-                $html = substr_replace($html, $script, $pos, 0);
+                $html = substr_replace($html, $bodyEnd, $pos, 0);
             } else {
-                $html .= $script;
+                $html .= $bodyEnd;
             }
         }
         return $html;

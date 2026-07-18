@@ -48,7 +48,7 @@ class LayoutController extends AdminController
     public function store(): void
     {
         [$name, $html] = $this->validated('/admin/layouts/new');
-        Layout::create($name, $html, $this->designJson());
+        Layout::create($name, $html, $this->designJson(), $this->codeField('head_code'), $this->codeField('body_code'));
         flash('success', 'Layout angelegt.');
         redirect('/admin/layouts');
     }
@@ -57,12 +57,18 @@ class LayoutController extends AdminController
     {
         $layout = Layout::find((int) $id) ?? $this->abort();
         [$name, $html] = $this->validated('/admin/layouts/' . $layout['id'] . '/edit');
-        Layout::update((int) $layout['id'], $name, $html, $this->designJson());
+        Layout::update((int) $layout['id'], $name, $html, $this->designJson(), $this->codeField('head_code'), $this->codeField('body_code'));
         flash('success', 'Layout gespeichert.');
         redirect('/admin/layouts');
     }
 
     /** Farben (Color-Picker) und Schriften aus dem Formular als JSON validieren. */
+    /** Eigene Einbindungen (Skripte im <head> bzw. vor </body>). */
+    private function codeField(string $key): string
+    {
+        return substr((string) ($_POST[$key] ?? ''), 0, 100000);
+    }
+
     private function designJson(): ?string
     {
         $input = $_POST['design'] ?? [];

@@ -69,6 +69,19 @@ $colorDefaults = [
                 </div>
             </div>
 
+            <div class="card">
+                <h2>Einbindungen (externe Tools)</h2>
+                <p class="muted small">Eigener Code für Analyse-Tools, Chat-Widgets, Cookie-Banner &amp; Co. – wird auf <strong>allen Seiten mit diesem Layout</strong> ausgegeben. Inhalt wird unverändert eingefügt (inklusive <code>&lt;script&gt;</code>-Tags).</p>
+                <div class="form-group">
+                    <label for="head_code">Code im <code>&lt;head&gt;</code></label>
+                    <textarea id="head_code" name="head_code" class="code" rows="5" spellcheck="false" placeholder="<!-- z. B. Analytics-Snippet oder <meta>-Tags -->"><?= e($layout['head_code'] ?? '') ?></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="body_code">Code direkt vor <code>&lt;/body&gt;</code></label>
+                    <textarea id="body_code" name="body_code" class="code" rows="5" spellcheck="false" placeholder="<!-- z. B. Chat-Widget oder Tracking-Skript -->"><?= e($layout['body_code'] ?? '') ?></textarea>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Speichern' : 'Layout anlegen' ?></button>
                 <a class="btn btn-ghost" href="<?= e(url('/admin/layouts')) ?>">Abbrechen</a>

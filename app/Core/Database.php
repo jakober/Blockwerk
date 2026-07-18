@@ -48,6 +48,8 @@ class Database
                 name VARCHAR(100) NOT NULL,
                 html MEDIUMTEXT NOT NULL,
                 design TEXT NULL,
+                head_code MEDIUMTEXT NULL,
+                body_code MEDIUMTEXT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
@@ -163,6 +165,8 @@ class Database
         self::ensureColumn($pdo, 'pages', 'is_global', 'TINYINT(1) NOT NULL DEFAULT 0');
         self::ensureColumn($pdo, 'users', 'role', "VARCHAR(20) NOT NULL DEFAULT 'admin'");
         self::ensureColumn($pdo, 'layouts', 'builder', 'MEDIUMTEXT NULL');
+        self::ensureColumn($pdo, 'layouts', 'head_code', 'MEDIUMTEXT NULL');
+        self::ensureColumn($pdo, 'layouts', 'body_code', 'MEDIUMTEXT NULL');
     }
 
     private static function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void

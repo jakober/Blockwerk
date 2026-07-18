@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.20.0 – 2026-07-18
+
+- **Eigene Einbindungen pro Layout:** Im Layout-Formular gibt es die neue Karte „Einbindungen (externe Tools)" mit zwei Feldern – **Code im `<head>`** und **Code direkt vor `</body>`**. Ideal für Analyse-Tools, Chat-Widgets, Cookie-Banner oder eigene Meta-Tags; der Code wird unverändert (inklusive `<script>`-Tags) auf allen Seiten mit diesem Layout ausgegeben. Gilt für klassische und visuell gebaute Layouts; neue Datenbank-Spalten werden beim Update automatisch angelegt.
+
 ## 1.19.0 – 2026-07-18
 
 - **Gestalten pro Displaygröße – direkt über die Geräte-Ansicht:** Die gewählte Ansicht im Editor bestimmt jetzt, für welche Bildschirmgröße die Gestaltung gilt. In der **Desktop-Ansicht** gelten Änderungen für alle Größen; wechselt man auf **Handy oder Tablet**, zeigt das Gestaltungs-Panel nur noch Ausrichtung und Abstände „– nur mobil" und Änderungen wirken ausschließlich unter 768 px. Ein farbiger Hinweis im Panel zeigt jederzeit, für welche Größe man gerade gestaltet.

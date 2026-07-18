@@ -242,7 +242,7 @@ PROMPT
             [
                 'name' => 'list_global_blocks',
                 'description' => 'Listet die globalen Blöcke (id, Name).',
-                'input_schema' => ['type' => 'object', 'properties' => []],
+                'input_schema' => ['type' => 'object', 'properties' => (object) []],
             ],
             [
                 'name' => 'create_global_block',
@@ -271,7 +271,7 @@ PROMPT
             [
                 'name' => 'list_templates',
                 'description' => 'Listet die Templates (id, Name, Schlüssel).',
-                'input_schema' => ['type' => 'object', 'properties' => []],
+                'input_schema' => ['type' => 'object', 'properties' => (object) []],
             ],
             [
                 'name' => 'create_template',

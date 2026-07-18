@@ -2,6 +2,21 @@
     <p class="muted" style="margin:0">Ein Design ändert die komplette Optik deiner Website – Kopfbereich, Menü, Farben, Formen und Schriftstil. <strong>Deine Inhalte bleiben dabei unverändert</strong> und passen sich automatisch an. Beim Aktivieren wird das Standard-Layout überschrieben; eigene Änderungen daran (auch eigene Farben im Layout-Designer) werden ersetzt.</p>
 </div>
 
+<div class="card brand-download" style="margin-bottom:20px">
+    <h2>Logo &amp; Markenzeichen</h2>
+    <p class="muted small">Das Blockwerk-Orange-Logo als SVG-Datei (verlustfrei skalierbar) zum Herunterladen.</p>
+    <div class="brand-grid">
+        <div class="brand-item">
+            <div class="brand-preview"><img src="<?= e(asset('/assets/img/blockwerk-orange-logo.svg')) ?>" alt="Blockwerk Orange Logo mit Schriftzug" height="52"></div>
+            <a class="btn btn-small" href="<?= e(url('/assets/img/blockwerk-orange-logo.svg')) ?>" download>Logo mit Schriftzug (SVG)</a>
+        </div>
+        <div class="brand-item">
+            <div class="brand-preview"><img src="<?= e(asset('/assets/img/logo.svg')) ?>" alt="Blockwerk Orange Bildmarke" height="52"></div>
+            <a class="btn btn-small" href="<?= e(url('/assets/img/logo.svg')) ?>" download>Nur Bildmarke (SVG)</a>
+        </div>
+    </div>
+</div>
+
 <div class="theme-grid">
     <?php foreach ($themes as $key => $theme): ?>
         <?php $c = $theme['colors']; ?>

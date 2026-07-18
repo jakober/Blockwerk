@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.28.1 – 2026-07-18
+
+- **KI-Fehler behoben:** Seit 1.28.0 brach jede KI-Anfrage mit „tools.6.custom.input_schema.properties: Input should be an object" ab. Ursache: Zwei der neuen Werkzeuge (globale Blöcke/Templates auflisten) haben keine Eingabefelder – das leere Feld wurde fälschlich als Liste statt als Objekt übermittelt. Jetzt korrigiert; die KI funktioniert wieder.
+- **Blockwerk-Orange-Logo als Download:** Unter **Designs** gibt es jetzt den Bereich „Logo & Markenzeichen" – das Logo als SVG (verlustfrei skalierbar) zum Herunterladen, wahlweise mit Schriftzug „Blockwerk Orange" oder nur die Bildmarke.
+
 ## 1.28.0 – 2026-07-18
 
 - **Der KI-Assistent kann jetzt fast alles bearbeiten:** Neben Seiten und Layouts beherrscht die KI nun auch

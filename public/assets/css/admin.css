@@ -1251,3 +1251,8 @@ body.is-editor #editor { min-height: 0; }
 @media (max-width: 900px) {
     body.is-editor .main { height: 100vh; }
 }
+
+/* Logo-Download auf der Design-Seite */
+.brand-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+.brand-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: var(--surface); }
+.brand-preview { min-width: 200px; min-height: 64px; display: flex; align-items: center; justify-content: center; background: repeating-conic-gradient(#f4ede4 0% 25%, #fff 0% 50%) 50% / 18px 18px; border-radius: 8px; padding: 8px 16px; }

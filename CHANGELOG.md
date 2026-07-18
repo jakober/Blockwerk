@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.29.0 – 2026-07-18
+
+- **Schönere Scrollbalken im Backend:** Überall dort, wo im Admin-Bereich gescrollt wird (Seitenleiste/Menü, Blöcke-Palette und Eigenschaften im Editor, lange Dialoge), erscheinen jetzt dezente, schlanke Scrollbalken im Orange-Design statt der Standard-Browser-Balken – auf dunklen Flächen wie der Seitenleiste hell abgestimmt. Betrifft nur das Backend; die Website selbst bleibt unverändert.
+
 ## 1.28.5 – 2026-07-18
 
 - **Hero bündig auch im visuellen Baukasten:** Die Abstands-Korrektur für Hero/Vollbreit-Sektionen ganz oben gilt jetzt auch für visuell gebaute Layouts (Inhaltsbereich `.bwl-content`) – der Hero-Slider wird nicht mehr durch den oberen Innenabstand nach unten geschoben. Normale Seiten behalten ihren gewohnten oberen Abstand.

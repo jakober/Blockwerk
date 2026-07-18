@@ -1256,3 +1256,37 @@ body.is-editor #editor { min-height: 0; }
 .brand-grid { display: flex; gap: 16px; flex-wrap: wrap; }
 .brand-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: var(--surface); }
 .brand-preview { min-width: 200px; min-height: 64px; display: flex; align-items: center; justify-content: center; background: repeating-conic-gradient(#f4ede4 0% 25%, #fff 0% 50%) 50% / 18px 18px; border-radius: 8px; padding: 8px 16px; }
+
+/* ===== Dezente, gestaltete Scrollbalken (nur Backend) ===== */
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: #e0ccb4 transparent; }
+/* WebKit/Blink (Chrome, Edge, Safari) */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: #e0ccb4;
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #cbb08d; background-clip: padding-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Auf dunklen Flächen (Seitenleiste, mobile Menü-Schublade) heller */
+.sidebar, .sidebar-nav, .sidebar-drawer {
+    scrollbar-color: rgba(255, 255, 255, .28) transparent;
+}
+.sidebar ::-webkit-scrollbar-thumb,
+.sidebar-nav::-webkit-scrollbar-thumb,
+.sidebar-drawer::-webkit-scrollbar-thumb,
+.sidebar-drawer ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .24);
+    background-clip: padding-box;
+}
+.sidebar ::-webkit-scrollbar-thumb:hover,
+.sidebar-nav::-webkit-scrollbar-thumb:hover,
+.sidebar-drawer::-webkit-scrollbar-thumb:hover,
+.sidebar-drawer ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, .4);
+    background-clip: padding-box;
+}

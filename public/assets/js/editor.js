@@ -726,12 +726,22 @@
         canvas.appendChild(makeRowInsert(state.rows.length));
     }
 
+    // Hintergrundfarben aus der Layout-Palette (Gestaltung) für Zeilen.
+    const ROW_BG_PALETTE = {
+        primary: 'var(--cms-primary)',
+        accent: 'var(--cms-accent)',
+        surface: 'var(--cms-surface)',
+        page: 'var(--cms-bg)',
+    };
+
     function applyRowStyleTo(rowEl, row) {
         const style = row.style || {};
         const colsEl = rowEl.querySelector('.ed-cols');
-        colsEl.style.background = /^#/.test(style.bg || '') ? style.bg : '';
+        const bg = style.bg || '';
+        colsEl.style.background = /^#/.test(bg) ? bg : (ROW_BG_PALETTE[bg] || '');
         colsEl.style.paddingTop = (12 + (parseInt(style.pt, 10) || 0)) + 'px';
         colsEl.style.paddingBottom = (12 + (parseInt(style.pb, 10) || 0)) + 'px';
+        rowEl.classList.toggle('ed-row-fullwidth', style.width === 'full');
     }
 
     function applyRowStyles() {
@@ -1090,11 +1100,58 @@
 
         const note = document.createElement('p');
         note.className = 'muted small';
-        note.textContent = 'Die Hintergrundfarbe wird auf der Website über die volle Browserbreite angezeigt (farbige Sektion).';
+        note.textContent = 'Die Hintergrundfarbe füllt auf der Website immer die volle Browserbreite (farbige Sektion). „Volle Seitenbreite“ lässt zusätzlich die Inhalte bis an den Rand laufen.';
         inspectorBody.appendChild(note);
 
+        // Breite des Bereichs
+        addField(inspectorBody, {
+            key: 'width', label: 'Breite des Bereichs', type: 'select',
+            options: [['', 'So breit wie der Inhaltsbereich'], ['full', 'Volle Seitenbreite']],
+        }, style.width, (v) => {
+            if (v === '') delete style.width;
+            else style.width = v;
+            markDirty();
+            applyRowStyles();
+        });
+
+        // Hintergrund: Layout-Farbe oder eigene Farbe
+        const bgModes = [
+            ['', 'Keine'],
+            ['primary', 'Hauptfarbe (aus Gestaltung)'],
+            ['accent', 'Akzentfarbe (aus Gestaltung)'],
+            ['surface', 'Flächenfarbe (aus Gestaltung)'],
+            ['page', 'Seitenhintergrund (aus Gestaltung)'],
+            ['custom', 'Eigene Farbe …'],
+        ];
+        const currentBg = style.bg || '';
+        const currentMode = /^#/.test(currentBg) ? 'custom' : currentBg;
+
+        const colorWrap = document.createElement('div');
+        const renderColorField = () => {
+            colorWrap.innerHTML = '';
+            if (!/^#/.test(style.bg || '')) return;
+            addField(colorWrap, { key: 'bg', label: 'Eigene Hintergrundfarbe', type: 'colorclear' }, style.bg, (v) => {
+                if (v === '') delete style.bg;
+                else style.bg = v;
+                markDirty();
+                applyRowStyles();
+            });
+        };
+
+        addField(inspectorBody, {
+            key: 'bgmode', label: 'Hintergrundfarbe', type: 'select', options: bgModes,
+        }, currentMode, (v) => {
+            if (v === '') delete style.bg;
+            else if (v === 'custom') style.bg = /^#/.test(style.bg || '') ? style.bg : '#f4ede4';
+            else style.bg = v;
+            markDirty();
+            applyRowStyles();
+            renderColorField();
+        });
+        inspectorBody.appendChild(colorWrap);
+        renderColorField();
+
         [
-            { key: 'bg', label: 'Hintergrundfarbe (vollbreit)', type: 'colorclear' },
             { key: 'pt', label: 'Innenabstand oben (px)', type: 'number' },
             { key: 'pb', label: 'Innenabstand unten (px)', type: 'number' },
         ].forEach((field) => {

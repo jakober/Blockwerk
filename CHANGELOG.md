@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.17.0 – 2026-07-18
+
+- **Bereichs-Breite pro Zeile wählbar:** In den Zeilen-Einstellungen (Klick auf die Zeilen-Leiste) gibt es jetzt „Breite des Bereichs" – entweder so breit wie der Inhaltsbereich (Standard) oder **volle Seitenbreite**, dann laufen die Inhalte bis an den Browserrand. Im Editor wird das mit „↔ volle Breite" am Zeilen-Label und randloser Darstellung angezeigt.
+- **Zeilen-Hintergrund aus der Layout-Palette:** Die Hintergrundfarbe eines Bereichs lässt sich jetzt direkt aus den Gestaltungs-Farben des Layouts wählen (Hauptfarbe, Akzentfarbe, Flächenfarbe, Seitenhintergrund) – ändert man später die Layout-Farben, färben sich diese Bereiche automatisch mit. Alternativ wie bisher eine frei wählbare eigene Farbe per Color-Picker.
+
 ## 1.16.1 – 2026-07-18
 
 - **Geräte-Vorschau sichtbar gemacht:** Die drei Ansicht-Umschalter im Editor (Desktop/Tablet/Smartphone) zeigen jetzt einen deutlichen Unterschied – der Canvas wird schmal wie das Gerät, eine Beschriftung („Smartphone-Ansicht · 400 px …") erscheint darüber und die Spalten stapeln sich untereinander, genau wie im Frontend auf schmalen Bildschirmen. Vorher verhinderte eine CSS-Spezifitätsregel das Schmalstellen.

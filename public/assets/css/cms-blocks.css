@@ -706,3 +706,6 @@ h1.cms-heading { font-size: 2.3em; }
 /* Mobiles Menü: Links erben die Panel-Textfarbe (lesbar auf jedem Hintergrund) */
 .cms-nav.is-mobile.is-open .cms-menu a { color: inherit; }
 .cms-nav.is-mobile.is-open .cms-menu ul.submenu a { color: color-mix(in srgb, currentColor 85%, transparent); }
+
+/* Zeile über die volle Seitenbreite (Zeilen-Einstellung „Breite") */
+.cms-section > .cms-row.cms-row-full { max-width: none; }

@@ -1091,3 +1091,17 @@ body.is-editor .ed-canvas.is-phone { padding: 18px 14px; }
 .ed-block.insert-before { box-shadow: 0 -4px 0 0 var(--primary); }
 .ed-block.insert-after { box-shadow: 0 4px 0 0 var(--primary); }
 .ed-blocks.is-over { background: #fff1e6; outline: 2px dashed var(--primary); outline-offset: -2px; border-radius: 8px; }
+
+/* Zeile mit voller Seitenbreite im Editor andeuten */
+body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
+    margin-left: -32px;
+    margin-right: -32px;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-radius: 0;
+}
+.ed-row.ed-row-fullwidth > .ed-row-bar .ed-row-label::after {
+    content: ' · ↔ volle Breite';
+    font-weight: 600;
+    opacity: .8;
+}

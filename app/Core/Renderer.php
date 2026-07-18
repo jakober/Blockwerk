@@ -180,16 +180,31 @@ class Renderer
                 $inner .= '</div>';
             }
 
-            // Zeilen-Gestaltung: vollbreite Hintergrundfarbe und Innenabstände.
+            // Zeilen-Gestaltung: Hintergrundfarbe (frei oder aus der
+            // Layout-Palette), Breite (Inhaltsbreite oder volle Seite)
+            // und Innenabstände.
             $style = is_array($row['style'] ?? null) ? $row['style'] : [];
-            $bg = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($style['bg'] ?? '')) ? strtolower((string) $style['bg']) : '';
+            $palette = [
+                'primary' => 'var(--cms-primary)',
+                'accent' => 'var(--cms-accent)',
+                'surface' => 'var(--cms-surface)',
+                'page' => 'var(--cms-bg)',
+            ];
+            $bgRaw = (string) ($style['bg'] ?? '');
+            if (preg_match('/^#[0-9a-fA-F]{6}$/', $bgRaw)) {
+                $bg = strtolower($bgRaw);
+            } else {
+                $bg = $palette[$bgRaw] ?? '';
+            }
+            $full = ($style['width'] ?? '') === 'full';
             $pt = min(400, max(0, (int) ($style['pt'] ?? 0)));
             $pb = min(400, max(0, (int) ($style['pb'] ?? 0)));
             $padding = ($pt ? 'padding-top:' . $pt . 'px;' : '') . ($pb ? 'padding-bottom:' . $pb . 'px;' : '');
 
-            if ($bg !== '') {
-                $html .= '<div class="cms-section" style="background:' . $bg . ';' . $padding . '">'
-                    . '<div class="cms-row">' . $inner . '</div></div>';
+            if ($bg !== '' || $full) {
+                $sectionStyle = ($bg !== '' ? 'background:' . $bg . ';' : '') . $padding;
+                $html .= '<div class="cms-section"' . ($sectionStyle !== '' ? ' style="' . $sectionStyle . '"' : '') . '>'
+                    . '<div class="cms-row' . ($full ? ' cms-row-full' : '') . '">' . $inner . '</div></div>';
             } else {
                 $html .= '<div class="cms-row"' . ($padding !== '' ? ' style="' . $padding . '"' : '') . '>' . $inner . '</div>';
             }

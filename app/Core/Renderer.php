@@ -43,13 +43,13 @@ class Renderer
     /** Beliebiges HTML im Standard-Layout ausgeben (Suche, Fehlerseiten …). */
     public function renderRaw(string $title, string $html): string
     {
-        return $this->renderWithLayout(Layout::first(), $title, $html);
+        return $this->renderWithLayout(Layout::default(), $title, $html);
     }
 
     public function renderPage(array $page): string
     {
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
-        $layout ??= Layout::first();
+        $layout ??= Layout::default();
         BlockRegistry::$pageId = (int) $page['id'];
         self::$lang ??= (string) ($page['lang'] ?? cms_default_lang());
 
@@ -112,7 +112,7 @@ class Renderer
         $html .= '<div class="cms-text">' . (string) ($post['body'] ?? '') . '</div>';
         $html .= '</article>';
 
-        return $this->renderWithLayout(Layout::first(), (string) $post['title'], $html);
+        return $this->renderWithLayout(Layout::default(), (string) $post['title'], $html);
     }
 
     private function renderWithLayout(?array $layout, string $title, string $contentHtml, string $extraHead = ''): string

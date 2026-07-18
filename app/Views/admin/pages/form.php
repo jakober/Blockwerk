@@ -27,11 +27,18 @@ $action = $isEdit ? '/admin/pages/' . $page['id'] : '/admin/pages';
             </div>
             <div class="form-group grow">
                 <label for="layout_id">Layout</label>
+                <?php
+                    // Bei neuen Seiten das Standard-Layout vorwählen; beim
+                    // Bearbeiten das gespeicherte (0 = folgt automatisch dem Standard).
+                    $selectedLayout = isset($page) && $page !== null
+                        ? (int) ($page['layout_id'] ?? 0)
+                        : (int) ($defaultLayoutId ?? 0);
+                ?>
                 <select id="layout_id" name="layout_id">
-                    <option value="0">– Standard (erstes Layout) –</option>
+                    <option value="0" <?= $selectedLayout === 0 ? 'selected' : '' ?>>– Standard-Layout (automatisch) –</option>
                     <?php foreach ($layouts as $layout): ?>
-                        <option value="<?= (int) $layout['id'] ?>" <?= (int) ($page['layout_id'] ?? 0) === (int) $layout['id'] ? 'selected' : '' ?>>
-                            <?= e($layout['name']) ?>
+                        <option value="<?= (int) $layout['id'] ?>" <?= $selectedLayout === (int) $layout['id'] ? 'selected' : '' ?>>
+                            <?= e($layout['name']) ?><?= (int) ($layout['is_default'] ?? 0) === 1 ? ' (Standard)' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

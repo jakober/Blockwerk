@@ -262,6 +262,7 @@ form.inline { display: inline; }
 }
 .badge-green { background: #dcfce7; color: #166534; }
 .badge-amber { background: #fef3c7; color: #92400e; }
+.badge-orange { background: #ffedd5; color: #c2410c; }
 
 /* ===== Layout-/Template-Formulare ===== */
 .editor-grid { display: grid; grid-template-columns: 1fr 280px; gap: 20px; align-items: start; }

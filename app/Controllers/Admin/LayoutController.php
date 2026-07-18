@@ -101,6 +101,14 @@ class LayoutController extends AdminController
         redirect('/admin/layouts');
     }
 
+    public function makeDefault(string $id): void
+    {
+        $layout = Layout::find((int) $id) ?? $this->abort();
+        Layout::setDefault((int) $layout['id']);
+        flash('success', 'Layout „' . $layout['name'] . '" ist jetzt das Standard-Layout und wird bei neuen Seiten vorgewählt.');
+        redirect('/admin/layouts');
+    }
+
     /* ---------- Visueller Layout-Baukasten ---------- */
 
     /** Neues Layout direkt im visuellen Modus anlegen. */

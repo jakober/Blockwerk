@@ -138,7 +138,7 @@ class PageController extends AdminController
         }
 
         $layout = $page['layout_id'] ? Layout::find((int) $page['layout_id']) : null;
-        $layout ??= Layout::first();
+        $layout ??= Layout::default();
 
         $isGlobal = !empty($page['is_global']);
         $this->view('admin/pages/editor', [
@@ -201,6 +201,7 @@ class PageController extends AdminController
             'active' => 'pages',
             'page' => $page,
             'layouts' => Layout::all(),
+            'defaultLayoutId' => Layout::defaultId(),
             'parents' => array_filter(Page::tree(), fn (array $p) => $page === null || (int) $p['id'] !== (int) $page['id']),
         ]);
     }

@@ -19,16 +19,47 @@ class Layout
         return $stmt->fetch() ?: null;
     }
 
+    /**
+     * Das Standard-Layout: das explizit markierte, sonst als Rückfall das
+     * erste (kleinste id). Wird für neue Seiten vorgewählt und überall dort
+     * genutzt, wo eine Seite kein eigenes Layout hat.
+     */
+    public static function default(): ?array
+    {
+        return Database::pdo()
+            ->query('SELECT * FROM layouts ORDER BY is_default DESC, id ASC LIMIT 1')
+            ->fetch() ?: null;
+    }
+
+    /** @deprecated Alias für default() – historische Aufrufe. */
     public static function first(): ?array
     {
-        return Database::pdo()->query('SELECT * FROM layouts ORDER BY id LIMIT 1')->fetch() ?: null;
+        return self::default();
+    }
+
+    public static function defaultId(): ?int
+    {
+        $layout = self::default();
+        return $layout ? (int) $layout['id'] : null;
+    }
+
+    /** Ein Layout zum Standard machen (alle anderen verlieren die Markierung). */
+    public static function setDefault(int $id): void
+    {
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        $pdo->exec('UPDATE layouts SET is_default = 0');
+        $pdo->prepare('UPDATE layouts SET is_default = 1 WHERE id = ?')->execute([$id]);
+        $pdo->commit();
     }
 
     public static function create(string $name, string $html, ?string $design = null, string $headCode = '', string $bodyCode = ''): int
     {
         $pdo = Database::pdo();
-        $pdo->prepare('INSERT INTO layouts (name, html, design, head_code, body_code) VALUES (?, ?, ?, ?, ?)')
-            ->execute([$name, $html, $design, $headCode, $bodyCode]);
+        // Das allererste angelegte Layout wird automatisch Standard.
+        $isDefault = (int) $pdo->query('SELECT COUNT(*) FROM layouts')->fetchColumn() === 0 ? 1 : 0;
+        $pdo->prepare('INSERT INTO layouts (name, html, design, head_code, body_code, is_default) VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute([$name, $html, $design, $headCode, $bodyCode, $isDefault]);
         return (int) $pdo->lastInsertId();
     }
 
@@ -46,7 +77,12 @@ class Layout
     public static function delete(int $id): void
     {
         $pdo = Database::pdo();
+        $wasDefault = (int) ($pdo->query('SELECT is_default FROM layouts WHERE id = ' . (int) $id)->fetchColumn() ?: 0) === 1;
         $pdo->prepare('UPDATE pages SET layout_id = NULL WHERE layout_id = ?')->execute([$id]);
         $pdo->prepare('DELETE FROM layouts WHERE id = ?')->execute([$id]);
+        // War es das Standard-Layout, rückt das nächste (kleinste id) nach.
+        if ($wasDefault) {
+            $pdo->exec('UPDATE layouts SET is_default = 1 WHERE id = (SELECT id FROM (SELECT MIN(id) AS id FROM layouts) AS t)');
+        }
     }
 }

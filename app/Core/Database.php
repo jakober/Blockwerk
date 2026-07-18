@@ -50,6 +50,7 @@ class Database
                 design TEXT NULL,
                 head_code MEDIUMTEXT NULL,
                 body_code MEDIUMTEXT NULL,
+                is_default TINYINT(1) NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
@@ -176,9 +177,24 @@ class Database
         self::ensureColumn($pdo, 'layouts', 'builder', 'MEDIUMTEXT NULL');
         self::ensureColumn($pdo, 'layouts', 'head_code', 'MEDIUMTEXT NULL');
         self::ensureColumn($pdo, 'layouts', 'body_code', 'MEDIUMTEXT NULL');
+        self::ensureColumn($pdo, 'layouts', 'is_default', 'TINYINT(1) NOT NULL DEFAULT 0');
+        self::ensureDefaultLayout($pdo);
         self::ensureColumn($pdo, 'media', 'folder_id', 'INT UNSIGNED NULL');
         self::ensureColumn($pdo, 'media', 'alt', 'VARCHAR(255) NULL');
         self::ensureColumn($pdo, 'media', 'title', 'VARCHAR(255) NULL');
+    }
+
+    /**
+     * Genau ein Standard-Layout sicherstellen: Ist nach der Migration keines
+     * markiert (Bestandsinstallationen), wird das erste (kleinste id) zum
+     * Standard. Kein Schreiben, wenn bereits eines markiert ist.
+     */
+    private static function ensureDefaultLayout(PDO $pdo): void
+    {
+        $count = (int) $pdo->query('SELECT COUNT(*) FROM layouts WHERE is_default = 1')->fetchColumn();
+        if ($count === 0) {
+            $pdo->exec('UPDATE layouts SET is_default = 1 WHERE id = (SELECT id FROM (SELECT MIN(id) AS id FROM layouts) AS t)');
+        }
     }
 
     private static function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void

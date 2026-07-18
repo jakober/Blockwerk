@@ -100,7 +100,7 @@ class Themes
             'css' => self::css($key, $theme),
         ], JSON_UNESCAPED_UNICODE) ?: null;
 
-        $layout = Layout::first();
+        $layout = Layout::default();
         if ($layout === null) {
             $id = Layout::create('Standard (' . $theme['name'] . ')', self::html($key), $design);
         } else {

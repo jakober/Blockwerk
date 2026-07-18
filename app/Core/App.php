@@ -192,6 +192,7 @@ class App
         $router->add('GET', '/admin/layouts/{id}/edit', [LayoutController::class, 'edit']);
         $router->add('POST', '/admin/layouts/{id}', [LayoutController::class, 'update']);
         $router->add('POST', '/admin/layouts/{id}/delete', [LayoutController::class, 'delete']);
+        $router->add('POST', '/admin/layouts/{id}/make-default', [LayoutController::class, 'makeDefault']);
 
         $router->add('GET', '/admin/templates', [TemplateController::class, 'index']);
         $router->add('GET', '/admin/templates/new', [TemplateController::class, 'create']);

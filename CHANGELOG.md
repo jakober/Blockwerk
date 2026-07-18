@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.30.0 – 2026-07-18
+
+- **Standard-Layout festlegen:** Bei mehreren Layouts lässt sich jetzt eines als Standard markieren. Das erste angelegte Layout ist automatisch Standard; unter **Layouts** kann per Klick auf „★ Als Standard" jederzeit ein anderes gewählt werden (die bisherige Markierung wechselt automatisch – es gibt immer genau ein Standard-Layout). Das Standard-Layout ist mit einem orangefarbenen „★ Standard"-Zeichen markiert.
+  - **Neue Seiten** übernehmen das Standard-Layout jetzt automatisch als Vorauswahl – natürlich weiterhin frei änderbar. Zusätzlich gibt es im Layout-Auswahlfeld die Option „Standard-Layout (automatisch)", mit der eine Seite dauerhaft dem jeweils aktuellen Standard folgt.
+  - Wird das Standard-Layout gelöscht, rückt automatisch das nächste nach, damit immer ein Standard existiert. Bestehende Installationen erhalten die Markierung beim Update automatisch (das erste Layout wird Standard).
+
 ## 1.29.2 – 2026-07-18
 
 - **KI-Assistent: Fehlermeldung nach ausgeführter Anweisung behoben.** Rief die KI ein Werkzeug ohne Parameter auf (z. B. Vorlagen oder globale Blöcke auflisten), meldete Anthropic beim nächsten Schritt der Anweisung `messages…tool_use.input: Input should be an object` – die Anweisung wurde zwar korrekt ausgeführt, doch statt der Abschlussmeldung erschien der Fehler. Ursache: Der zentrale KI-Dienst wandelte beim Weiterreichen den leeren Werkzeug-Aufruf `{}` in ein leeres Array `[]` um, das die API ablehnt. Der Dienst stellt leere Objekte an allen relevanten Stellen (`tool_use.input` im Gesprächsverlauf, `input_schema.properties` in den Werkzeug-Definitionen) jetzt zuverlässig wieder her. **Hinweis:** Die Korrektur betrifft den zentralen KI-Dienst – nach einem einmaligen Update von `blockwerk.bairle.de` funktioniert der KI-Assistent auf allen angebundenen Installationen wieder fehlerfrei.

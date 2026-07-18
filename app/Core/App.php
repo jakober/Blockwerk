@@ -27,6 +27,13 @@ class App
 
     public function run(): void
     {
+        // HTML nie im Browser heuristisch cachen – sonst sehen z. B. Handys
+        // Menü- oder Design-Änderungen erst verspätet. Statische Assets
+        // liefert der Webserver direkt aus, die cachen weiterhin normal.
+        if (!headers_sent()) {
+            header('Cache-Control: no-cache, must-revalidate');
+        }
+
         $uriPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
         $this->resolveBase($uriPath);
 

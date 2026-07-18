@@ -295,14 +295,21 @@ class Renderer
             $html
         ) ?? $html;
 
-        // Menü mit wählbarer Darstellungsvariante:
-        // {{menu}} bzw. {{menu:dropdown}} – klassisches Hover-Aufklappmenü
+        // {{menu}} ohne Variante: wird komplett vom Menü-Designer gestaltet
+        // (Vorlage, Farben, Breakpoint) – so folgen auch Layouts und Design-
+        // Themes, die {{menu}} direkt einbinden, den Einstellungen.
+        if (str_contains($html, '{{menu}}')) {
+            $html = str_replace('{{menu}}', BlockRegistry::menuHtml(MenuDesign::stored()), $html);
+        }
+
+        // Menü mit expliziter Darstellungsvariante:
+        // {{menu:dropdown}} – klassisches Hover-Aufklappmenü
         // {{menu:mega}} – Mega-Menü (breites Panel mit Spalten für Unterpunkte)
         // {{menu:vertical}} – vertikale Liste mit eingerückten Ebenen (Sidebar/Footer)
         // {{menu:simple}} – nur die oberste Ebene, ohne Unterpunkte
         $html = preg_replace_callback(
-            '/\{\{menu(?::([a-z]+))?\}\}/i',
-            fn (array $m): string => $this->renderMenu(strtolower($m[1] ?? 'dropdown')),
+            '/\{\{menu:([a-z]+)\}\}/i',
+            fn (array $m): string => $this->renderMenu(strtolower($m[1])),
             $html
         ) ?? $html;
 

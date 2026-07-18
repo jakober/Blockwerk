@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.14.1 – 2026-07-18
+
+- **Menü-Designer wirkt jetzt überall:** Layouts und Design-Themes, die das Menü direkt über `{{menu}}` einbinden (statt über das Menü-Template), ignorierten die Einstellungen aus dem Menü-Designer komplett – deshalb änderte sich das Menü dort nie, egal was man wählte. Jetzt rendert `{{menu}}` immer das voll gestaltete Designer-Menü (Vorlage, Farben, Größen, mobiler Breakpoint). `{{menu:variante}}` bleibt für explizite Sonderfälle erhalten.
+- **Kein veraltetes HTML mehr im Browser:** Alle Seiten werden mit `Cache-Control: no-cache` ausgeliefert – Browser (v. a. am Handy) prüfen jetzt bei jedem Aufruf, ob sich die Seite geändert hat, statt stillschweigend eine alte Kopie zu zeigen.
+
 ## 1.14.0 – 2026-07-18
 
 - **Mobiles Website-Menü repariert:** Nach dem Update wird das Menü-Template einmalig automatisch auf den Designer-Stand gebracht – ältere, von Hand angelegte Menü-Templates hatten kein mobiles Burger-Menü. Zusätzlich ergänzt das CMS jetzt automatisch den Viewport-Meta-Tag, falls er in einem Layout fehlt (ohne ihn zeigen Smartphones die Desktop-Ansicht und das mobile Menü erscheint nie).

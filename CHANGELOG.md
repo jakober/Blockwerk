@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.22.1 – 2026-07-18
+
+- **KI-Dienst nicht mehr auf Installationen:** Installer und Updater überspringen das Verzeichnis `ai-server/` jetzt komplett – der zentrale KI-Dienst wird ausschließlich vom Anbieter auf dessen Server deployt und landet nicht mehr im Paket der Kunden-Installationen. (Wer 1.22.0 bereits installiert hat, kann einen evtl. vorhandenen Ordner `ai-server/` gefahrlos löschen – er ist ohne Konfiguration funktionslos.)
+
 ## 1.22.0 – 2026-07-18
 
 - **✨ KI-Assistent:** Neuer Bereich im Backend (Inhalte → KI-Assistent, nur für Administratoren). Einfach beschreiben, was gebraucht wird – die KI (Claude) erstellt komplette Seiten direkt im CMS: Struktur mit Zeilen/Spalten, deutsche Texte, moderne Gestaltung mit den Layout-Farben und **per KI generierte Bilder**, die automatisch in der Mediathek landen. Bestehende Seiten lassen sich per Chat ändern („Mach die Überschrift knackiger"); vor jeder Änderung wird der alte Stand als Version gesichert. Die KI kennt die komplette Blockwerk-Architektur und die jeweilige Installation (Seiten, Layouts, Mediathek) – alles läuft durch dieselbe Validierung wie der normale Editor.

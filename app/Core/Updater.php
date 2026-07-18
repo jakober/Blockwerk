@@ -17,7 +17,9 @@ class Updater
     public const DEFAULT_VERSION_URL = 'https://raw.githubusercontent.com/jakober/Blockwerk/main/VERSION';
 
     /** Diese Pfade werden beim Update niemals überschrieben. */
-    private const PROTECTED = ['config/', 'public/uploads/', '.git/'];
+    // config/ und uploads/ werden nie überschrieben; ai-server/ ist der
+    // zentrale Dienst des Anbieters und gehört nicht auf Installationen.
+    private const PROTECTED = ['config/', 'public/uploads/', '.git/', 'ai-server/'];
 
     public static function currentVersion(): string
     {

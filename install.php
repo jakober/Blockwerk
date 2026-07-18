@@ -76,6 +76,10 @@ function extractPackage(string $zipFile, string $target): ?string
         if ($relative === '' || str_contains($relative, '..')) {
             continue;
         }
+        // Der zentrale KI-Dienst (ai-server/) gehört nicht auf Installationen.
+        if (str_starts_with($relative, 'ai-server/')) {
+            continue;
+        }
         $destination = $target . '/' . $relative;
         if (str_ends_with($name, '/')) {
             if (!is_dir($destination)) {

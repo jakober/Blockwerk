@@ -174,6 +174,9 @@ class App
 
         $router->add('GET', '/admin/ai', [\Controllers\Admin\AiController::class, 'index']);
         $router->add('POST', '/admin/ai/chat', [\Controllers\Admin\AiController::class, 'chat']);
+        $router->add('GET', '/admin/ai-admin', [\Controllers\Admin\AiAdminController::class, 'index']);
+        $router->add('POST', '/admin/ai-admin/config', [\Controllers\Admin\AiAdminController::class, 'saveConfig']);
+        $router->add('POST', '/admin/ai-admin/license', [\Controllers\Admin\AiAdminController::class, 'license']);
 
         $router->add('GET', '/admin/menu', [\Controllers\Admin\MenuController::class, 'edit']);
         $router->add('POST', '/admin/menu', [\Controllers\Admin\MenuController::class, 'save']);

@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.23.0 – 2026-07-18
+
+- **🗝 KI-Verwaltung im Backend (nur Anbieter-Domain):** Neuer Menüpunkt unter System – kein FTP mehr nötig. Dort werden die API-Schlüssel (Anthropic für den Chat, OpenAI für Bilder), Modelle, der Token-Preis pro Bild und das Rate-Limit eingetragen; das CMS schreibt die Dienst-Konfiguration (`ai-server/config.php`) automatisch. Gespeicherte Schlüssel werden maskiert angezeigt, leere Felder behalten den vorhandenen Wert.
+- **Kunden-Lizenzen direkt im Backend:** Lizenzen anlegen (Schlüssel wird generiert), Guthaben aufladen, sperren/aktivieren und Verbrauch einsehen – alles in der KI-Verwaltung. Per „Hier nutzen" lässt sich eine Lizenz mit einem Klick als Lizenz der eigenen Installation übernehmen.
+- Der Menüpunkt und die Verwaltung erscheinen ausschließlich auf der Anbieter-Domain; auf Kunden-Installationen existiert der Bereich nicht.
+
 ## 1.22.3 – 2026-07-18
 
 - **KI-Einrichtung für Kunden vereinfacht:** Die Dienst-URL ist jetzt mit dem Standard-Dienst des Anbieters vorbelegt – zum Aktivieren des KI-Assistenten genügt es, den Lizenzschlüssel in den Einstellungen einzutragen. Eine eigene Dienst-URL kann weiterhin hinterlegt werden.

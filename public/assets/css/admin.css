@@ -1209,3 +1209,8 @@ body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
 .ai-inputbar textarea { resize: none; }
 .ai-inputbar .btn { align-self: flex-end; }
 .ai-status[hidden], .dz-progress[hidden], #dz-message[hidden] { display: none; }
+
+/* KI-Verwaltung */
+.ai-license-create { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.ai-license-create input[type="text"] { flex: 1; min-width: 180px; }
+.ai-license-create input[type="number"] { width: 160px; }

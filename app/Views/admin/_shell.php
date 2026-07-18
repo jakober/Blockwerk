@@ -26,6 +26,10 @@ $navGroups = [
         'settings' => ['Einstellungen', '/admin/settings', '⚙'],
     ],
 ];
+// KI-Verwaltung (Keys & Kunden-Lizenzen) nur auf der Anbieter-Domain.
+if (\Core\Updater::isVendorHost()) {
+    $navGroups['System']['ai-admin'] = ['KI-Verwaltung', '/admin/ai-admin', '🗝'];
+}
 // Redakteure sehen nur die Inhalts-Bereiche (und keinen KI-Assistenten).
 if (!\Core\Auth::isAdmin()) {
     unset($navGroups['Gestaltung'], $navGroups['System'], $navGroups['Inhalte']['ai']);

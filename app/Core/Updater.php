@@ -24,7 +24,7 @@ class Updater
     // Anbieters mit ausgeliefert – Kunden-Installationen erhalten ihn nicht.
     private const VENDOR_HOSTS = ['blockwerk.bairle.de'];
 
-    private static function isVendorHost(): bool
+    public static function isVendorHost(): bool
     {
         $host = strtolower(preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? '') ?? '');
         return in_array($host, self::VENDOR_HOSTS, true);

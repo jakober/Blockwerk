@@ -107,6 +107,25 @@ function upstream(string $url, array $headers, string $body, int $timeout = 180)
     return $json;
 }
 
+/**
+ * Wandelt leere „properties"-Arrays (die durch json_decode aus {} entstehen)
+ * rekursiv zurück in Objekte, damit die Anthropic-API sie akzeptiert.
+ */
+function fixEmptyProperties(mixed $node): mixed
+{
+    if (!is_array($node)) {
+        return $node;
+    }
+    foreach ($node as $key => $value) {
+        if ($key === 'properties' && $value === []) {
+            $node[$key] = new stdClass();
+        } elseif (is_array($value)) {
+            $node[$key] = fixEmptyProperties($value);
+        }
+    }
+    return $node;
+}
+
 function readJsonBody(int $maxBytes = 2000000): array
 {
     $raw = file_get_contents('php://input', false, null, 0, $maxBytes + 1) ?: '';
@@ -270,7 +289,10 @@ if ($method === 'POST' && str_ends_with($path, '/v1/chat')) {
             'messages' => $messages,
         ];
         if (is_array($body['tools'] ?? null) && $body['tools'] !== []) {
-            $payload['tools'] = $body['tools'];
+            // json_decode(...true) macht aus leeren JSON-Objekten leere Arrays.
+            // Anthropic verlangt aber, dass z. B. input_schema.properties ein
+            // Objekt ({}) ist – leere „properties" wieder zu Objekten machen.
+            $payload['tools'] = fixEmptyProperties($body['tools']);
         }
         $response = upstream('https://api.anthropic.com/v1/messages', [
             'Content-Type: application/json',

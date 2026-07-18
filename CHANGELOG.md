@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.28.2 – 2026-07-18
+
+- **KI-Fehler endgültig behoben:** Der Fehler „tools.6.custom.input_schema.properties: Input should be an object" kam vom zentralen KI-Dienst selbst: Beim Weiterreichen an die Claude-API wurden leere Objekte durch die interne Verarbeitung wieder zu leeren Listen. Der Dienst stellt sie jetzt vor dem Senden korrekt als Objekte wieder her. (Betrifft nur den Anbieter-Server – dort einmal aktualisieren, damit der KI-Assistent aller Installationen wieder funktioniert.)
+
 ## 1.28.1 – 2026-07-18
 
 - **KI-Fehler behoben:** Seit 1.28.0 brach jede KI-Anfrage mit „tools.6.custom.input_schema.properties: Input should be an object" ab. Ursache: Zwei der neuen Werkzeuge (globale Blöcke/Templates auflisten) haben keine Eingabefelder – das leere Feld wurde fälschlich als Liste statt als Objekt übermittelt. Jetzt korrigiert; die KI funktioniert wieder.

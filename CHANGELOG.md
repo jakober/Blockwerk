@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.28.3 – 2026-07-18
+
+- **Kein Abstand mehr über dem Hero:** Bei den Gesamt-Designs entstand über einem Hero oder einer vollbreiten Sektion ganz oben auf der Seite eine schmale Lücke zwischen Kopfbereich und Inhalt (der obere Abstand des Inhaltsbereichs `.t-main`). Beginnt eine Seite mit einem Hero/einer vollbreiten Sektion, sitzt dieser jetzt bündig unter dem Kopfbereich. Normale Seiten behalten ihren gewohnten oberen Abstand.
+- **Zeilen im Editor per Klick markieren:** Um eine Zeile zu bearbeiten, muss man nicht mehr genau auf den Zeilentitel klicken – ein Klick auf eine freie Stelle der Zeile (neben den Blöcken) markiert sie jetzt und öffnet ihre Einstellungen. Klicks auf Blöcke, Knöpfe oder Textfelder verhalten sich wie gewohnt.
+
 ## 1.28.2 – 2026-07-18
 
 - **KI-Fehler endgültig behoben:** Der Fehler „tools.6.custom.input_schema.properties: Input should be an object" kam vom zentralen KI-Dienst selbst: Beim Weiterreichen an die Claude-API wurden leere Objekte durch die interne Verarbeitung wieder zu leeren Listen. Der Dienst stellt sie jetzt vor dem Senden korrekt als Objekte wieder her. (Betrifft nur den Anbieter-Server – dort einmal aktualisieren, damit der KI-Assistent aller Installationen wieder funktioniert.)

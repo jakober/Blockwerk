@@ -636,6 +636,15 @@
             if (selected && selected.kind === 'row' && selected.r === r) rowEl.classList.add('is-selected');
             bindRowDropzone(rowEl, r);
 
+            // Klick irgendwo in die Zeile (nicht auf einen Block, Knopf oder
+            // Eingabefeld) markiert die Zeile und öffnet ihre Einstellungen.
+            rowEl.addEventListener('click', (e) => {
+                if (e.target.closest('.ed-block, button, input, select, textarea, a, [contenteditable="true"], .ed-add-block, .ed-col-resizer')) {
+                    return;
+                }
+                selectRow(r);
+            });
+
             const bar = document.createElement('div');
             bar.className = 'ed-row-bar';
             bar.innerHTML =

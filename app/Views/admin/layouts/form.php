@@ -60,7 +60,25 @@ $colorDefaults = [
                         </select>
                     </div>
                 </div>
-                <?php if (empty($fonts)): ?>
+                <?php if (!empty($fonts)): ?>
+                    <details class="font-levels" <?= array_filter(['h1','h2','h3','h4','h5','h6'], fn ($k) => (int) ($designFonts[$k] ?? 0) > 0) ? 'open' : '' ?>>
+                        <summary>Einzelne Überschriften separat (H1–H6)</summary>
+                        <p class="muted small">Optional. Ohne Auswahl nutzt eine Ebene die Schrift „für Überschriften" oben – ist auch die nicht gesetzt, die Systemschrift.</p>
+                        <div class="font-levels-grid">
+                            <?php foreach (['h1' => 'H1 (größte Überschrift)', 'h2' => 'H2', 'h3' => 'H3', 'h4' => 'H4', 'h5' => 'H5', 'h6' => 'H6'] as $lvl => $lvlLabel): ?>
+                                <div class="form-group">
+                                    <label for="font-<?= $lvl ?>"><?= e($lvlLabel) ?></label>
+                                    <select id="font-<?= $lvl ?>" name="design[fonts][<?= $lvl ?>]">
+                                        <option value="0">wie Überschriften</option>
+                                        <?php foreach ($fonts as $font): ?>
+                                            <option value="<?= (int) $font['id'] ?>" <?= (int) ($designFonts[$lvl] ?? 0) === (int) $font['id'] ? 'selected' : '' ?>><?= e($font['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </details>
+                <?php else: ?>
                     <p class="muted small">Noch keine Schriften installiert – unter <a href="<?= e(url('/admin/fonts')) ?>">Schriften</a> kannst du Google Fonts herunterladen und lokal einbinden.</p>
                 <?php endif; ?>
                 <div class="form-group" style="margin-top:16px">
@@ -103,7 +121,7 @@ $colorDefaults = [
                 <li><code>{{global:ID}}</code> – globalen Block einbetten (ID: siehe „Globale Blöcke“)</li>
             </ul>
             <p class="muted small">Layouts sind das HTML-Grundgerüst einer Seite. Templates (z.&nbsp;B. <code>{{template:main-menu}}</code>) sind wiederverwendbare Bausteine darin.</p>
-            <p class="muted small">Die gewählten Farben stehen im Layout-HTML und in eigenen Styles als CSS-Variablen zur Verfügung: <code>var(--cms-primary)</code>, <code>--cms-accent</code>, <code>--cms-text</code>, <code>--cms-bg</code>, <code>--cms-surface</code>, <code>--cms-font-heading</code>, <code>--cms-font-body</code>.</p>
+            <p class="muted small">Die gewählten Farben stehen im Layout-HTML und in eigenen Styles als CSS-Variablen zur Verfügung: <code>var(--cms-primary)</code>, <code>--cms-accent</code>, <code>--cms-text</code>, <code>--cms-bg</code>, <code>--cms-surface</code>, <code>--cms-font-heading</code>, <code>--cms-font-body</code> sowie je Ebene <code>--cms-font-h1</code> … <code>--cms-font-h6</code>.</p>
         </aside>
     </div>
 </form>

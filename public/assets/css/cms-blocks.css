@@ -23,9 +23,14 @@
     color: var(--cms-text);
     font-family: var(--cms-font-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
 }
-:where(h1, h2, h3, h4, h5, h6) {
-    font-family: var(--cms-font-heading, inherit);
-}
+/* Jede Überschriften-Ebene nutzt zuerst ihre eigene Schrift (falls im Layout
+   gewählt), sonst die allgemeine Überschriften-Schrift, sonst die Standard. */
+:where(h1) { font-family: var(--cms-font-h1, var(--cms-font-heading, inherit)); }
+:where(h2) { font-family: var(--cms-font-h2, var(--cms-font-heading, inherit)); }
+:where(h3) { font-family: var(--cms-font-h3, var(--cms-font-heading, inherit)); }
+:where(h4) { font-family: var(--cms-font-h4, var(--cms-font-heading, inherit)); }
+:where(h5) { font-family: var(--cms-font-h5, var(--cms-font-heading, inherit)); }
+:where(h6) { font-family: var(--cms-font-h6, var(--cms-font-heading, inherit)); }
 
 /* ===== Zeilen & flexible Spalten (12er-Raster) ===== */
 .cms-row {

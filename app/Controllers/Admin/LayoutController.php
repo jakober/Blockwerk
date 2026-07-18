@@ -82,7 +82,7 @@ class LayoutController extends AdminController
                 $design['colors'][$key] = strtolower($value);
             }
         }
-        foreach (['heading', 'body'] as $key) {
+        foreach (['heading', 'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as $key) {
             $id = (int) ($input['fonts'][$key] ?? 0);
             if ($id > 0) {
                 $design['fonts'][$key] = $id;

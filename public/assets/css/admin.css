@@ -636,6 +636,10 @@ body.is-editor .content { padding: 0; display: flex; flex-direction: column; }
 .color-field { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
 .color-field input[type="color"] { width: 42px; height: 36px; padding: 2px; border: 1px solid var(--border); border-radius: 7px; background: #fff; cursor: pointer; flex-shrink: 0; }
 .color-field label { font-weight: 600; font-size: 13px; cursor: pointer; }
+.font-levels { margin-top: 14px; border: 1px solid var(--border); border-radius: 9px; padding: 6px 12px; }
+.font-levels > summary { font-weight: 600; font-size: 14px; cursor: pointer; padding: 6px 0; }
+.font-levels[open] > summary { margin-bottom: 6px; }
+.font-levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 8px; }
 
 /* ===== WYSIWYG-Canvas: Die Seite sieht aus wie im Frontend ===== */
 body.is-editor .ed-canvas {

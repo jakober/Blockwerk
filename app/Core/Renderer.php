@@ -297,10 +297,23 @@ class Renderer
             }
         }
 
-        foreach (['heading' => '--cms-font-heading', 'body' => '--cms-font-body'] as $key => $var) {
+        // Schriften: Fließtext, alle Überschriften und optional je Ebene H1–H6.
+        // Eine hN-Auswahl gewinnt über die allgemeine Überschriften-Schrift;
+        // ohne Auswahl bleibt die Standard-/Systemschrift.
+        $fontMap = [
+            'body' => '--cms-font-body',
+            'heading' => '--cms-font-heading',
+            'h1' => '--cms-font-h1', 'h2' => '--cms-font-h2', 'h3' => '--cms-font-h3',
+            'h4' => '--cms-font-h4', 'h5' => '--cms-font-h5', 'h6' => '--cms-font-h6',
+        ];
+        $linkedFolders = [];
+        foreach ($fontMap as $key => $var) {
             $fontId = (int) ($design['fonts'][$key] ?? 0);
             if ($fontId > 0 && ($font = Font::find($fontId)) !== null) {
-                $out .= '<link rel="stylesheet" href="' . e(App::base() . '/uploads/fonts/' . $font['folder'] . '/font.css') . '">' . "\n";
+                if (!isset($linkedFolders[$font['folder']])) {
+                    $out .= '<link rel="stylesheet" href="' . e(App::base() . '/uploads/fonts/' . $font['folder'] . '/font.css') . '">' . "\n";
+                    $linkedFolders[$font['folder']] = true;
+                }
                 $vars[$var] = "'" . str_replace("'", '', $font['family']) . "', sans-serif";
             }
         }

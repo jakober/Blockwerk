@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.34.0 – 2026-07-18
+
+- **Schriftart je Überschriften-Ebene wählbar:** In den Layout-Design-Einstellungen (dort, wo auch die Farben eingestellt werden) lässt sich jetzt zusätzlich zur allgemeinen Schrift „für Überschriften" und „für Fließtext" optional für **jede einzelne Ebene H1–H6** eine eigene installierte Schrift festlegen (aufklappbarer Bereich „Einzelne Überschriften separat"). Wird für eine Ebene nichts gewählt, gilt die allgemeine Überschriften-Schrift; ist auch die nicht gesetzt, die Standard-/Systemschrift. Gilt sowohl im Frontend als auch in der Editor-Vorschau. Für eigenes CSS stehen die Ebenen als Variablen `--cms-font-h1` … `--cms-font-h6` bereit.
+
 ## 1.33.0 – 2026-07-18
 
 - **Einheitliche Bestätigungs-Dialoge im Backend:** Überall, wo bisher die schlichten Browser-Fenster („alert"/„confirm") verwendet wurden – beim Löschen von Seiten, Medien, Layouts, Schriften, Templates, Benutzern, News/Events, beim Zurücksetzen des Menüs, beim Aktivieren eines Designs usw. – erscheint jetzt der schöne, zum Backend passende Dialog. Bestätigungen für unwiderrufliche Aktionen haben einen roten Knopf.

@@ -3,5 +3,7 @@
 RewriteEngine On
 # Der Installations-Bootstrapper muss direkt erreichbar bleiben.
 RewriteRule ^install\.php$ - [L]
+# Der zentrale KI-Dienst (nur auf dem Anbieter-Server vorhanden) ebenso.
+RewriteRule ^ai-server/ - [L]
 RewriteRule ^$ public/ [L]
 RewriteRule (.*) public/$1 [L]

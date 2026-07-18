@@ -17,9 +17,18 @@ class Updater
     public const DEFAULT_VERSION_URL = 'https://raw.githubusercontent.com/jakober/Blockwerk/main/VERSION';
 
     /** Diese Pfade werden beim Update niemals überschrieben. */
-    // config/ und uploads/ werden nie überschrieben; ai-server/ ist der
-    // zentrale Dienst des Anbieters und gehört nicht auf Installationen.
-    private const PROTECTED = ['config/', 'public/uploads/', '.git/', 'ai-server/'];
+    // config/ und uploads/ werden nie überschrieben.
+    private const PROTECTED = ['config/', 'public/uploads/', '.git/'];
+
+    // Der zentrale KI-Dienst (ai-server/) wird nur auf den Domains des
+    // Anbieters mit ausgeliefert – Kunden-Installationen erhalten ihn nicht.
+    private const VENDOR_HOSTS = ['blockwerk.bairle.de'];
+
+    private static function isVendorHost(): bool
+    {
+        $host = strtolower(preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? '') ?? '');
+        return in_array($host, self::VENDOR_HOSTS, true);
+    }
 
     public static function currentVersion(): string
     {
@@ -107,6 +116,13 @@ class Updater
                 if (str_starts_with($relative, $protected)) {
                     continue 2;
                 }
+            }
+            if (str_starts_with($relative, 'ai-server/') && !self::isVendorHost()) {
+                continue; // KI-Dienst nur für den Anbieter selbst
+            }
+            // Eine vorhandene Dienst-Konfiguration nie überschreiben.
+            if ($relative === 'ai-server/config.php' || $relative === 'ai-server/data.sqlite') {
+                continue;
             }
             $destination = BASE_PATH . '/' . $relative;
             if (str_ends_with($name, '/')) {

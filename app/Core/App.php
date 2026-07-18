@@ -202,6 +202,10 @@ class App
 
         $router->add('GET', '/admin/media', [MediaController::class, 'index']);
         $router->add('GET', '/admin/media/list', [MediaController::class, 'list']);
+        $router->add('POST', '/admin/media/folders', [MediaController::class, 'folderCreate']);
+        $router->add('POST', '/admin/media/folders/{id}', [MediaController::class, 'folderRename']);
+        $router->add('POST', '/admin/media/folders/{id}/delete', [MediaController::class, 'folderDelete']);
+        $router->add('POST', '/admin/media/{id}/update', [MediaController::class, 'updateMeta']);
         $router->add('POST', '/admin/media/upload', [MediaController::class, 'upload']);
         $router->add('POST', '/admin/media/{id}/delete', [MediaController::class, 'delete']);
 

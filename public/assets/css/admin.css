@@ -1214,3 +1214,32 @@ body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
 .ai-license-create { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .ai-license-create input[type="text"] { flex: 1; min-width: 180px; }
 .ai-license-create input[type="number"] { width: 160px; }
+
+/* ===== Mediathek: Ordner, Suche, Bearbeiten ===== */
+.media-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.media-folders { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.media-chip {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+}
+.media-chip:hover { border-color: var(--primary); }
+.media-chip.is-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.media-newfolder { display: flex; gap: 6px; }
+.media-newfolder input { width: 150px; padding: 5px 10px; font-size: 13px; }
+.media-search input { width: 260px; }
+.media-folder-tools { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.media-folder-tools input { width: 180px; padding: 5px 10px; font-size: 13px; display: inline-block; }
+.media-thumb[data-edit] { cursor: pointer; }
+.media-modal-preview { text-align: center; margin-bottom: 14px; }
+.media-modal-preview img { max-width: 180px; max-height: 120px; border-radius: 8px; }
+.media-modal-preview .media-file-icon { font-size: 44px; }
+.mp-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+.mp-toolbar select { width: auto; }
+.media-folder-tools[hidden] { display: none; }

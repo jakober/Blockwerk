@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.25.0 – 2026-07-18
+
+- **Mediathek mit Ordnern:** Dateien lassen sich jetzt in Ordner sortieren – Ordner anlegen, umbenennen und löschen (Dateien bleiben dabei erhalten) direkt in der Mediathek. Beim Hochladen landet die Datei automatisch im gerade geöffneten Ordner, per Bearbeiten-Dialog kann sie jederzeit in einen anderen Ordner verschoben werden.
+- **Umbenennen, Alt-Text & Titel:** Klick auf ein Bild (oder den ✎-Knopf) öffnet den Bearbeiten-Dialog: Anzeigename ändern, Alt-Text (Bildbeschreibung für Suchmaschinen/Screenreader) und Titel pflegen – auch für PDFs. Die Datei-URL bleibt beim Umbenennen stabil, nichts geht kaputt.
+- **Suche in der Mediathek:** Neues Suchfeld durchsucht Name, Alt-Text und Titel – auch der Bild-Auswahldialog im Editor hat jetzt Suche und Ordner-Filter.
+- **KI kennt die Mediathek:** Der KI-Assistent sieht Ordner und Alt-Texte, prüft vor dem Generieren, ob passende Bilder vorhanden sind (spart Token-Guthaben), und mit dem neuen Werkzeug `list_media` kann er gezielt suchen – Aufträge wie „Nimm die Bilder aus dem Ordner Teamfotos für die Team-Seite" funktionieren jetzt.
+
 ## 1.24.0 – 2026-07-18
 
 - **KI kann jetzt Layouts ändern:** Der KI-Assistent hat zwei neue Werkzeuge – `get_layout` (Layout lesen) und `update_layout` (visuelles Layout ändern). Damit funktionieren Aufträge wie „Passe den Footer an" oder „Füge auf allen Seiten eine Kontaktbox über dem Footer ein": Die KI liest das Layout, fügt die Sektion an der richtigen Stelle (vor dem Footer, nach dem Inhaltsbereich) ein und speichert – die Änderung gilt sofort auf allen Seiten mit diesem Layout.

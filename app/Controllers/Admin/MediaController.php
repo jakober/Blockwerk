@@ -22,6 +22,7 @@ class MediaController extends AdminController
             'title' => 'Mediathek',
             'active' => 'media',
             'media' => Media::all(),
+            'folders' => \Models\MediaFolder::all(),
             'maxUpload' => ini_get('upload_max_filesize'),
         ]);
     }
@@ -30,14 +31,79 @@ class MediaController extends AdminController
     public function list(): void
     {
         header('Content-Type: application/json');
+        $folders = [];
+        foreach (\Models\MediaFolder::all() as $folder) {
+            $folders[(int) $folder['id']] = $folder['name'];
+        }
         $items = array_map(static fn (array $m): array => [
             'id' => (int) $m['id'],
             'name' => $m['filename'],
             'url' => url('/' . $m['path']),
             'thumb' => self::thumbUrl($m['path']),
             'isImage' => str_starts_with($m['mime'], 'image/'),
+            'alt' => (string) ($m['alt'] ?? ''),
+            'title' => (string) ($m['title'] ?? ''),
+            'folder' => $folders[(int) ($m['folder_id'] ?? 0)] ?? '',
         ], Media::all());
-        echo json_encode(['items' => $items], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        echo json_encode(['items' => $items, 'folders' => array_values($folders)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /** Metadaten bearbeiten: Anzeigename, Alt-Text, Titel, Ordner. */
+    public function updateMeta(string $id): void
+    {
+        header('Content-Type: application/json');
+        $item = Media::find((int) $id);
+        if ($item === null) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => 'Datei nicht gefunden.']);
+            return;
+        }
+        $data = json_decode(file_get_contents('php://input') ?: '', true) ?: [];
+        $filename = trim((string) ($data['filename'] ?? '')) ?: $item['filename'];
+        $folderId = (int) ($data['folder_id'] ?? 0);
+        Media::updateMeta(
+            (int) $item['id'],
+            mb_substr($filename, 0, 255),
+            mb_substr(trim((string) ($data['alt'] ?? '')), 0, 255) ?: null,
+            mb_substr(trim((string) ($data['title'] ?? '')), 0, 255) ?: null,
+            $folderId > 0 && \Models\MediaFolder::find($folderId) !== null ? $folderId : null
+        );
+        echo json_encode(['ok' => true]);
+    }
+
+    public function folderCreate(): void
+    {
+        $name = mb_substr(trim($_POST['name'] ?? ''), 0, 100);
+        if ($name === '') {
+            flash('error', 'Bitte einen Ordnernamen angeben.');
+        } elseif (\Models\MediaFolder::findByName($name) !== null) {
+            flash('error', 'Diesen Ordner gibt es schon.');
+        } else {
+            \Models\MediaFolder::create($name);
+            flash('success', 'Ordner „' . $name . '“ angelegt.');
+        }
+        redirect('/admin/media');
+    }
+
+    public function folderRename(string $id): void
+    {
+        $folder = \Models\MediaFolder::find((int) $id);
+        $name = mb_substr(trim($_POST['name'] ?? ''), 0, 100);
+        if ($folder !== null && $name !== '') {
+            \Models\MediaFolder::rename((int) $folder['id'], $name);
+            flash('success', 'Ordner umbenannt.');
+        }
+        redirect('/admin/media');
+    }
+
+    public function folderDelete(string $id): void
+    {
+        $folder = \Models\MediaFolder::find((int) $id);
+        if ($folder !== null) {
+            \Models\MediaFolder::delete((int) $folder['id']);
+            flash('success', 'Ordner „' . $folder['name'] . '“ gelöscht – die Dateien sind weiterhin unter „Alle Dateien“.');
+        }
+        redirect('/admin/media');
     }
 
     public function upload(): void
@@ -67,6 +133,10 @@ class MediaController extends AdminController
         $uploaded = 0;
         $errors = [];
         $items = [];
+        $folderId = (int) ($_POST['folder_id'] ?? 0);
+        if ($folderId > 0 && \Models\MediaFolder::find($folderId) === null) {
+            $folderId = 0;
+        }
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
 
         foreach ($files['name'] as $i => $name) {
@@ -103,7 +173,11 @@ class MediaController extends AdminController
             }
 
             $id = Media::create((string) $name, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
+            if ($folderId > 0) {
+                Media::setFolder($id, $folderId);
+            }
             $items[] = [
+                'folderId' => $folderId,
                 'id' => $id,
                 'name' => (string) $name,
                 'url' => url('/uploads/' . $filename),

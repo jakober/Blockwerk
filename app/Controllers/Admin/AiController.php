@@ -179,6 +179,30 @@ class AiController extends AdminController
                     }
                     return 'Titel: ' . $page['title'] . "\nContent-JSON:\n" . ((string) $page['content'] ?: '{"rows":[]}');
 
+                case 'list_media':
+                    $folderId = null;
+                    $folderName = trim((string) ($input['folder'] ?? ''));
+                    if ($folderName !== '') {
+                        $folder = \Models\MediaFolder::findByName($folderName);
+                        if ($folder === null) {
+                            $names = array_map(static fn (array $f): string => $f['name'], \Models\MediaFolder::all());
+                            return 'FEHLER: Ordner „' . $folderName . '“ nicht gefunden. Vorhandene Ordner: ' . ($names !== [] ? implode(', ', $names) : 'keine');
+                        }
+                        $folderId = (int) $folder['id'];
+                    }
+                    $found = \Models\Media::search(trim((string) ($input['search'] ?? '')), $folderId, 40);
+                    $lines = [];
+                    foreach ($found as $item) {
+                        if (str_starts_with((string) $item['mime'], 'image/')) {
+                            $lines[] = url('/' . $item['path']) . ' — „' . $item['filename'] . '“'
+                                . (!empty($item['alt']) ? ' (Alt: ' . $item['alt'] . ')' : '')
+                                . ($item['width'] ? ' ' . $item['width'] . '×' . $item['height'] . 'px' : '');
+                        }
+                    }
+                    return $lines !== []
+                        ? "Gefundene Bilder:\n" . implode("\n", $lines)
+                        : 'Keine passenden Bilder gefunden – nutze generate_image oder frage den Nutzer.';
+
                 case 'get_layout':
                     $layout = \Models\Layout::find((int) ($input['layout_id'] ?? 0));
                     if ($layout === null) {

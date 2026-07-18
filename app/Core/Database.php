@@ -87,6 +87,15 @@ class Database
                 size INT UNSIGNED NOT NULL DEFAULT 0,
                 width INT UNSIGNED NULL,
                 height INT UNSIGNED NULL,
+                folder_id INT UNSIGNED NULL,
+                alt VARCHAR(255) NULL,
+                title VARCHAR(255) NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS media_folders (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 
@@ -167,6 +176,9 @@ class Database
         self::ensureColumn($pdo, 'layouts', 'builder', 'MEDIUMTEXT NULL');
         self::ensureColumn($pdo, 'layouts', 'head_code', 'MEDIUMTEXT NULL');
         self::ensureColumn($pdo, 'layouts', 'body_code', 'MEDIUMTEXT NULL');
+        self::ensureColumn($pdo, 'media', 'folder_id', 'INT UNSIGNED NULL');
+        self::ensureColumn($pdo, 'media', 'alt', 'VARCHAR(255) NULL');
+        self::ensureColumn($pdo, 'media', 'title', 'VARCHAR(255) NULL');
     }
 
     private static function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void

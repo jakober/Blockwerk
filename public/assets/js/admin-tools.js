@@ -46,18 +46,50 @@
                     return;
                 }
                 body.innerHTML = '';
+
+                // Suche + Ordner-Filter
+                const bar = document.createElement('div');
+                bar.className = 'mp-toolbar';
+                const search = document.createElement('input');
+                search.type = 'search';
+                search.placeholder = '🔍 Bilder durchsuchen …';
+                bar.appendChild(search);
+                const folders = (json.folders || []);
+                let folderSelect = null;
+                if (folders.length) {
+                    folderSelect = document.createElement('select');
+                    folderSelect.innerHTML = '<option value="">Alle Ordner</option>' +
+                        folders.map((name) => '<option>' + name.replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + '</option>').join('');
+                    bar.appendChild(folderSelect);
+                }
+                body.appendChild(bar);
+
                 const grid = document.createElement('div');
                 grid.className = 'mp-grid';
                 images.forEach((item) => {
                     const cell = document.createElement('button');
                     cell.type = 'button';
                     cell.className = 'mp-item';
-                    cell.title = item.name;
+                    cell.title = item.name + (item.alt ? ' – ' + item.alt : '');
+                    cell.dataset.search = (item.name + ' ' + (item.alt || '') + ' ' + (item.title || '')).toLowerCase();
+                    cell.dataset.folder = item.folder || '';
                     cell.innerHTML = '<img src="' + (item.thumb || item.url) + '" alt="" loading="lazy"><span>' + item.name + '</span>';
-                    cell.addEventListener('click', () => { onSelect(item.url); close(); });
+                    cell.addEventListener('click', () => { onSelect(item.url, item); close(); });
                     grid.appendChild(cell);
                 });
                 body.appendChild(grid);
+
+                const applyFilter = () => {
+                    const q = search.value.trim().toLowerCase();
+                    const folder = folderSelect ? folderSelect.value : '';
+                    grid.querySelectorAll('.mp-item').forEach((cell) => {
+                        cell.hidden = (q !== '' && !cell.dataset.search.includes(q))
+                            || (folder !== '' && cell.dataset.folder !== folder);
+                    });
+                };
+                search.addEventListener('input', applyFilter);
+                if (folderSelect) folderSelect.addEventListener('change', applyFilter);
+                setTimeout(() => search.focus(), 40);
             })
             .catch(() => {
                 overlay.querySelector('.mp-body').innerHTML = '<p class="muted">Mediathek konnte nicht geladen werden.</p>';

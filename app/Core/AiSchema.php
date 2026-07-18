@@ -39,11 +39,21 @@ class AiSchema
                 )) . ')' : '');
         }
 
+        $folderNames = [];
+        foreach (\Models\MediaFolder::all() as $folder) {
+            $folderNames[(int) $folder['id']] = $folder['name'];
+        }
         $media = [];
-        foreach (array_slice(Media::all(), 0, 25) as $item) {
+        foreach (array_slice(Media::all(), 0, 30) as $item) {
             if (str_starts_with((string) $item['mime'], 'image/')) {
-                $media[] = '- ' . url('/' . $item['path']) . ' („' . $item['filename'] . '“)';
+                $folderName = $folderNames[(int) ($item['folder_id'] ?? 0)] ?? '';
+                $media[] = '- ' . url('/' . $item['path']) . ' („' . $item['filename'] . '“'
+                    . ($folderName !== '' ? ', Ordner: ' . $folderName : '')
+                    . (!empty($item['alt']) ? ', Alt: „' . $item['alt'] . '“' : '') . ')';
             }
+        }
+        if ($folderNames !== []) {
+            $media[] = 'Ordner in der Mediathek: ' . implode(', ', $folderNames) . ' – mit list_media kannst du gezielt darin suchen.';
         }
 
         $pagesList = $pages !== [] ? implode("\n", $pages) : '- (noch keine Seiten)';
@@ -89,7 +99,7 @@ Jeder Block: {"type": "...", "data": {...}}. Optional data._style = {"mt","mb","
 2. Wechsle Sektions-Hintergründe ab: normale Zeilen und Zeilen mit style {"bg":"surface","pt":50,"pb":50} – so entsteht Rhythmus. Nutze die Palette, keine harten Hex-Farben.
 3. Nutze 3-Karten-Muster ([4,4,4] mit heading h3 + text variant "infobox") für Vorteile/Leistungen, [6,6] für Text+Bild im Wechsel (Bild mit variant "shadow").
 4. Texte: konkret, deutsch, kein Lorem ipsum, 2–4 Sätze pro Textblock, Überschriften-Hierarchie sauber (eine h1 pro Seite).
-5. Generiere für zentrale Stellen (Hero, Text+Bild) Bilder per generate_image mit detaillierten fotografischen Prompts (Stil, Licht, Motiv – ohne Text im Bild). Nutze alternativ passende vorhandene Mediathek-Bilder.
+5. Generiere für zentrale Stellen (Hero, Text+Bild) Bilder per generate_image mit detaillierten fotografischen Prompts (Stil, Licht, Motiv – ohne Text im Bild). PRÜFE aber zuerst mit list_media, ob passende Bilder in der Mediathek liegen (spart Guthaben) – vor allem, wenn der Nutzer einen bestimmten Ordner nennt („nimm die Bilder aus Ordner X"), nutze GENAU diese Bilder.
 6. Schließe Kontakt-/Landingpages mit einer Kontakt-Sektion ab (heading + form).
 
 ## Layouts (Kopf-/Fußzeile, gilt auf ALLEN Seiten)
@@ -174,6 +184,17 @@ PROMPT
                     'type' => 'object',
                     'properties' => ['page_id' => ['type' => 'integer']],
                     'required' => ['page_id'],
+                ],
+            ],
+            [
+                'name' => 'list_media',
+                'description' => 'Durchsucht die Mediathek nach Bildern (Name, Alt-Text, Titel), optional auf einen Ordner begrenzt. Liefert Bild-URLs zur direkten Verwendung in Blöcken.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'folder' => ['type' => 'string', 'description' => 'Ordnername (optional, exakt wie in der Liste)'],
+                        'search' => ['type' => 'string', 'description' => 'Suchbegriff (optional)'],
+                    ],
                 ],
             ],
             [

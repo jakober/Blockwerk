@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 session_start();
 
-const DEFAULT_PACKAGE_URL = 'https://github.com/jakober/Cms/archive/refs/heads/main.zip';
+const DEFAULT_PACKAGE_URL = 'https://github.com/jakober/Blockwerk/archive/refs/heads/main.zip';
 
 $dir = __DIR__;
 $alreadyExtracted = is_file($dir . '/public/index.php');

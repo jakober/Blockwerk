@@ -13,8 +13,8 @@ use ZipArchive;
  */
 class Updater
 {
-    public const DEFAULT_ZIP_URL = 'https://github.com/jakober/Cms/archive/refs/heads/main.zip';
-    public const DEFAULT_VERSION_URL = 'https://raw.githubusercontent.com/jakober/Cms/main/VERSION';
+    public const DEFAULT_ZIP_URL = 'https://github.com/jakober/Blockwerk/archive/refs/heads/main.zip';
+    public const DEFAULT_VERSION_URL = 'https://raw.githubusercontent.com/jakober/Blockwerk/main/VERSION';
 
     /** Diese Pfade werden beim Update niemals überschrieben. */
     private const PROTECTED = ['config/', 'public/uploads/', '.git/'];

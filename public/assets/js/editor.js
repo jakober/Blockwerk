@@ -359,6 +359,14 @@
         { key: 'color', label: 'Textfarbe', type: 'colorclear' },
         { key: 'bg', label: 'Hintergrundfarbe', type: 'colorclear' },
         { key: 'radius', label: 'Eckenrundung (px)', type: 'number' },
+        { key: 'anim', label: 'Beim Scrollen einblenden', type: 'select', options: [
+            ['', 'Keine Animation'],
+            ['fade', 'Einblenden (Fade)'],
+            ['up', 'Von unten einfahren'],
+            ['left', 'Von links einfahren'],
+            ['right', 'Von rechts einfahren'],
+            ['zoom', 'Sanft vergrößern'],
+        ] },
     ];
 
     if (editorMode === 'layout') {
@@ -1091,6 +1099,13 @@
                 scheduleLivePreview();
             });
         });
+
+        if (!mobileEditing) {
+            const animHint = document.createElement('p');
+            animHint.className = 'muted small';
+            animHint.textContent = 'Scroll-Animationen sind im Editor nicht sichtbar – auf der Website (Vorschau ↗) schon.';
+            styleDetails.appendChild(animHint);
+        }
 
         if (mobileEditing) {
             const hint = document.createElement('p');

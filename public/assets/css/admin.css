@@ -1243,3 +1243,11 @@ body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
 .mp-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
 .mp-toolbar select { width: auto; }
 .media-folder-tools[hidden] { display: none; }
+
+/* ===== Editor: Seitenleisten laufen mit (fixe Höhe, Panels scrollen selbst) ===== */
+body.is-editor .main { height: 100vh; }
+body.is-editor .content { min-height: 0; overflow-y: hidden; }
+body.is-editor #editor { min-height: 0; }
+@media (max-width: 900px) {
+    body.is-editor .main { height: 100vh; }
+}

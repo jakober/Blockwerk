@@ -105,9 +105,16 @@ class BlockRegistry
         $styleArr = is_array($data['_style'] ?? null) ? $data['_style'] : [];
         $style = self::styleAttr($styleArr);
         $mobile = self::mobileStyleCss($styleArr);
-        if ($style === '' && $mobile === '') {
+        // Scroll-Animation und Ausrichtung zusätzlich als Klassen – die
+        // Ausrichtungs-Klasse zentriert auch Block-Elemente wie Formulare.
+        $anim = in_array($styleArr['anim'] ?? '', ['fade', 'up', 'left', 'right', 'zoom'], true) ? $styleArr['anim'] : '';
+        $align = in_array($styleArr['align'] ?? '', ['left', 'center', 'right'], true) ? $styleArr['align'] : '';
+        if ($style === '' && $mobile === '' && $anim === '') {
             return $html;
         }
+        $classes = 'cms-block'
+            . ($align !== '' ? ' cms-align-' . $align : '')
+            . ($anim !== '' ? ' cms-anim cms-anim-' . $anim : '');
         $attr = '';
         $extra = '';
         if ($mobile !== '') {
@@ -121,7 +128,7 @@ class BlockRegistry
                 . '.ed-canvas.is-phone [data-cmsb="' . $id . '"],.ed-canvas.is-tablet [data-cmsb="' . $id . '"]{' . $mobile . '}'
                 . '</style>';
         }
-        return '<div class="cms-block"' . $attr . ($style !== '' ? ' style="' . $style . '"' : '') . '>' . $html . '</div>' . $extra;
+        return '<div class="' . $classes . '"' . $attr . ($style !== '' ? ' style="' . $style . '"' : '') . '>' . $html . '</div>' . $extra;
     }
 
     /** Eindeutiges Präfix pro Anfrage, damit sich IDs aus mehreren

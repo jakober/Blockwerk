@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.26.0 – 2026-07-18
+
+- **Scroll-Animationen für Inhalte:** Jeder Block kann jetzt beim Scrollen erscheinen – im Gestaltungs-Panel unter „Beim Scrollen einblenden": Einblenden (Fade), von unten/links/rechts einfahren oder sanft vergrößern. Dezent umgesetzt (sanfte 0,7 s), barrierefrei (respektiert die System-Einstellung „Bewegung reduzieren") und ohne JavaScript bleibt alles sichtbar. Im Editor-Canvas laufen die Animationen bewusst nicht – auf der Website (Vorschau ↗) schon.
+- **KI nutzt Animationen mit:** Der KI-Assistent kennt die neuen Scroll-Animationen und setzt sie bei neuen Seiten und Änderungen dezent ein (z. B. Karten-Reihen von unten einfahren lassen).
+- **Formular zentrieren funktioniert jetzt:** Die Ausrichtung „Zentriert" im Gestaltungs-Panel zentriert nun auch das Kontaktformular selbst (inklusive Absende-Knopf) – nicht mehr nur die Texte. Gleiches gilt für rechtsbündig.
+- **Editor: Seitenleisten laufen mit:** Blöcke-Palette (links) und Eigenschaften (rechts) bleiben beim Arbeiten immer sichtbar – gescrollt wird jetzt innerhalb des Seiteninhalts. Sind Palette oder Eigenschaften selbst länger als der Bildschirm, scrollen sie unabhängig in sich.
+
 ## 1.25.0 – 2026-07-18
 
 - **Mediathek mit Ordnern:** Dateien lassen sich jetzt in Ordner sortieren – Ordner anlegen, umbenennen und löschen (Dateien bleiben dabei erhalten) direkt in der Mediathek. Beim Hochladen landet die Datei automatisch im gerade geöffneten Ordner, per Bearbeiten-Dialog kann sie jederzeit in einen anderen Ordner verschoben werden.

@@ -842,9 +842,12 @@ body.nav-open .admin-burger span:nth-child(3) { transform: translateY(-7px) rota
 
 /* ===== Update-Oberfläche ===== */
 .update-hero { text-align: center; padding: 34px 24px 28px; }
-.update-hero h2 { margin: 10px 0 2px; }
-.update-logo { display: flex; justify-content: center; color: var(--primary); }
+.update-hero h2 { margin: 10px 0 2px; color: #f97316; }
+/* Drei Blöcke in der Logo-Schriftfarbe (dunkel), oben rechts bleibt orange. */
+.update-logo { display: flex; justify-content: center; color: var(--text); }
 .update-version { color: var(--muted); font-weight: 600; margin: 0 0 16px; }
+.restore-warn { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 8px; padding: 8px 12px; margin: 8px 0 14px; }
+#restore-form input[type=file] { display: block; margin: 0 0 12px; font-size: 14px; max-width: 100%; }
 .update-badge { font-size: 14px; padding: 6px 16px; }
 .update-hero form { margin-top: 16px; }
 .update-available {

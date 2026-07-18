@@ -65,6 +65,34 @@ $updateAvailable = $remoteVersion !== null && version_compare($remoteVersion, $c
     </form>
 </div>
 
+<div class="card narrow">
+    <h2>Wiederherstellen</h2>
+    <p class="muted small">Spielt eine zuvor heruntergeladene Backup-ZIP wieder ein: <strong>Datenbank</strong> und <strong>Uploads</strong> werden auf den Stand der Sicherung zurückgesetzt. Die Konfiguration (Datenbank-Zugang) bleibt unverändert.</p>
+    <p class="restore-warn small"><strong>Achtung:</strong> Der aktuelle Stand wird dabei überschrieben. Am besten vorher ein frisches Backup herunterladen.</p>
+    <form method="post" action="<?= e(url('/admin/restore')) ?>" enctype="multipart/form-data" id="restore-form">
+        <?= csrf_field() ?>
+        <input type="file" name="backup" id="restore-file" accept=".zip,application/zip" required>
+        <button type="submit" class="btn btn-danger" id="restore-btn">Sicherung wiederherstellen</button>
+    </form>
+</div>
+<script>
+(function () {
+    var form = document.getElementById('restore-form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+        var file = document.getElementById('restore-file');
+        if (!file.value) { return; }
+        if (!confirm('Wirklich diese Sicherung einspielen? Alle aktuellen Inhalte, Seiten und Medien werden durch den Stand der Backup-Datei ersetzt.')) {
+            e.preventDefault();
+            return;
+        }
+        var btn = document.getElementById('restore-btn');
+        btn.disabled = true;
+        btn.textContent = 'Wird wiederhergestellt …';
+    });
+})();
+</script>
+
 <?php if ($updateAvailable): ?>
 <div class="modal-overlay" id="update-modal" hidden>
     <div class="modal">

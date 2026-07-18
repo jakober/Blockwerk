@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.31.0 – 2026-07-18
+
+- **Backup wiederherstellen:** Unter **Updates** gibt es jetzt neben „Backup herunterladen" die neue Karte **„Wiederherstellen"**. Dort lädt man eine zuvor heruntergeladene Backup-ZIP hoch und spielt sie komplett zurück: **Datenbank** (alle Inhalte, Seiten, Einstellungen) und **Uploads** (Medien & Schriften) werden auf den Stand der Sicherung zurückgesetzt. Die Konfigurationsdatei (Datenbank-Zugang) bleibt bewusst unverändert, damit die Verbindung der Installation erhalten bleibt. Vor dem Einspielen erscheint eine Sicherheitsabfrage.
+- **Logo in der Update-Oberfläche korrigiert:** Das Blockwerk-Zeichen oben in der Update-Ansicht zeigt jetzt – wie im übrigen Backend – drei Blöcke in der dunklen Logo-Schriftfarbe und nur den Block oben rechts in Orange (statt aller vier in Orange). Der Schriftzug „Blockwerk Orange" darunter erscheint jetzt im helleren Orange.
+
 ## 1.30.0 – 2026-07-18
 
 - **Standard-Layout festlegen:** Bei mehreren Layouts lässt sich jetzt eines als Standard markieren. Das erste angelegte Layout ist automatisch Standard; unter **Layouts** kann per Klick auf „★ Als Standard" jederzeit ein anderes gewählt werden (die bisherige Markierung wechselt automatisch – es gibt immer genau ein Standard-Layout). Das Standard-Layout ist mit einem orangefarbenen „★ Standard"-Zeichen markiert.

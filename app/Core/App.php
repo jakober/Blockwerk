@@ -168,6 +168,7 @@ class App
         $router->add('POST', '/admin/globals', [\Controllers\Admin\GlobalBlockController::class, 'store']);
 
         $router->add('POST', '/admin/backup', [\Controllers\Admin\BackupController::class, 'download']);
+        $router->add('POST', '/admin/restore', [\Controllers\Admin\BackupController::class, 'restore']);
 
         $router->add('GET', '/admin/themes', [\Controllers\Admin\ThemeController::class, 'index']);
         $router->add('POST', '/admin/themes/{key}/apply', [\Controllers\Admin\ThemeController::class, 'apply']);

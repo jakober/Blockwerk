@@ -55,6 +55,159 @@ class BackupController extends AdminController
         exit;
     }
 
+    /**
+     * Komplette Wiederherstellung aus einer heruntergeladenen Backup-ZIP:
+     * spielt den Datenbank-Dump zurück und stellt die Uploads wieder her.
+     * Die Konfigurationsdatei (config/config.php) wird bewusst NICHT
+     * überschrieben, damit die Datenbank-Verbindung der aktuellen
+     * Installation erhalten bleibt.
+     */
+    public function restore(): void
+    {
+        if (!class_exists('ZipArchive')) {
+            flash('error', 'Die PHP-Erweiterung "zip" fehlt auf diesem Server.');
+            redirect('/admin/update');
+        }
+
+        $file = $_FILES['backup'] ?? null;
+        if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
+            flash('error', $this->uploadError($file['error'] ?? UPLOAD_ERR_NO_FILE));
+            redirect('/admin/update');
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($file['tmp_name']) !== true) {
+            flash('error', 'Die Datei konnte nicht gelesen werden – ist es eine gültige ZIP-Datei?');
+            redirect('/admin/update');
+        }
+
+        $sql = $zip->getFromName('datenbank.sql');
+        if ($sql === false) {
+            $zip->close();
+            flash('error', 'In der ZIP fehlt die Datei „datenbank.sql". Bitte eine mit „Backup herunterladen" erstellte Sicherung verwenden.');
+            redirect('/admin/update');
+        }
+
+        try {
+            $this->importDatabase($sql);
+        } catch (\Throwable $e) {
+            $zip->close();
+            flash('error', 'Datenbank-Wiederherstellung fehlgeschlagen: ' . $e->getMessage());
+            redirect('/admin/update');
+        }
+
+        $restoredFiles = $this->restoreUploads($zip);
+        $zip->close();
+
+        \Core\Cache::clear();
+        flash('success', 'Sicherung wiederhergestellt: Datenbank eingespielt und ' . $restoredFiles . ' Upload-Datei(en) zurückgesetzt. Die Konfiguration blieb unverändert.');
+        redirect('/admin/update');
+    }
+
+    /** Führt den SQL-Dump anweisungsweise aus (quote-sicher zerlegt). */
+    private function importDatabase(string $sql): void
+    {
+        $pdo = Database::pdo();
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+        foreach ($this->splitSql($sql) as $statement) {
+            $pdo->exec($statement);
+        }
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+    }
+
+    /**
+     * Zerlegt einen SQL-Dump in einzelne Anweisungen und beachtet dabei
+     * Zeichenketten in einfachen Anführungszeichen samt Backslash-Escapes –
+     * so werden Semikolons innerhalb von Werten nicht als Trenner erkannt.
+     *
+     * @return string[]
+     */
+    private function splitSql(string $sql): array
+    {
+        $statements = [];
+        $buffer = '';
+        $inString = false;
+        $len = strlen($sql);
+        for ($i = 0; $i < $len; $i++) {
+            $char = $sql[$i];
+            if ($inString) {
+                $buffer .= $char;
+                if ($char === '\\' && $i + 1 < $len) {
+                    $buffer .= $sql[++$i]; // Escape-Zeichen mitnehmen
+                } elseif ($char === "'") {
+                    $inString = false;
+                }
+                continue;
+            }
+            if ($char === "'") {
+                $inString = true;
+                $buffer .= $char;
+                continue;
+            }
+            if ($char === ';') {
+                $trimmed = trim($buffer);
+                if ($trimmed !== '') {
+                    $statements[] = $trimmed;
+                }
+                $buffer = '';
+                continue;
+            }
+            $buffer .= $char;
+        }
+        $trimmed = trim($buffer);
+        if ($trimmed !== '') {
+            $statements[] = $trimmed;
+        }
+        // Kommentar-Zeilen (-- …) als eigenständige Anweisungen entfernen.
+        return array_values(array_filter(
+            $statements,
+            static fn (string $s): bool => !str_starts_with($s, '--')
+        ));
+    }
+
+    /** Stellt die Dateien unter public/uploads/ aus der ZIP wieder her. */
+    private function restoreUploads(ZipArchive $zip): int
+    {
+        $target = BASE_PATH . '/public';
+        $count = 0;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if ($name === false || !str_starts_with($name, 'public/uploads/') || str_ends_with($name, '/')) {
+                continue;
+            }
+            // Pfad-Traversal-Schutz.
+            if (str_contains($name, '..')) {
+                continue;
+            }
+            $dest = $target . '/' . substr($name, strlen('public/'));
+            $dir = dirname($dest);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            $stream = $zip->getStream($name);
+            if ($stream === false) {
+                continue;
+            }
+            $out = @fopen($dest, 'wb');
+            if ($out !== false) {
+                stream_copy_to_stream($stream, $out);
+                fclose($out);
+                $count++;
+            }
+            fclose($stream);
+        }
+        return $count;
+    }
+
+    private function uploadError(int $code): string
+    {
+        return match ($code) {
+            UPLOAD_ERR_NO_FILE => 'Bitte zuerst eine Backup-ZIP auswählen.',
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Die Datei ist größer als vom Server erlaubt (siehe upload_max_filesize / post_max_size).',
+            default => 'Die Datei konnte nicht hochgeladen werden (Fehlercode ' . $code . ').',
+        };
+    }
+
     private function addFolder(ZipArchive $zip, string $dir, string $prefix): void
     {
         if (!is_dir($dir)) {

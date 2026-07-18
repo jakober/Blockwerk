@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.21.0 – 2026-07-18
+
+- **Moderner Drag-&-Drop-Upload in der Mediathek:** Statt des klassischen Formulars gibt es jetzt eine große Upload-Zone – Dateien einfach irgendwo auf die Seite ziehen (die Zone leuchtet orange auf) oder klicken zum Auswählen. Mehrere Dateien gleichzeitig, mit **Fortschrittsbalken** beim Hochladen.
+- **Ohne Neuladen:** Neu hochgeladene Dateien erscheinen sofort oben im Raster (kurz orange hervorgehoben) – inklusive „URL kopieren" und Löschen. Fehlermeldungen (z. B. nicht erlaubter Dateityp) werden direkt unter der Upload-Zone angezeigt.
+
 ## 1.20.0 – 2026-07-18
 
 - **Eigene Einbindungen pro Layout:** Im Layout-Formular gibt es die neue Karte „Einbindungen (externe Tools)" mit zwei Feldern – **Code im `<head>`** und **Code direkt vor `</body>`**. Ideal für Analyse-Tools, Chat-Widgets, Cookie-Banner oder eigene Meta-Tags; der Code wird unverändert (inklusive `<script>`-Tags) auf allen Seiten mit diesem Layout ausgegeben. Gilt für klassische und visuell gebaute Layouts; neue Datenbank-Spalten werden beim Update automatisch angelegt.

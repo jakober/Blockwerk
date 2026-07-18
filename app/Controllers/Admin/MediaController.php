@@ -42,20 +42,31 @@ class MediaController extends AdminController
 
     public function upload(): void
     {
+        // Moderner Drag-&-Drop-Upload schickt die Dateien per fetch/XHR und
+        // erwartet JSON; das klassische Formular bleibt als Fallback.
+        $wantsJson = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+
         $files = $_FILES['files'] ?? null;
         if ($files === null || !is_array($files['name'] ?? null)) {
+            if ($wantsJson) {
+                $this->json(['ok' => false, 'uploaded' => 0, 'errors' => ['Keine Dateien ausgewählt.'], 'items' => []]);
+            }
             flash('error', 'Keine Dateien ausgewählt.');
             redirect('/admin/media');
         }
 
         $dir = BASE_PATH . '/public/uploads';
         if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+            if ($wantsJson) {
+                $this->json(['ok' => false, 'uploaded' => 0, 'errors' => ['Das Upload-Verzeichnis konnte nicht angelegt werden.'], 'items' => []]);
+            }
             flash('error', 'Das Upload-Verzeichnis konnte nicht angelegt werden.');
             redirect('/admin/media');
         }
 
         $uploaded = 0;
         $errors = [];
+        $items = [];
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
 
         foreach ($files['name'] as $i => $name) {
@@ -91,10 +102,25 @@ class MediaController extends AdminController
                 }
             }
 
-            Media::create((string) $name, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
+            $id = Media::create((string) $name, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
+            $items[] = [
+                'id' => $id,
+                'name' => (string) $name,
+                'url' => url('/uploads/' . $filename),
+                'thumb' => self::thumbUrl('uploads/' . $filename),
+                'isImage' => str_starts_with($mime, 'image/'),
+                'width' => $width,
+                'height' => $height,
+                'size' => (int) filesize($dir . '/' . $filename),
+                'deleteUrl' => url('/admin/media/' . $id . '/delete'),
+            ];
             $uploaded++;
         }
         finfo_close($finfo);
+
+        if ($wantsJson) {
+            $this->json(['ok' => $uploaded > 0, 'uploaded' => $uploaded, 'errors' => $errors, 'items' => $items]);
+        }
 
         if ($uploaded > 0) {
             flash('success', $uploaded . ' Datei(en) hochgeladen.' . ($errors ? ' Übersprungen: ' . implode(', ', $errors) : ''));
@@ -102,6 +128,13 @@ class MediaController extends AdminController
             flash('error', $errors ? 'Nichts hochgeladen. ' . implode(', ', $errors) : 'Nichts hochgeladen.');
         }
         redirect('/admin/media');
+    }
+
+    private function json(array $data): never
+    {
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     public function delete(string $id): void

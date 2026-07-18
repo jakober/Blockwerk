@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.27.0 – 2026-07-18
+
+- **Vier neue Gesamt-Designs:** Die Design-Auswahl hat jetzt zehn Themes. Neu dabei:
+  - **Blockwerk Orange** – das Design in den Blockwerk-Orange-Farben: warmes Orange, dunkelbrauner Kopfbereich, goldener Akzent.
+  - **Beere** – kräftiges Beerenrot mit violettem Akzent und weichem Verlauf.
+  - **Sand & Stein** – ruhige Beige-/Steintöne mit Petrol-Akzent, zurückhaltend und hochwertig.
+  - **Graphit** – Anthrazit mit Smaragd-Akzent, technisch und modern.
+  Wie gewohnt ändert ein Klick die komplette Optik (Kopfbereich, Menü, Farben, Formen); die Inhalte bleiben unverändert und folgen automatisch den neuen Farben.
+
 ## 1.26.0 – 2026-07-18
 
 - **Scroll-Animationen für Inhalte:** Jeder Block kann jetzt beim Scrollen erscheinen – im Gestaltungs-Panel unter „Beim Scrollen einblenden": Einblenden (Fade), von unten/links/rechts einfahren oder sanft vergrößern. Dezent umgesetzt (sanfte 0,7 s), barrierefrei (respektiert die System-Einstellung „Bewegung reduzieren") und ohne JavaScript bleibt alles sichtbar. Im Editor-Canvas laufen die Animationen bewusst nicht – auf der Website (Vorschau ↗) schon.

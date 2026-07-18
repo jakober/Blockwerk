@@ -54,6 +54,30 @@ class Themes
                 'colors' => ['primary' => '#0369a1', 'accent' => '#f59e0b', 'text' => '#0f2b3d', 'bg' => '#fbfeff', 'surface' => '#e3f2fb'],
                 'headerBg' => 'linear-gradient(120deg, #082f49, #0369a1)', 'headerText' => '#ffffff',
             ],
+            'blockwerk' => [
+                'name' => 'Blockwerk Orange',
+                'description' => 'Das Design in den Blockwerk-Orange-Farben: warmes Orange, dunkelbrauner Kopfbereich, goldener Akzent.',
+                'colors' => ['primary' => '#ea580c', 'accent' => '#fbbf24', 'text' => '#2b1d12', 'bg' => '#fffaf5', 'surface' => '#fff1e6'],
+                'headerBg' => '#2a1508', 'headerText' => '#ffffff',
+            ],
+            'beere' => [
+                'name' => 'Beere',
+                'description' => 'Kräftiges Beerenrot mit violettem Akzent und weichem Verlauf – auffällig und lebendig.',
+                'colors' => ['primary' => '#be185d', 'accent' => '#7c3aed', 'text' => '#3b1c2a', 'bg' => '#fffbfd', 'surface' => '#fdf2f8'],
+                'headerBg' => 'linear-gradient(120deg, #500724, #be185d)', 'headerText' => '#ffffff',
+            ],
+            'sand' => [
+                'name' => 'Sand & Stein',
+                'description' => 'Ruhige Beige- und Steintöne mit Petrol-Akzent – zurückhaltend und hochwertig.',
+                'colors' => ['primary' => '#a16207', 'accent' => '#0f766e', 'text' => '#292524', 'bg' => '#faf7f2', 'surface' => '#f0e9dd'],
+                'headerBg' => '#f0e9dd', 'headerText' => '#292524',
+            ],
+            'graphit' => [
+                'name' => 'Graphit',
+                'description' => 'Anthrazit mit Smaragd-Akzent – technisch, modern, seriös.',
+                'colors' => ['primary' => '#1f2937', 'accent' => '#10b981', 'text' => '#1f2937', 'bg' => '#ffffff', 'surface' => '#f3f4f6'],
+                'headerBg' => '#111827', 'headerText' => '#f9fafb',
+            ],
         ];
     }
 
@@ -210,6 +234,44 @@ CSS,
 .t-footer{background:#082f49;color:#9cc7de;margin-top:40px}
 .cms-card{box-shadow:0 4px 16px rgba(3,105,161,.08)}
 h1.cms-heading,h2.cms-heading{color:#075985}
+CSS,
+            'blockwerk' => <<<'CSS'
+.t-header{position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(42,21,8,.3)}
+.t-headerbar{min-height:70px}
+.t-nav a:hover{background:rgba(255,255,255,.12);color:#fbbf24}
+.t-footer{background:#2a1508;color:#e2cfbc;margin-top:44px}
+.cms-image,.cms-figure img,.cms-gallery img,.cms-card,.cms-imgslider{border-radius:14px}
+.cms-btn{border-radius:10px}
+.cms-btn-primary:hover{background:#c2410c}
+h1.cms-heading{letter-spacing:-.5px}
+CSS,
+            'beere' => <<<'CSS'
+.t-header{box-shadow:0 4px 22px rgba(190,24,93,.3)}
+.t-headerbar{min-height:72px}
+.t-nav a{border-radius:999px}
+.t-nav a:hover{background:rgba(255,255,255,.18)}
+.t-footer{background:#500724;color:#f5c2d7;margin-top:40px}
+.cms-btn{border-radius:999px}
+.cms-image,.cms-gallery img,.cms-card{border-radius:18px}
+CSS,
+            'sand' => <<<'CSS'
+body{letter-spacing:.1px}
+.t-header{border-bottom:1px solid #ddd2bf}
+.t-headerbar{min-height:72px}
+.t-brand{letter-spacing:2px;text-transform:uppercase;font-size:17px}
+.t-nav a{border-radius:8px;font-weight:500}
+.t-nav a:hover{background:#e5dcc9;color:#292524}
+.t-footer{background:#f0e9dd;color:#8a8175}
+.cms-image,.cms-gallery img,.cms-card{border-radius:6px}
+CSS,
+            'graphit' => <<<'CSS'
+.t-header{position:sticky;top:0;z-index:50;border-bottom:2px solid #10b981}
+.t-nav a{border-radius:6px}
+.t-nav a:hover{background:#1f2937;color:#10b981}
+.t-footer{background:#111827;color:#9ca3af;margin-top:40px}
+.cms-btn-primary:hover{background:#10b981;color:#053b2b}
+.cms-card{border:1px solid #e5e7eb}
+h1.cms-heading,h2.cms-heading{letter-spacing:-.6px}
 CSS,
             default => '',
         };

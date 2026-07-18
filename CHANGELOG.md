@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.22.3 – 2026-07-18
+
+- **KI-Einrichtung für Kunden vereinfacht:** Die Dienst-URL ist jetzt mit dem Standard-Dienst des Anbieters vorbelegt – zum Aktivieren des KI-Assistenten genügt es, den Lizenzschlüssel in den Einstellungen einzutragen. Eine eigene Dienst-URL kann weiterhin hinterlegt werden.
+
 ## 1.22.2 – 2026-07-18
 
 - **KI-Dienst domainabhängig ausliefern:** Der Updater installiert das Verzeichnis `ai-server/` jetzt ausschließlich auf den Anbieter-Domains (aktuell `blockwerk.bairle.de`) mit – dort wird eine vorhandene `config.php` und die Lizenz-Datenbank beim Update nie überschrieben. Alle anderen Installationen erhalten den Dienst weiterhin nicht. Zusätzlich lässt die Root-`.htaccess` Anfragen an `/ai-server/…` direkt durch, damit der Dienst auf dem Anbieter-Server unter der eigenen Domain erreichbar ist.

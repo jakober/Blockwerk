@@ -35,8 +35,8 @@
         <h2 style="margin-top:28px" id="ki">✨ KI-Assistent</h2>
         <p class="muted small">Der KI-Assistent erstellt Seiten, Texte und Bilder direkt im CMS. Dafür brauchst du einen Lizenzschlüssel mit Token-Guthaben vom Blockwerk-Orange-Anbieter.</p>
         <div class="form-group">
-            <label for="ai_service_url">Dienst-URL</label>
-            <input type="url" id="ai_service_url" name="ai_service_url" value="<?= e(\Models\Setting::get('ai_service_url', '')) ?>" placeholder="https://ki.anbieter-domain.de">
+            <label for="ai_service_url">Dienst-URL (leer = Standard-Dienst)</label>
+            <input type="url" id="ai_service_url" name="ai_service_url" value="<?= e(\Models\Setting::get('ai_service_url', '')) ?>" placeholder="<?= e(\Core\Ai::DEFAULT_SERVICE_URL) ?>">
         </div>
         <div class="form-group">
             <label for="ai_license_key">Lizenzschlüssel</label>

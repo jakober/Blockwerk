@@ -1063,37 +1063,54 @@
             block.data._style = {};
         }
         const styleObj = block.data._style;
+
+        // Die gewählte Geräte-Ansicht bestimmt, für welche Displaygröße
+        // gestaltet wird: Desktop = alle Größen, Handy/Tablet = nur mobil.
+        const mobileEditing = canvas.classList.contains('is-phone') || canvas.classList.contains('is-tablet');
+        const RESPONSIVE_KEYS = { mt: 'mmt', mb: 'mmb', p: 'mp', align: 'malign' };
+
+        const modeNote = document.createElement('p');
+        modeNote.className = 'ed-mode-note' + (mobileEditing ? ' is-mobile' : '');
+        modeNote.textContent = mobileEditing
+            ? '📱 Du gestaltest die MOBILE Ansicht – Änderungen hier gelten nur für Bildschirme unter 768 px. Leer = wie Desktop.'
+            : '🖥 Du gestaltest für ALLE Displaygrößen. Tipp: In der Handy-/Tablet-Ansicht (oben) gelten Änderungen nur für mobil.';
+        styleDetails.appendChild(modeNote);
+
         STYLE_FIELDS.forEach((field) => {
-            addField(styleDetails, field, styleObj[field.key], (v) => {
-                if (v === '' || v === 0) delete styleObj[field.key];
-                else styleObj[field.key] = v;
+            let key = field.key;
+            let label = field.label;
+            if (mobileEditing) {
+                if (!RESPONSIVE_KEYS[key]) return; // Farben/Rundung gelten für alle Größen
+                key = RESPONSIVE_KEYS[key];
+                label += ' – nur mobil';
+            }
+            addField(styleDetails, Object.assign({}, field, { label: label }), styleObj[key], (v) => {
+                if (v === '' || v === 0) delete styleObj[key];
+                else styleObj[key] = v;
                 markDirty();
                 scheduleLivePreview();
             });
         });
 
-        // Mobile Überschreibungen: gelten nur unter 768 px Bildschirmbreite.
-        const mobileHead = document.createElement('div');
-        mobileHead.className = 'ed-insp-sub';
-        mobileHead.textContent = '📱 Mobil (unter 768 px) – überschreibt die Werte oben';
-        styleDetails.appendChild(mobileHead);
-        [
-            { key: 'malign', label: 'Ausrichtung (mobil)', type: 'select', options: [['', 'Wie oben eingestellt'], ['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] },
-            { key: 'mmt', label: 'Abstand oben mobil (px)', type: 'number' },
-            { key: 'mmb', label: 'Abstand unten mobil (px)', type: 'number' },
-            { key: 'mp', label: 'Innenabstand mobil (px)', type: 'number' },
-        ].forEach((field) => {
-            addField(styleDetails, field, styleObj[field.key], (v) => {
-                if (v === '' || v === 0) delete styleObj[field.key];
-                else styleObj[field.key] = v;
-                markDirty();
-                scheduleLivePreview();
-            });
-        });
-        const mobileHint = document.createElement('p');
-        mobileHint.className = 'muted small';
-        mobileHint.textContent = 'Wirkt auf der echten Seite ab Handy-Breite – am besten über „Vorschau ↗“ prüfen.';
-        styleDetails.appendChild(mobileHint);
+        if (mobileEditing) {
+            const hint = document.createElement('p');
+            hint.className = 'muted small';
+            hint.textContent = 'Farben und Eckenrundung gelten für alle Größen – dafür in die Desktop-Ansicht wechseln.';
+            styleDetails.appendChild(hint);
+            if (Object.keys(styleObj).some((k) => ['malign', 'mmt', 'mmb', 'mp'].includes(k))) {
+                const reset = document.createElement('button');
+                reset.type = 'button';
+                reset.className = 'btn btn-small btn-block';
+                reset.textContent = '↺ Mobile Anpassungen entfernen (wie Desktop)';
+                reset.addEventListener('click', () => {
+                    ['malign', 'mmt', 'mmb', 'mp'].forEach((k) => delete styleObj[k]);
+                    markDirty();
+                    scheduleLivePreview();
+                    buildInspector();
+                });
+                styleDetails.appendChild(reset);
+            }
+        }
 
         if (Object.keys(styleObj).length) styleDetails.open = true;
         inspectorBody.appendChild(styleDetails);
@@ -1723,6 +1740,9 @@
             canvas.classList.remove('is-tablet', 'is-phone');
             if (btn.dataset.device === 'tablet') canvas.classList.add('is-tablet');
             if (btn.dataset.device === 'phone') canvas.classList.add('is-phone');
+            // Gestaltungs-Panel an die neue Ansicht anpassen (Desktop = alle
+            // Größen, Handy/Tablet = nur mobile Werte).
+            if (selected) buildInspector();
         });
     }
 

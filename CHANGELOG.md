@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.19.0 – 2026-07-18
+
+- **Gestalten pro Displaygröße – direkt über die Geräte-Ansicht:** Die gewählte Ansicht im Editor bestimmt jetzt, für welche Bildschirmgröße die Gestaltung gilt. In der **Desktop-Ansicht** gelten Änderungen für alle Größen; wechselt man auf **Handy oder Tablet**, zeigt das Gestaltungs-Panel nur noch Ausrichtung und Abstände „– nur mobil" und Änderungen wirken ausschließlich unter 768 px. Ein farbiger Hinweis im Panel zeigt jederzeit, für welche Größe man gerade gestaltet.
+- **Mobile Anpassungen wieder entfernen:** In der Handy-/Tablet-Ansicht gibt es einen Knopf „↺ Mobile Anpassungen entfernen", der den Block wieder komplett den Desktop-Werten folgen lässt.
+- Der bisherige separate „📱 Mobil"-Abschnitt im Panel entfällt – die gespeicherten Werte bleiben vollständig kompatibel.
+
 ## 1.18.1 – 2026-07-18
 
 - **Mobil-Gestaltung im Editor korrekt getrennt:** Die Mobil-Überschreibungen (z. B. „Ausrichtung mobil") richteten sich im Editor nach der echten Fensterbreite des Browsers – wer mit schmalem Fenster oder am Tablet arbeitete, sah die Mobil-Werte fälschlich auch in der Desktop-Ansicht. Jetzt folgen sie im Editor sauber dem Geräte-Umschalter: Desktop-Ansicht zeigt immer die Desktop-Gestaltung, Handy-/Tablet-Ansicht zeigt live die Mobil-Überschreibungen. Auf der Website selbst ändert sich nichts (dort gilt wie gehabt die echte Bildschirmbreite).

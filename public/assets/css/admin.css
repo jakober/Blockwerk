@@ -1108,3 +1108,16 @@ body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
 
 /* Unterüberschrift im Gestaltungs-Panel (mobile Überschreibungen) */
 .ed-insp-sub { font-size: 12px; font-weight: 700; color: var(--muted); margin: 14px 0 8px; padding-top: 10px; border-top: 1px dashed var(--border); }
+
+/* Modus-Hinweis im Gestaltungs-Panel (Desktop vs. mobile Bearbeitung) */
+.ed-mode-note {
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin: 0 0 12px;
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+.ed-mode-note.is-mobile { background: #fff1e6; border-color: #fed7aa; color: var(--primary); }

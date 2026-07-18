@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.16.0 – 2026-07-18
+
+- **Einfügen per Klick:** Zwischen den Zeilen und unter jeder Spalte gibt es jetzt „+ Zeile"- und „+ Block"-Knöpfe – Ziehen ist nicht mehr nötig (bleibt aber möglich).
+- **Block-Wähler mit Suche:** „+ Block" öffnet einen übersichtlichen Dialog mit Suchfeld und Kategorien (Text, Medien, Elemente, Inhalte & Daten; im Layout-Baukasten zusätzlich Layout).
+- **Fertige Sektionen:** „+ Zeile" bietet neben den Spalten-Rastern fertig befüllte Sektionen an – Hero mit Button, Text + Bild, 3 Karten, Zitat, Preistabelle und Kontakt. Auch der leere Seiten-Start führt direkt dorthin.
+- **Direkt auf der Seite schreiben:** Überschriften und Textblöcke lassen sich jetzt direkt im Canvas anklicken und beschreiben – ohne Umweg über das Eigenschaften-Panel.
+- **Schwebende Block-Werkzeuge:** Im Block-Label erscheinen beim Überfahren Knöpfe für Hoch/Runter, **Duplizieren** (neu, auch für ganze Zeilen) und Löschen.
+- **Rückgängig & Wiederholen:** Strg+Z / Strg+Y (bzw. Strg+Umschalt+Z) machen bis zu 60 Schritte rückgängig – Tipp-Phasen werden zu einem Schritt zusammengefasst.
+- **Spaltenbreite per Ziehen:** Die rechte Spaltenkante lässt sich einfach mit der Maus ziehen – zusätzlich zu den +/−-Knöpfen.
+- **Geräte-Vorschau:** Neue Umschalter im Editor-Kopf zeigen den Canvas in Desktop-, Tablet- (768 px) oder Smartphone-Breite (400 px, einspaltig).
+- **Mehr Übersicht beim Ziehen:** Kräftigere orange Einfüge-Markierung und deutlich hervorgehobene Ablagezonen.
+- **Tastenkürzel:** Strg+S speichern, Strg+D dupliziert Block/Zeile, Entf löscht den markierten Block, Esc hebt die Auswahl auf.
+
 ## 1.15.0 – 2026-07-18
 
 - **Strukturierte Admin-Navigation:** Die Seitenleiste ist jetzt in Gruppen gegliedert statt einer langen Liste – **Inhalte** (Seiten, News, Events, Formulare, Mediathek, Globale Blöcke), **Gestaltung** (Designs, Menü, Layouts, Templates, Schriften) und **System** (Benutzer, Updates, Einstellungen), mit dezenten Zwischenüberschriften. Das Dashboard bleibt oben. Redakteure sehen weiterhin nur die Inhalts-Bereiche; auch das mobile Menü zeigt die Gruppen.

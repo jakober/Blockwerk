@@ -21,6 +21,11 @@ $mode = $mode ?? 'page';
         <a class="btn btn-ghost" href="<?= e($backUrl) ?>"><?= e($backLabel) ?></a>
         <strong class="ed-title"><?= e($editorTitle) ?></strong>
         <div class="ed-presets" title="Neue Zeile mit Spaltenaufteilung hinzufügen"></div>
+        <div class="ed-devices" title="Vorschau-Breite umschalten">
+            <button type="button" data-device="desktop" class="is-active" title="Desktop-Breite">🖥</button>
+            <button type="button" data-device="tablet" title="Tablet-Breite (768 px)">▭</button>
+            <button type="button" data-device="phone" title="Smartphone-Breite (400 px)">📱</button>
+        </div>
         <span id="ed-status" class="ed-status"></span>
         <?php if (!empty($versionsUrl)): ?>
             <a class="btn btn-ghost" href="<?= e($versionsUrl) ?>" title="Frühere Stände wiederherstellen">Versionen</a>

@@ -375,6 +375,67 @@
         { label: '¼ ½ ¼', spans: [3, 6, 3], title: 'Rand / Mitte / Rand' },
     ];
 
+    /* ---------- Fertige Sektionen & Block-Kategorien ---------- */
+
+    function sBlock(type, data) {
+        const block = newBlock(type);
+        Object.assign(block.data, data || {});
+        return block;
+    }
+
+    function sRow(spans, blocksPerCol) {
+        return {
+            id: uid('row'),
+            columns: spans.map((span, i) => ({ id: uid('col'), span: span, blocks: blocksPerCol[i] || [] })),
+        };
+    }
+
+    const SECTIONS = [
+        { title: 'Hero mit Button', icon: '▬', desc: 'Große Bühne mit Titel, Text und Button', build: () => sRow([12], [[
+            sBlock('hero', { slides: [{ src: '', title: 'Willkommen!', text: 'Hier beginnt deine Geschichte.', button_text: 'Mehr erfahren', button_url: '#' }], height: 55 }),
+        ]]) },
+        { title: 'Text + Bild', icon: '◧', desc: 'Zweispaltig: Text links, Bild rechts', build: () => sRow([6, 6], [[
+            sBlock('heading', { text: 'Über uns', level: 'h2' }),
+            sBlock('text', { html: '<p>Erzähle hier, was dich ausmacht – zwei bis drei Sätze reichen für den Anfang.</p>' }),
+        ], [
+            sBlock('image', {}),
+        ]]) },
+        { title: '3 Karten', icon: '⫴', desc: 'Drei Spalten mit Titel und Text', build: () => sRow([4, 4, 4], [1, 2, 3].map((n) => [
+            sBlock('heading', { text: 'Vorteil ' + n, level: 'h3' }),
+            sBlock('text', { html: '<p>Beschreibe hier kurz deinen ' + n + '. Vorteil.</p>', variant: 'infobox' }),
+        ])) },
+        { title: 'Zitat', icon: '❝', desc: 'Großes zentriertes Zitat', build: () => sRow([12], [[
+            sBlock('quote', { text: 'Das Beste, was wir je gemacht haben!', author: 'Eine zufriedene Kundin', variant: 'big' }),
+        ]]) },
+        { title: 'Preistabelle', icon: '€', desc: 'Drei Tarife zum Anpassen', build: () => sRow([12], [[
+            sBlock('pricing', { plans: [
+                { title: 'Basis', price: '9 €', period: 'Monat', features: 'Alle Grundfunktionen\nE-Mail-Support', button_text: 'Auswählen', button_url: '#', highlight: 0 },
+                { title: 'Pro', price: '19 €', period: 'Monat', features: 'Alles aus Basis\nSchneller Support\nAlle Extras', button_text: 'Auswählen', button_url: '#', highlight: 1 },
+                { title: 'Business', price: '49 €', period: 'Monat', features: 'Alles aus Pro\nPersönliche Beratung', button_text: 'Anfragen', button_url: '#', highlight: 0 },
+            ] }),
+        ]]) },
+        { title: 'Kontakt', icon: '✉', desc: 'Überschrift, Text und Kontaktformular', build: () => sRow([5, 7], [[
+            sBlock('heading', { text: 'Kontakt', level: 'h2' }),
+            sBlock('text', { html: '<p>Schreib uns – wir melden uns schnellstmöglich zurück.</p>' }),
+        ], [
+            sBlock('form', {}),
+        ]]) },
+    ];
+
+    function blockCategories() {
+        const cats = [];
+        if (editorMode === 'layout') {
+            cats.push(['Layout', ['l-brand', 'l-menu', 'l-content', 'l-languages']]);
+        }
+        cats.push(
+            ['Text', ['heading', 'text', 'quote', 'accordion', 'html']],
+            ['Medien', ['image', 'gallery', 'slider', 'hero', 'video']],
+            ['Elemente', ['button', 'divider', 'spacer', 'social', 'countdown', 'map', 'search']],
+            ['Inhalte & Daten', ['news', 'events', 'team', 'pricing', 'form', 'global']]
+        );
+        return cats;
+    }
+
     const canvas = root.querySelector('.ed-canvas');
     const paletteWrap = root.querySelector('.ed-palette-items');
     const inspectorBody = root.querySelector('.ed-inspector-body');
@@ -394,7 +455,58 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     })[ch]);
 
+    /* ---------- Rückgängig / Wiederholen ---------- */
+
+    let history = [];
+    let future = [];
+    let lastPush = 0;
+    let lastSnapshot = JSON.stringify(state);
+    let snapTimer = null;
+
+    // Vor jeder Änderung wird der vorherige Stand gesichert; schnelle
+    // Folgeänderungen (Tippen) werden zu EINEM Undo-Schritt zusammengefasst.
+    function pushHistory() {
+        const now = Date.now();
+        if (now - lastPush > 600) {
+            history.push(lastSnapshot);
+            if (history.length > 60) history.shift();
+            future = [];
+        }
+        lastPush = now;
+        clearTimeout(snapTimer);
+        snapTimer = setTimeout(() => { lastSnapshot = JSON.stringify(state); }, 0);
+    }
+
+    function restoreState(json) {
+        state = JSON.parse(json);
+        if (typeof state.css !== 'string') state.css = '';
+        lastSnapshot = json;
+        lastPush = 0;
+        cssInput.value = state.css;
+        pageCssTag.textContent = state.css;
+        dirty = true;
+        statusEl.textContent = 'Ungespeicherte Änderungen';
+        statusEl.className = 'ed-status is-dirty';
+        deselect();
+        render();
+    }
+
+    function undo() {
+        if (!history.length) return;
+        clearTimeout(snapTimer);
+        future.push(JSON.stringify(state));
+        restoreState(history.pop());
+    }
+
+    function redo() {
+        if (!future.length) return;
+        clearTimeout(snapTimer);
+        history.push(JSON.stringify(state));
+        restoreState(future.pop());
+    }
+
     function markDirty() {
+        pushHistory();
         dirty = true;
         statusEl.textContent = 'Ungespeicherte Änderungen';
         statusEl.className = 'ed-status is-dirty';
@@ -421,6 +533,8 @@
     const EMPTY_HTML = '<div class="ed-empty-block">Leerer Block – Eigenschaften rechts ausfüllen</div>';
 
     function setPreviewHtml(el, html) {
+        // Nicht unter dem Cursor wegrendern, während direkt im Block getippt wird.
+        if (el.contains(document.activeElement) && document.activeElement.isContentEditable) return;
         el.innerHTML = html !== '' ? html : EMPTY_HTML;
     }
 
@@ -478,18 +592,37 @@
 
     /* ---------- Rendern ---------- */
 
+    function makeRowInsert(at) {
+        const ins = document.createElement('div');
+        ins.className = 'ed-row-insert';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '+ Zeile';
+        btn.title = 'Zeile hier einfügen';
+        btn.addEventListener('click', () => openRowPicker(at));
+        ins.appendChild(btn);
+        return ins;
+    }
+
     function render() {
         canvas.innerHTML = '';
 
         if (!state.rows.length) {
             const hint = document.createElement('div');
             hint.className = 'ed-empty';
-            hint.innerHTML = 'Noch keine Inhalte.<br>Füge oben mit den Spalten-Vorlagen eine Zeile hinzu.';
+            hint.innerHTML = '<p><strong>Noch keine Inhalte.</strong><br>Starte mit einer fertigen Sektion oder einer leeren Zeile.</p>';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-primary';
+            btn.textContent = '+ Erste Zeile hinzufügen';
+            btn.addEventListener('click', () => openRowPicker(0));
+            hint.appendChild(btn);
             canvas.appendChild(hint);
             return;
         }
 
         state.rows.forEach((row, r) => {
+            canvas.appendChild(makeRowInsert(r));
             const rowEl = document.createElement('div');
             rowEl.className = 'ed-row';
             if (selected && selected.kind === 'row' && selected.r === r) rowEl.classList.add('is-selected');
@@ -503,6 +636,7 @@
                 '<button type="button" data-act="row-up" title="Nach oben">↑</button>' +
                 '<button type="button" data-act="row-down" title="Nach unten">↓</button>' +
                 '<button type="button" data-act="col-add" title="Spalte hinzufügen">+ Spalte</button>' +
+                '<button type="button" data-act="row-dup" title="Zeile duplizieren (Strg+D)">⧉</button>' +
                 '<button type="button" data-act="row-del" class="danger" title="Zeile löschen">✕</button>' +
                 '</span>';
             bar.addEventListener('click', (e) => {
@@ -558,9 +692,27 @@
                 if (!col.blocks.length) {
                     const empty = document.createElement('div');
                     empty.className = 'ed-col-empty';
-                    empty.textContent = 'Block hierher ziehen';
+                    empty.textContent = 'Noch leer – unten „+ Block“ klicken oder Block hierher ziehen';
                     blocksEl.appendChild(empty);
                 }
+
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'ed-add-block';
+                addBtn.textContent = '+ Block';
+                addBtn.title = 'Block in dieser Spalte hinzufügen';
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openBlockPicker((type) => insertNewBlock(r, c, state.rows[r].columns[c].blocks.length, type));
+                });
+                blocksEl.appendChild(addBtn);
+
+                // Spaltenbreite durch Ziehen der rechten Kante ändern
+                const resizer = document.createElement('div');
+                resizer.className = 'ed-col-resizer';
+                resizer.title = 'Ziehen, um die Spaltenbreite zu ändern';
+                bindColResizer(resizer, colEl, colBar, r, c);
+                colEl.appendChild(resizer);
 
                 colEl.appendChild(blocksEl);
                 colsEl.appendChild(colEl);
@@ -570,6 +722,8 @@
             applyRowStyleTo(rowEl, row);
             canvas.appendChild(rowEl);
         });
+
+        canvas.appendChild(makeRowInsert(state.rows.length));
     }
 
     function applyRowStyleTo(rowEl, row) {
@@ -596,7 +750,23 @@
         }
         const head = document.createElement('div');
         head.className = 'ed-block-head';
-        head.innerHTML = '<span class="ed-block-icon">' + def.icon + '</span>' + esc(def.label);
+        head.innerHTML = '<span class="ed-block-icon">' + def.icon + '</span>' + esc(def.label) +
+            '<span class="ed-block-tools">' +
+            '<button type="button" data-bact="up" title="Nach oben">↑</button>' +
+            '<button type="button" data-bact="down" title="Nach unten">↓</button>' +
+            '<button type="button" data-bact="dup" title="Duplizieren (Strg+D)">⧉</button>' +
+            '<button type="button" data-bact="del" class="danger" title="Löschen (Entf)">✕</button>' +
+            '</span>';
+        head.addEventListener('click', (e) => {
+            const act = e.target.dataset && e.target.dataset.bact;
+            if (!act) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (act === 'up') moveBlock(r, c, b, -1);
+            else if (act === 'down') moveBlock(r, c, b, 1);
+            else if (act === 'dup') duplicateBlock(r, c, b);
+            else if (act === 'del') deleteBlock(r, c, b);
+        });
         const preview = document.createElement('div');
         preview.className = 'ed-block-preview';
         preview.innerHTML = '<div class="ed-loading">⋯</div>';
@@ -605,7 +775,9 @@
         queuePreview(block, preview);
 
         el.addEventListener('click', (e) => {
-            e.preventDefault();
+            // In bearbeitbarem Text nicht die Standard-Aktion unterdrücken,
+            // sonst lässt sich der Cursor nicht platzieren.
+            if (!e.target.isContentEditable) e.preventDefault();
             e.stopPropagation();
             selectBlock(r, c, b);
         });
@@ -626,10 +798,79 @@
 
     /* ---------- Auswahl & Inspektor ---------- */
 
+    // Überschriften und Texte direkt im Canvas beschreibbar machen.
+    const INLINE_TYPES = {
+        heading: { sel: 'h1, h2, h3, h4, h5, h6', key: 'text', mode: 'text' },
+        text: { sel: '.cms-text', key: 'html', mode: 'html' },
+    };
+
+    function enableInlineEdit(blockEl, block) {
+        const spec = INLINE_TYPES[block.type];
+        if (!spec) return;
+        const target = blockEl.querySelector('.ed-block-preview ' + spec.sel.split(',').map((s) => s.trim()).join(', .ed-block-preview '));
+        if (!target || target.isContentEditable) return;
+        target.contentEditable = 'true';
+        target.classList.add('ed-inline');
+        target.addEventListener('focus', () => { blockEl.draggable = false; });
+        target.addEventListener('blur', () => {
+            blockEl.draggable = true;
+            if (selectedBlock() === block) buildInspector();
+        });
+        target.addEventListener('input', () => {
+            block.data[spec.key] = spec.mode === 'text' ? target.textContent : target.innerHTML;
+            markDirty();
+        });
+    }
+
     function selectBlock(r, c, b) {
         selected = { kind: 'block', r: r, c: c, b: b };
         refreshSelection();
         buildInspector();
+        const blockEl = canvas.querySelector('.ed-block.is-selected');
+        const block = selectedBlock();
+        if (blockEl && block) enableInlineEdit(blockEl, block);
+    }
+
+    function moveBlock(r, c, b, dir) {
+        const blocks = state.rows[r].columns[c].blocks;
+        const to = b + dir;
+        if (to < 0 || to >= blocks.length) return;
+        [blocks[b], blocks[to]] = [blocks[to], blocks[b]];
+        markDirty();
+        render();
+        selectBlock(r, c, to);
+    }
+
+    function duplicateBlock(r, c, b) {
+        const blocks = state.rows[r].columns[c].blocks;
+        if (blocks[b].type === 'l-content') {
+            alert('Der Inhaltsbereich kann nur einmal im Layout vorkommen.');
+            return;
+        }
+        const copy = JSON.parse(JSON.stringify(blocks[b]));
+        copy.id = uid('b');
+        blocks.splice(b + 1, 0, copy);
+        markDirty();
+        render();
+        selectBlock(r, c, b + 1);
+    }
+
+    function deleteBlock(r, c, b) {
+        state.rows[r].columns[c].blocks.splice(b, 1);
+        deselect();
+        markDirty();
+        render();
+    }
+
+    function insertNewBlock(r, c, index, type) {
+        if (type === 'l-content' && countBlocksOfType('l-content') > 0) {
+            alert('Der Inhaltsbereich ist bereits im Layout vorhanden – er kann nur einmal eingesetzt werden.');
+            return;
+        }
+        state.rows[r].columns[c].blocks.splice(index, 0, newBlock(type));
+        markDirty();
+        render();
+        selectBlock(r, c, index);
     }
 
     function selectRow(r) {
@@ -829,10 +1070,7 @@
         del.textContent = 'Block löschen';
         del.addEventListener('click', () => {
             const s = selected;
-            state.rows[s.r].columns[s.c].blocks.splice(s.b, 1);
-            deselect();
-            markDirty();
-            render();
+            deleteBlock(s.r, s.c, s.b);
         });
         inspectorBody.appendChild(del);
     }
@@ -949,13 +1187,17 @@
 
     /* ---------- Zeilen & Spalten ---------- */
 
-    function addRow(spans) {
-        state.rows.push({
+    function addRowAt(spans, at) {
+        state.rows.splice(at, 0, {
             id: uid('row'),
             columns: spans.map((span) => ({ id: uid('col'), span: span, blocks: [] })),
         });
         markDirty();
         render();
+    }
+
+    function addRow(spans) {
+        addRowAt(spans, state.rows.length);
         canvas.parentElement.scrollTop = canvas.parentElement.scrollHeight;
     }
 
@@ -972,6 +1214,18 @@
         } else if (act === 'col-add') {
             const used = rows[r].columns.reduce((sum, col) => sum + col.span, 0);
             rows[r].columns.push({ id: uid('col'), span: Math.min(Math.max(12 - used, 1), 12), blocks: [] });
+        } else if (act === 'row-dup') {
+            if (rows[r].columns.some((col) => col.blocks.some((bl) => bl.type === 'l-content'))) {
+                alert('Diese Zeile enthält den Inhaltsbereich – er kann nur einmal im Layout vorkommen.');
+                return;
+            }
+            const copy = JSON.parse(JSON.stringify(rows[r]));
+            copy.id = uid('row');
+            copy.columns.forEach((col) => {
+                col.id = uid('col');
+                col.blocks.forEach((bl) => { bl.id = uid('b'); });
+            });
+            rows.splice(r + 1, 0, copy);
         } else {
             return;
         }
@@ -1000,6 +1254,169 @@
         deselect();
         markDirty();
         render();
+    }
+
+    /* ---------- Auswahl-Dialoge (Block- & Zeilen-Picker) ---------- */
+
+    function openPickerOverlay(title, build) {
+        const overlay = document.createElement('div');
+        overlay.className = 'edp-overlay';
+        const panel = document.createElement('div');
+        panel.className = 'edp';
+        const close = () => {
+            overlay.remove();
+            document.removeEventListener('keydown', onKey);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') close(); };
+        document.addEventListener('keydown', onKey);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+        const head = document.createElement('div');
+        head.className = 'edp-head';
+        head.innerHTML = '<strong>' + esc(title) + '</strong>';
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'edp-close';
+        x.textContent = '✕';
+        x.addEventListener('click', close);
+        head.appendChild(x);
+        panel.appendChild(head);
+
+        build(panel, close);
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+    }
+
+    function openBlockPicker(onPick) {
+        openPickerOverlay('Block einfügen', (panel, close) => {
+            const body = document.createElement('div');
+            body.className = 'edp-body';
+            const search = document.createElement('input');
+            search.type = 'search';
+            search.className = 'edp-search';
+            search.placeholder = 'Block suchen …';
+            body.appendChild(search);
+            const listWrap = document.createElement('div');
+            body.appendChild(listWrap);
+
+            const cats = blockCategories();
+            const renderList = (q) => {
+                listWrap.innerHTML = '';
+                q = (q || '').toLowerCase();
+                cats.forEach(([catLabel, types]) => {
+                    const matches = types.filter((t) => blockDefs[t] && blockDefs[t].label.toLowerCase().includes(q));
+                    if (!matches.length) return;
+                    const cat = document.createElement('div');
+                    cat.className = 'edp-cat';
+                    cat.textContent = catLabel;
+                    listWrap.appendChild(cat);
+                    const grid = document.createElement('div');
+                    grid.className = 'edp-grid';
+                    matches.forEach((type) => {
+                        const def = blockDefs[type];
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'edp-item';
+                        item.innerHTML = '<span class="ed-block-icon">' + def.icon + '</span>' + esc(def.label);
+                        item.addEventListener('click', () => { close(); onPick(type); });
+                        grid.appendChild(item);
+                    });
+                    listWrap.appendChild(grid);
+                });
+                if (!listWrap.children.length) {
+                    listWrap.innerHTML = '<p class="muted small">Nichts gefunden.</p>';
+                }
+            };
+            search.addEventListener('input', () => renderList(search.value));
+            renderList('');
+            panel.appendChild(body);
+            setTimeout(() => search.focus(), 40);
+        });
+    }
+
+    function openRowPicker(at) {
+        openPickerOverlay('Zeile hinzufügen', (panel, close) => {
+            const body = document.createElement('div');
+            body.className = 'edp-body';
+
+            if (editorMode === 'page') {
+                const cat = document.createElement('div');
+                cat.className = 'edp-cat';
+                cat.textContent = 'Fertige Sektionen';
+                body.appendChild(cat);
+                const grid = document.createElement('div');
+                grid.className = 'edp-sections';
+                SECTIONS.forEach((section) => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'edp-section';
+                    item.innerHTML = '<strong>' + section.icon + ' ' + esc(section.title) + '</strong><span>' + esc(section.desc) + '</span>';
+                    item.addEventListener('click', () => {
+                        state.rows.splice(at, 0, section.build());
+                        markDirty();
+                        render();
+                        close();
+                    });
+                    grid.appendChild(item);
+                });
+                body.appendChild(grid);
+            }
+
+            const cat = document.createElement('div');
+            cat.className = 'edp-cat';
+            cat.textContent = 'Leere Zeile mit Spalten';
+            body.appendChild(cat);
+            const grid = document.createElement('div');
+            grid.className = 'edp-presets';
+            presets.forEach((preset) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'edp-preset';
+                btn.title = preset.title;
+                preset.spans.forEach((span) => {
+                    const bar = document.createElement('span');
+                    bar.style.flexGrow = span;
+                    btn.appendChild(bar);
+                });
+                btn.addEventListener('click', () => { addRowAt(preset.spans, at); close(); });
+                grid.appendChild(btn);
+            });
+            body.appendChild(grid);
+            panel.appendChild(body);
+        });
+    }
+
+    /* ---------- Spaltenbreite per Ziehen ---------- */
+
+    function bindColResizer(resizer, colEl, colBar, r, c) {
+        resizer.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const colsEl = colEl.parentElement;
+            const unit = colsEl.getBoundingClientRect().width / 12;
+            const col = state.rows[r].columns[c];
+            const startSpan = col.span;
+            const startX = e.clientX;
+            resizer.classList.add('is-resizing');
+            resizer.setPointerCapture(e.pointerId);
+            const move = (ev) => {
+                const span = Math.max(1, Math.min(12, startSpan + Math.round((ev.clientX - startX) / unit)));
+                if (span !== col.span) {
+                    col.span = span;
+                    colEl.style.setProperty('--span', span);
+                    const label = colBar.querySelector('.ed-col-width');
+                    if (label) label.textContent = span + '/12';
+                }
+            };
+            const up = () => {
+                resizer.classList.remove('is-resizing');
+                resizer.removeEventListener('pointermove', move);
+                resizer.removeEventListener('pointerup', up);
+                if (col.span !== startSpan) markDirty();
+            };
+            resizer.addEventListener('pointermove', move);
+            resizer.addEventListener('pointerup', up);
+        });
     }
 
     /* ---------- Drag & Drop: Blöcke ---------- */
@@ -1201,11 +1618,54 @@
     }
 
     saveBtn.addEventListener('click', save);
+
+    // Geräte-Vorschau: Canvas auf Tablet-/Smartphone-Breite umschalten.
+    const deviceBar = root.querySelector('.ed-devices');
+    if (deviceBar) {
+        deviceBar.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-device]');
+            if (!btn) return;
+            deviceBar.querySelectorAll('button').forEach((el) => el.classList.toggle('is-active', el === btn));
+            canvas.classList.remove('is-tablet', 'is-phone');
+            if (btn.dataset.device === 'tablet') canvas.classList.add('is-tablet');
+            if (btn.dataset.device === 'phone') canvas.classList.add('is-phone');
+        });
+    }
+
+    // Tastenkürzel: Strg+S speichern, Strg+Z/Y rückgängig/wiederholen,
+    // Strg+D dupliziert, Entf löscht die Auswahl, Esc hebt sie auf.
     document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        const target = e.target;
+        const isTyping = target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName || ''));
+        const mod = e.ctrlKey || e.metaKey;
+        const key = (e.key || '').toLowerCase();
+
+        if (mod && key === 's') {
             e.preventDefault();
             save();
+            return;
         }
+        if (isTyping) return;
+
+        if (mod && key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+        if (mod && (key === 'y' || (key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
+        if (mod && key === 'd' && selected) {
+            e.preventDefault();
+            if (selected.kind === 'block') duplicateBlock(selected.r, selected.c, selected.b);
+            else rowAction('row-dup', selected.r);
+            return;
+        }
+        if ((e.key === 'Delete' || e.key === 'Backspace') && selected && selected.kind === 'block') {
+            e.preventDefault();
+            deleteBlock(selected.r, selected.c, selected.b);
+            return;
+        }
+        if (e.key === 'Delete' && selected && selected.kind === 'row') {
+            e.preventDefault();
+            rowAction('row-del', selected.r);
+            return;
+        }
+        if (e.key === 'Escape') deselect();
     });
     window.addEventListener('beforeunload', (e) => {
         if (dirty) {

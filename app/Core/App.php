@@ -103,6 +103,7 @@ class App
             $codeVersion = Updater::currentVersion();
             if (\Models\Setting::get('schema_version', '') !== $codeVersion) {
                 Database::createSchema(Database::pdo());
+                MenuDesign::migrate();
                 \Models\Setting::set('schema_version', $codeVersion);
                 Cache::clear();
             }
@@ -166,6 +167,7 @@ class App
 
         $router->add('GET', '/admin/menu', [\Controllers\Admin\MenuController::class, 'edit']);
         $router->add('POST', '/admin/menu', [\Controllers\Admin\MenuController::class, 'save']);
+        $router->add('POST', '/admin/menu/reset', [\Controllers\Admin\MenuController::class, 'reset']);
 
         $router->add('GET', '/admin/layouts', [LayoutController::class, 'index']);
         $router->add('POST', '/admin/layouts/visual-new', [LayoutController::class, 'visualNew']);

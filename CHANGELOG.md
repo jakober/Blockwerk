@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.14.0 – 2026-07-18
+
+- **Mobiles Website-Menü repariert:** Nach dem Update wird das Menü-Template einmalig automatisch auf den Designer-Stand gebracht – ältere, von Hand angelegte Menü-Templates hatten kein mobiles Burger-Menü. Zusätzlich ergänzt das CMS jetzt automatisch den Viewport-Meta-Tag, falls er in einem Layout fehlt (ohne ihn zeigen Smartphones die Desktop-Ansicht und das mobile Menü erscheint nie).
+- **„Auf Standard zurücksetzen" im Menü-Designer:** Ein Klick stellt Standard-Vorlage und Standardfarben wieder her – mit Sicherheitsabfrage.
+- **Neue Update-Oberfläche:** Aufgeräumt und einfach – keine URLs mehr sichtbar oder änderbar. Eine Karte mit Logo und installierter Version, ein Knopf „Nach Updates suchen", und wenn etwas gefunden wird, ein großer „Jetzt aktualisieren"-Knopf.
+- **Schöne Bestätigungen statt Browser-Dialogen:** Vor dem Update öffnet sich ein gestaltetes Bestätigungsfenster, und nach erfolgreichem Update erscheint eine Erfolgsansicht mit grünem Haken und einer „Das ist neu"-Liste aller Änderungen aus dem Changelog.
+
 ## 1.13.0 – 2026-07-18
 
 - **Neuer Bereich „Menü" im Backend:** Das Hauptmenü wird jetzt komplett visuell gestaltet – ohne HTML. Menü-Vorlage als Auswahlkarten (Dropdown, Mega-Menü, Vertikal, Nur oberste Ebene), Schriftgröße, Innenabstand, Abstand zwischen Punkten, Ausrichtung, GROSSBUCHSTABEN, eigene Farben (Text, Aufklapp-Hintergrund, Aufklapp-Text) per Color-Picker, Mega-Menü über volle Breite und der mobile Breakpoint.

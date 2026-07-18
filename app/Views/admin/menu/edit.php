@@ -103,8 +103,14 @@
 
     <div class="page-actions">
         <button type="submit" class="btn btn-primary">Menü speichern</button>
+        <button type="submit" form="menu-reset-form" class="btn btn-ghost">↺ Auf Standard zurücksetzen</button>
         <span class="muted small">Das Menü-Template wird beim Speichern automatisch im Hintergrund erzeugt und in allen Layouts übernommen.</span>
     </div>
+</form>
+
+<form method="post" action="<?= e(url('/admin/menu/reset')) ?>" id="menu-reset-form"
+      onsubmit="return confirm('Menü wirklich zurücksetzen? Standard-Vorlage und Standardfarben werden wiederhergestellt.')">
+    <?= csrf_field() ?>
 </form>
 
 <script>

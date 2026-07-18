@@ -1,63 +1,97 @@
-<div class="card narrow">
-    <h2>Version</h2>
-    <p>Installiert: <strong>Version <?= e($currentVersion) ?></strong>
-    <?php if ($remoteVersion !== null): ?>
-        · Verfügbar: <strong>Version <?= e($remoteVersion) ?></strong>
-        <?php if (version_compare($remoteVersion, $currentVersion, '>')): ?>
-            <span class="badge badge-amber">Update verfügbar</span>
-        <?php else: ?>
-            <span class="badge badge-green">Aktuell</span>
+<?php
+/** Markdown-Fett (**…**) und Code (`…`) aus dem Changelog hübsch darstellen. */
+$fmt = static function (string $line): string {
+    $line = e($line);
+    $line = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $line);
+    return preg_replace('/`(.+?)`/', '<code>$1</code>', $line);
+};
+$updateAvailable = $remoteVersion !== null && version_compare($remoteVersion, $currentVersion, '>');
+?>
+
+<?php if (!empty($updateDone)): ?>
+    <div class="card narrow update-success">
+        <div class="update-check">✓</div>
+        <h2>Update erfolgreich!</h2>
+        <p class="muted">Blockwerk Orange wurde von Version <?= e($updateDone['from']) ?> auf
+            <strong>Version <?= e($updateDone['to']) ?></strong> aktualisiert.<br>
+            Deine Inhalte, Einstellungen und Uploads sind unverändert.</p>
+
+        <?php if (!empty($changelog)): ?>
+            <div class="update-news">
+                <h3>Das ist neu</h3>
+                <?php foreach ($changelog as $version => $entries): ?>
+                    <p class="update-news-version">Version <?= e($version) ?></p>
+                    <ul>
+                        <?php foreach ($entries as $entry): ?>
+                            <li><?= $fmt($entry) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
+
+        <a class="btn btn-primary" href="<?= e(url('/admin/update')) ?>">Alles klar</a>
+    </div>
+<?php endif; ?>
+
+<div class="card narrow update-hero">
+    <div class="update-logo"><?php $logoSize = 46; include APP_PATH . '/Views/_logo.php'; ?></div>
+    <h2>Blockwerk Orange</h2>
+    <p class="update-version">Version <?= e($currentVersion) ?></p>
+
+    <?php if ($updateAvailable): ?>
+        <div class="update-available">
+            <p><strong>Version <?= e($remoteVersion) ?> ist verfügbar!</strong></p>
+            <button type="button" class="btn btn-primary btn-big" id="update-open">Jetzt aktualisieren</button>
+        </div>
+    <?php elseif ($remoteVersion !== null): ?>
+        <p class="badge badge-green update-badge">✓ Du bist auf dem neuesten Stand</p>
+    <?php else: ?>
+        <p class="muted small">Prüfe mit einem Klick, ob eine neue Version bereitsteht.</p>
     <?php endif; ?>
-    </p>
 
     <form method="post" action="<?= e(url('/admin/update/check')) ?>">
         <?= csrf_field() ?>
-        <div class="form-group">
-            <label for="zip_url">Update-Paket (ZIP-URL)</label>
-            <input type="text" id="zip_url" name="zip_url" value="<?= e($zipUrl) ?>">
-        </div>
-        <div class="form-group">
-            <label for="version_url">Versions-Datei (URL zur VERSION-Datei)</label>
-            <input type="text" id="version_url" name="version_url" value="<?= e($versionUrl) ?>">
-        </div>
-        <div class="form-actions">
-            <button type="submit" class="btn">Nach Updates suchen</button>
-        </div>
+        <button type="submit" class="btn <?= $updateAvailable ? 'btn-ghost btn-small' : '' ?>">Nach Updates suchen</button>
     </form>
 </div>
-
-<?php if ($remoteVersion !== null && version_compare($remoteVersion, $currentVersion, '>')): ?>
-<div class="card narrow">
-    <h2>Update installieren</h2>
-    <p class="muted small">Das Update lädt das aktuelle Paket herunter und überschreibt die Programmdateien.
-    <strong>Deine Inhalte (Datenbank), die Konfiguration und alle Uploads bleiben erhalten.</strong>
-    Trotzdem empfiehlt sich vorher ein Backup von Dateien und Datenbank.</p>
-    <form method="post" action="<?= e(url('/admin/update/run')) ?>" onsubmit="return confirm('Update jetzt installieren?')">
-        <?= csrf_field() ?>
-        <input type="hidden" name="zip_url" value="<?= e($zipUrl) ?>">
-        <input type="hidden" name="version_url" value="<?= e($versionUrl) ?>">
-        <button type="submit" class="btn btn-primary">Jetzt auf Version <?= e($remoteVersion) ?> aktualisieren</button>
-    </form>
-</div>
-<?php endif; ?>
 
 <div class="card narrow">
     <h2>Backup</h2>
     <p class="muted small">Lädt eine komplette Sicherung als ZIP herunter: <strong>Datenbank</strong> (alle Inhalte, Seiten, Einstellungen), <strong>Uploads</strong> (Medien &amp; Schriften) und die Konfigurationsdatei – inklusive Anleitung zur Wiederherstellung. Empfohlen vor jedem Update.</p>
     <form method="post" action="<?= e(url('/admin/backup')) ?>">
         <?= csrf_field() ?>
-        <button type="submit" class="btn btn-primary">Backup jetzt herunterladen</button>
+        <button type="submit" class="btn">Backup jetzt herunterladen</button>
     </form>
 </div>
 
-<div class="card narrow">
-    <h2>So funktioniert's</h2>
-    <ol class="quickstart">
-        <li>„Nach Updates suchen“ vergleicht deine installierte Version mit der VERSION-Datei im Repository.</li>
-        <li>„Aktualisieren“ lädt das ZIP-Paket herunter und ersetzt die Programmdateien. Geschützt bleiben: <code>config/</code> (Zugangsdaten) und <code>public/uploads/</code> (Medien &amp; Schriften).</li>
-        <li>Neue Datenbank-Tabellen werden automatisch angelegt.</li>
-    </ol>
-    <p class="muted small">Voraussetzung für die automatische Prüfung: Das Repository ist öffentlich erreichbar – ansonsten hier eigene URLs (z.&nbsp;B. zu deinem eigenen Server) hinterlegen.</p>
-    <p class="muted small">Was sich pro Version geändert hat, steht im <a href="https://github.com/jakober/Blockwerk/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog ↗</a>.</p>
+<?php if ($updateAvailable): ?>
+<div class="modal-overlay" id="update-modal" hidden>
+    <div class="modal">
+        <h3>Auf Version <?= e($remoteVersion) ?> aktualisieren?</h3>
+        <p class="muted">Das Update wird heruntergeladen und installiert.
+            <strong>Deine Inhalte, Einstellungen und Uploads bleiben dabei erhalten.</strong><br>
+            Tipp: Vorher schadet ein Backup nie.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" id="update-cancel">Abbrechen</button>
+            <form method="post" action="<?= e(url('/admin/update/run')) ?>" class="inline">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-primary" id="update-run">Jetzt aktualisieren</button>
+            </form>
+        </div>
+    </div>
 </div>
+<script>
+(function () {
+    var modal = document.getElementById('update-modal');
+    document.getElementById('update-open').addEventListener('click', function () { modal.hidden = false; });
+    document.getElementById('update-cancel').addEventListener('click', function () { modal.hidden = true; });
+    modal.addEventListener('click', function (e) { if (e.target === modal) { modal.hidden = true; } });
+    document.getElementById('update-run').addEventListener('click', function () {
+        this.disabled = true;
+        this.textContent = 'Update läuft …';
+        this.closest('form').submit();
+    });
+})();
+</script>
+<?php endif; ?>

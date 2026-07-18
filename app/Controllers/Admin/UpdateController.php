@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Controllers\Admin;
 
 use Core\Updater;
-use Models\Setting;
 
 class UpdateController extends AdminController
 {
@@ -16,54 +15,65 @@ class UpdateController extends AdminController
 
     public function index(): void
     {
+        $done = $_SESSION['update_done'] ?? null;
+        unset($_SESSION['update_done']);
+
         $this->view('admin/update', [
             'title' => 'Updates',
             'active' => 'update',
             'currentVersion' => Updater::currentVersion(),
             'remoteVersion' => $_SESSION['update_remote_version'] ?? null,
-            'zipUrl' => Updater::zipUrl(),
-            'versionUrl' => Updater::versionUrl(),
+            'updateDone' => $done,
+            'changelog' => is_array($done) ? $this->changelogSince($done['from']) : [],
         ]);
     }
 
     public function check(): void
     {
-        $this->saveUrls();
         $remote = Updater::remoteVersion();
         if ($remote === null) {
             unset($_SESSION['update_remote_version']);
-            flash('error', 'Die verfügbare Version konnte nicht abgerufen werden. Ist das Repository öffentlich und die Versions-URL korrekt?');
+            flash('error', 'Die verfügbare Version konnte gerade nicht abgerufen werden – bitte später noch einmal versuchen.');
         } else {
             $_SESSION['update_remote_version'] = $remote;
-            if (version_compare($remote, Updater::currentVersion(), '>')) {
-                flash('success', 'Update verfügbar: Version ' . $remote . ' (installiert: ' . Updater::currentVersion() . ').');
-            } else {
-                flash('success', 'Deine Installation ist aktuell (Version ' . Updater::currentVersion() . ').');
-            }
         }
         redirect('/admin/update');
     }
 
     public function run(): void
     {
-        $this->saveUrls();
+        $from = Updater::currentVersion();
         $error = Updater::apply();
         unset($_SESSION['update_remote_version']);
         if ($error !== null) {
             flash('error', 'Update fehlgeschlagen: ' . $error);
         } else {
-            flash('success', 'Update installiert! Diese Installation läuft jetzt auf Version ' . Updater::currentVersion() . '.');
+            $_SESSION['update_done'] = ['from' => $from, 'to' => Updater::currentVersion()];
         }
         redirect('/admin/update');
     }
 
-    private function saveUrls(): void
+    /**
+     * Liest aus CHANGELOG.md alle Einträge der Versionen, die neuer sind
+     * als $since – für die „Das ist neu“-Liste nach einem Update.
+     */
+    private function changelogSince(string $since): array
     {
-        foreach (['update_zip_url' => 'zip_url', 'update_version_url' => 'version_url'] as $setting => $field) {
-            $value = trim($_POST[$field] ?? '');
-            if ($value === '' || preg_match('~^https://~i', $value)) {
-                Setting::set($setting, $value);
+        $file = dirname(__DIR__, 3) . '/CHANGELOG.md';
+        if (!is_file($file)) {
+            return [];
+        }
+        $sections = [];
+        $version = null;
+        foreach (preg_split('/\R/', (string) file_get_contents($file)) ?: [] as $line) {
+            if (preg_match('/^##\s*([0-9]+\.[0-9]+\.[0-9]+)/', $line, $m)) {
+                $version = version_compare($m[1], $since, '>') ? $m[1] : null;
+                continue;
+            }
+            if ($version !== null && preg_match('/^-\s+(.*)$/', trim($line), $m)) {
+                $sections[$version][] = $m[1];
             }
         }
+        return array_slice($sections, 0, 8, true);
     }
 }

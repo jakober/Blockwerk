@@ -4,10 +4,9 @@ declare(strict_types=1);
 namespace Controllers\Admin;
 
 use Core\BlockRegistry;
+use Core\MenuDesign;
 use Core\Renderer;
 use Models\Layout;
-use Models\Setting;
-use Models\Template;
 
 /**
  * Visueller Menü-Designer: alle Einstellungen (Vorlage, Größen, Farben,
@@ -17,24 +16,10 @@ use Models\Template;
  */
 class MenuController extends AdminController
 {
-    private const DEFAULTS = [
-        'variant' => 'dropdown',
-        'align' => 'left',
-        'font_size' => 16,
-        'item_padding' => 14,
-        'gap' => 4,
-        'transform' => 'normal',
-        'color' => '',
-        'dropdown_bg' => '',
-        'dropdown_text' => '',
-        'mega_full' => 0,
-        'breakpoint' => 900,
-    ];
-
     public function edit(): void
     {
         $this->requireAdmin();
-        $design = $this->design();
+        $design = MenuDesign::stored();
         $renderer = new Renderer();
         $layouts = Layout::all();
 
@@ -50,7 +35,7 @@ class MenuController extends AdminController
     public function save(): void
     {
         $this->requireAdmin();
-        $d = self::DEFAULTS;
+        $d = MenuDesign::DEFAULTS;
         $d['variant'] = in_array($_POST['variant'] ?? '', ['dropdown', 'mega', 'vertical', 'simple'], true)
             ? $_POST['variant'] : 'dropdown';
         $d['align'] = in_array($_POST['align'] ?? '', ['left', 'center', 'right'], true)
@@ -67,56 +52,17 @@ class MenuController extends AdminController
         $d['mega_full'] = empty($_POST['mega_full']) ? 0 : 1;
         $d['breakpoint'] = max(0, min(2000, (int) ($_POST['breakpoint'] ?? 900)));
 
-        Setting::set('menu_design', (string) json_encode($d));
-        $this->applyEverywhere($d);
+        MenuDesign::save($d);
 
         flash('success', 'Menü gespeichert – das Template wurde im Hintergrund aktualisiert und gilt für alle Layouts.');
         redirect('/admin/menu');
     }
 
-    private function design(): array
+    public function reset(): void
     {
-        $stored = json_decode(Setting::get('menu_design', ''), true);
-        if (!is_array($stored)) {
-            return self::DEFAULTS;
-        }
-        return array_merge(self::DEFAULTS, array_intersect_key($stored, self::DEFAULTS));
-    }
-
-    /**
-     * Generiertes Menü-HTML überall hinterlegen: ins main-menu-Template
-     * (klassische Layouts) und in alle l-menu-Blöcke visueller Layouts.
-     */
-    private function applyEverywhere(array $design): void
-    {
-        $html = BlockRegistry::menuHtml($design);
-
-        $template = Template::findByKey('main-menu');
-        if ($template !== null) {
-            Template::update((int) $template['id'], $template['name'], 'main-menu', $html);
-        } else {
-            Template::create('Hauptmenü', 'main-menu', $html);
-        }
-
-        foreach (Layout::all() as $layout) {
-            $builder = json_decode((string) ($layout['builder'] ?? ''), true);
-            if (!is_array($builder) || !is_array($builder['rows'] ?? null)) {
-                continue;
-            }
-            $changed = false;
-            foreach ($builder['rows'] as $ri => $row) {
-                foreach ($row['columns'] ?? [] as $ci => $column) {
-                    foreach ($column['blocks'] ?? [] as $bi => $block) {
-                        if (($block['type'] ?? '') === 'l-menu') {
-                            $builder['rows'][$ri]['columns'][$ci]['blocks'][$bi]['data'] = $design;
-                            $changed = true;
-                        }
-                    }
-                }
-            }
-            if ($changed) {
-                Layout::saveBuilder((int) $layout['id'], (string) json_encode($builder));
-            }
-        }
+        $this->requireAdmin();
+        MenuDesign::reset();
+        flash('success', 'Menü zurückgesetzt – Standardfarben und Standard-Vorlage sind wiederhergestellt.');
+        redirect('/admin/menu');
     }
 }

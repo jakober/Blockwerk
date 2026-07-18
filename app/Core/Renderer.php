@@ -202,6 +202,11 @@ class Renderer
     private function injectAssets(string $html, ?array $layout, string $extraHead = ''): string
     {
         $head = '';
+        // Ohne Viewport-Meta rendern Smartphones die Seite als Desktop –
+        // dann greift u. a. das mobile Menü (Breakpoint) nie.
+        if (stripos($html, 'name="viewport"') === false && stripos($html, "name='viewport'") === false) {
+            $head .= '<meta name="viewport" content="width=device-width, initial-scale=1">' . "\n";
+        }
         if (stripos($html, 'cms-blocks.css') === false) {
             $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css?v=' . e(rawurlencode(cms_version())) . '">' . "\n";
         }

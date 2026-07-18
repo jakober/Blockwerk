@@ -164,6 +164,7 @@ class Renderer
         }
 
         $html = '';
+        $mediaRules = [];
         foreach ($data['rows'] as $row) {
             if (!is_array($row['columns'] ?? null)) {
                 continue;
@@ -201,13 +202,27 @@ class Renderer
             $pb = min(400, max(0, (int) ($style['pb'] ?? 0)));
             $padding = ($pt ? 'padding-top:' . $pt . 'px;' : '') . ($pb ? 'padding-bottom:' . $pb . 'px;' : '');
 
+            // Eigener Stapel-Breakpoint: ab wie viel Pixeln die Spalten
+            // untereinander rutschen. Leer = Standard (768), 0 = nie.
+            $bpAttr = '';
+            if (isset($style['bp']) && $style['bp'] !== '') {
+                $bp = min(2000, max(0, (int) $style['bp']));
+                $bpAttr = ' data-bp="' . $bp . '"';
+                if ($bp > 0) {
+                    $mediaRules[$bp] = '@media (max-width: ' . $bp . 'px){.cms-row[data-bp="' . $bp . '"] > .cms-col{grid-column:span 12;}}';
+                }
+            }
+
             if ($bg !== '' || $full) {
                 $sectionStyle = ($bg !== '' ? 'background:' . $bg . ';' : '') . $padding;
                 $html .= '<div class="cms-section"' . ($sectionStyle !== '' ? ' style="' . $sectionStyle . '"' : '') . '>'
-                    . '<div class="cms-row' . ($full ? ' cms-row-full' : '') . '">' . $inner . '</div></div>';
+                    . '<div class="cms-row' . ($full ? ' cms-row-full' : '') . '"' . $bpAttr . '>' . $inner . '</div></div>';
             } else {
-                $html .= '<div class="cms-row"' . ($padding !== '' ? ' style="' . $padding . '"' : '') . '>' . $inner . '</div>';
+                $html .= '<div class="cms-row"' . $bpAttr . ($padding !== '' ? ' style="' . $padding . '"' : '') . '>' . $inner . '</div>';
             }
+        }
+        if ($mediaRules !== []) {
+            $html .= '<style>' . implode('', $mediaRules) . '</style>';
         }
         return $html;
     }

@@ -1071,6 +1071,30 @@
                 scheduleLivePreview();
             });
         });
+
+        // Mobile Überschreibungen: gelten nur unter 768 px Bildschirmbreite.
+        const mobileHead = document.createElement('div');
+        mobileHead.className = 'ed-insp-sub';
+        mobileHead.textContent = '📱 Mobil (unter 768 px) – überschreibt die Werte oben';
+        styleDetails.appendChild(mobileHead);
+        [
+            { key: 'malign', label: 'Ausrichtung (mobil)', type: 'select', options: [['', 'Wie oben eingestellt'], ['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] },
+            { key: 'mmt', label: 'Abstand oben mobil (px)', type: 'number' },
+            { key: 'mmb', label: 'Abstand unten mobil (px)', type: 'number' },
+            { key: 'mp', label: 'Innenabstand mobil (px)', type: 'number' },
+        ].forEach((field) => {
+            addField(styleDetails, field, styleObj[field.key], (v) => {
+                if (v === '' || v === 0) delete styleObj[field.key];
+                else styleObj[field.key] = v;
+                markDirty();
+                scheduleLivePreview();
+            });
+        });
+        const mobileHint = document.createElement('p');
+        mobileHint.className = 'muted small';
+        mobileHint.textContent = 'Wirkt auf der echten Seite ab Handy-Breite – am besten über „Vorschau ↗“ prüfen.';
+        styleDetails.appendChild(mobileHint);
+
         if (Object.keys(styleObj).length) styleDetails.open = true;
         inspectorBody.appendChild(styleDetails);
 
@@ -1162,6 +1186,19 @@
                 applyRowStyles();
             });
         });
+
+        // Mobiles Verhalten der Spalten
+        addField(inspectorBody, {
+            key: 'bp', label: 'Spalten untereinander ab … px Bildschirmbreite', type: 'number',
+        }, style.bp, (v) => {
+            if (v === '') delete style.bp;
+            else style.bp = v;
+            markDirty();
+        });
+        const bpHint = document.createElement('p');
+        bpHint.className = 'muted small';
+        bpHint.textContent = 'Leer = automatisch (768 px, empfohlen). 0 = Spalten bleiben auch mobil nebeneinander.';
+        inspectorBody.appendChild(bpHint);
     }
 
     /** Editor für Element-Listen (Galerie-Bilder, Slides, Akkordeon-Abschnitte). */

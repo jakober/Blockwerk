@@ -88,6 +88,9 @@ class BlockRegistry
         return $clean;
     }
 
+    /** Laufende Nummer für Mobil-Überschreibungen einzelner Blöcke. */
+    private static int $blockCounter = 0;
+
     public static function render(array $block): string
     {
         $data = is_array($block['data'] ?? null) ? $block['data'] : [];
@@ -96,12 +99,38 @@ class BlockRegistry
             return '';
         }
         // Grafische Einstellungen ohne CSS: Abstände, Farben, Ausrichtung,
-        // Eckenrundung aus data._style als Inline-Style-Wrapper.
-        $style = self::styleAttr(is_array($data['_style'] ?? null) ? $data['_style'] : []);
-        if ($style !== '') {
-            return '<div class="cms-block" style="' . $style . '">' . $html . '</div>';
+        // Eckenrundung aus data._style als Inline-Style-Wrapper. Mobile
+        // Überschreibungen (malign, mmt, …) brauchen einen Media-Query und
+        // werden als kleiner <style>-Block direkt hinter dem Block ausgegeben.
+        $styleArr = is_array($data['_style'] ?? null) ? $data['_style'] : [];
+        $style = self::styleAttr($styleArr);
+        $mobile = self::mobileStyleCss($styleArr);
+        if ($style === '' && $mobile === '') {
+            return $html;
         }
-        return $html;
+        $attr = '';
+        $extra = '';
+        if ($mobile !== '') {
+            $id = 'cmsb-' . (++self::$blockCounter);
+            $attr = ' data-cmsb="' . $id . '"';
+            $extra = '<style>@media (max-width: 768px){[data-cmsb="' . $id . '"]{' . $mobile . '}}</style>';
+        }
+        return '<div class="cms-block"' . $attr . ($style !== '' ? ' style="' . $style . '"' : '') . '>' . $html . '</div>' . $extra;
+    }
+
+    /** Mobile Gestaltungs-Überschreibungen (unter 768 px) aus data._style. */
+    private static function mobileStyleCss(array $style): string
+    {
+        $css = '';
+        foreach (['mmt' => 'margin-top', 'mmb' => 'margin-bottom', 'mp' => 'padding'] as $key => $prop) {
+            if (isset($style[$key]) && $style[$key] !== '' && (int) $style[$key] > 0) {
+                $css .= $prop . ':' . min(400, (int) $style[$key]) . 'px !important;';
+            }
+        }
+        if (in_array($style['malign'] ?? '', ['left', 'center', 'right'], true)) {
+            $css .= 'text-align:' . $style['malign'] . ' !important;';
+        }
+        return $css;
     }
 
     /**

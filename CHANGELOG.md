@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.18.0 – 2026-07-18
+
+- **Mobiles Spalten-Verhalten pro Zeile einstellbar:** In den Zeilen-Einstellungen gibt es jetzt „Spalten untereinander ab … px Bildschirmbreite". Leer = automatisch (768 px, wie bisher), eigener Wert = Spalten stapeln sich genau ab dieser Breite, 0 = Spalten bleiben auch auf dem Handy nebeneinander.
+- **Eigene Mobil-Gestaltung pro Block:** Im Gestaltungs-Panel jedes Blocks gibt es den neuen Abschnitt „📱 Mobil (unter 768 px)" – dort lassen sich Ausrichtung (z. B. Desktop linksbündig, mobil zentriert) sowie Abstände oben/unten und Innenabstand nur für die mobile Ansicht überschreiben. Ohne Angabe gelten weiterhin die normalen Werte.
+
 ## 1.17.0 – 2026-07-18
 
 - **Bereichs-Breite pro Zeile wählbar:** In den Zeilen-Einstellungen (Klick auf die Zeilen-Leiste) gibt es jetzt „Breite des Bereichs" – entweder so breit wie der Inhaltsbereich (Standard) oder **volle Seitenbreite**, dann laufen die Inhalte bis an den Browserrand. Im Editor wird das mit „↔ volle Breite" am Zeilen-Label und randloser Darstellung angezeigt.

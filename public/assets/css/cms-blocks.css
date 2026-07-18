@@ -37,7 +37,9 @@
 .cms-col { grid-column: span var(--span, 12); min-width: 0; }
 @media (max-width: 768px) {
     .cms-row { gap: 16px; }
-    .cms-col { grid-column: span 12; }
+    /* Automatisches Stapeln – Zeilen mit eigenem Breakpoint (data-bp)
+       regeln das selbst über einen eigenen Media-Query. */
+    .cms-row:not([data-bp]) > .cms-col { grid-column: span 12; }
 }
 
 /* Element über die volle Browserbreite ausbrechen lassen (z. B. Hero) */

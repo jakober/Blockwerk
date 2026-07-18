@@ -733,3 +733,11 @@ h1.cms-heading { font-size: 2.3em; }
 .cms-align-center :where(.cms-form) button { justify-self: center; }
 .cms-align-right :where(.cms-form) { margin-left: auto; }
 .cms-align-right :where(.cms-form) button { justify-self: end; }
+
+/* Erstes Element ganz oben ohne Abstand darüber: Hero/Vollbreit-Sektion soll
+   in Theme-Layouts bündig unter dem Kopfbereich sitzen. Steht hier statt in
+   der pro-Theme-CSS, damit die Regel nach einem Update sofort greift – ohne
+   das Theme neu aktivieren zu müssen. Höhere Spezifität als .t-main{padding}. */
+.t-main:has(> .cms-row:first-child .cms-hero),
+.t-main:has(> .cms-section:first-child),
+.t-main:has(> .cms-row:first-child .cms-fullwidth) { padding-top: 0 !important; }

@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.28.4 – 2026-07-18
+
+- **Hero-Abstand-Korrektur wirkt jetzt sofort:** Der Fix aus 1.28.3 (kein Abstand über einem Hero/einer vollbreiten Sektion ganz oben) steckte in der pro-Design gespeicherten CSS – er griff dadurch erst nach erneutem Aktivieren des Designs. Die Regel liegt jetzt in der global eingebundenen Stylesheet-Datei und wirkt direkt nach dem Update, ohne dass das Design neu aktiviert werden muss.
+
 ## 1.28.3 – 2026-07-18
 
 - **Kein Abstand mehr über dem Hero:** Bei den Gesamt-Designs entstand über einem Hero oder einer vollbreiten Sektion ganz oben auf der Seite eine schmale Lücke zwischen Kopfbereich und Inhalt (der obere Abstand des Inhaltsbereichs `.t-main`). Beginnt eine Seite mit einem Hero/einer vollbreiten Sektion, sitzt dieser jetzt bündig unter dem Kopfbereich. Normale Seiten behalten ihren gewohnten oberen Abstand.

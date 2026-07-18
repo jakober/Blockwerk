@@ -180,11 +180,6 @@ img{max-width:100%;height:auto}
 .t-nav li.has-children:hover>ul.submenu,.t-nav li.has-children:focus-within>ul.submenu{display:block}
 .t-nav ul.submenu ul.submenu{top:0;left:100%}
 .t-main{padding-top:36px;padding-bottom:56px}
-/* Ein Hero oder eine vollbreite Sektion ganz oben soll bündig unter dem
-   Kopfbereich sitzen – ohne den 36px-Abstand darüber. */
-.t-main:has(> .cms-row:first-child .cms-hero){padding-top:0}
-.t-main:has(> .cms-section:first-child){padding-top:0}
-.t-main:has(> .cms-row:first-child .cms-fullwidth){padding-top:0}
 .t-footer{padding:26px 0;font-size:14px}
 CSS;
 

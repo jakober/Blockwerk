@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.18.1 – 2026-07-18
+
+- **Mobil-Gestaltung im Editor korrekt getrennt:** Die Mobil-Überschreibungen (z. B. „Ausrichtung mobil") richteten sich im Editor nach der echten Fensterbreite des Browsers – wer mit schmalem Fenster oder am Tablet arbeitete, sah die Mobil-Werte fälschlich auch in der Desktop-Ansicht. Jetzt folgen sie im Editor sauber dem Geräte-Umschalter: Desktop-Ansicht zeigt immer die Desktop-Gestaltung, Handy-/Tablet-Ansicht zeigt live die Mobil-Überschreibungen. Auf der Website selbst ändert sich nichts (dort gilt wie gehabt die echte Bildschirmbreite).
+
 ## 1.18.0 – 2026-07-18
 
 - **Mobiles Spalten-Verhalten pro Zeile einstellbar:** In den Zeilen-Einstellungen gibt es jetzt „Spalten untereinander ab … px Bildschirmbreite". Leer = automatisch (768 px, wie bisher), eigener Wert = Spalten stapeln sich genau ab dieser Breite, 0 = Spalten bleiben auch auf dem Handy nebeneinander.

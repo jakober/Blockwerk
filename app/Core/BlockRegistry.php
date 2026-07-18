@@ -111,11 +111,26 @@ class BlockRegistry
         $attr = '';
         $extra = '';
         if ($mobile !== '') {
-            $id = 'cmsb-' . (++self::$blockCounter);
+            $id = 'cmsb-' . self::renderPrefix() . '-' . (++self::$blockCounter);
             $attr = ' data-cmsb="' . $id . '"';
-            $extra = '<style>@media (max-width: 768px){[data-cmsb="' . $id . '"]{' . $mobile . '}}</style>';
+            // Frontend: gilt unter 768 px Bildschirmbreite (nie im Editor,
+            // dort würde ein schmales Browserfenster sonst die Desktop-
+            // Ansicht verfälschen). Editor: folgt der Geräte-Ansicht.
+            $extra = '<style>'
+                . '@media (max-width: 768px){:where(body:not(.is-editor)) [data-cmsb="' . $id . '"]{' . $mobile . '}}'
+                . '.ed-canvas.is-phone [data-cmsb="' . $id . '"],.ed-canvas.is-tablet [data-cmsb="' . $id . '"]{' . $mobile . '}'
+                . '</style>';
         }
         return '<div class="cms-block"' . $attr . ($style !== '' ? ' style="' . $style . '"' : '') . '>' . $html . '</div>' . $extra;
+    }
+
+    /** Eindeutiges Präfix pro Anfrage, damit sich IDs aus mehreren
+     *  Editor-Vorschau-Anfragen nicht überschneiden. */
+    private static ?string $prefix = null;
+
+    private static function renderPrefix(): string
+    {
+        return self::$prefix ??= substr(bin2hex(random_bytes(3)), 0, 6);
     }
 
     /** Mobile Gestaltungs-Überschreibungen (unter 768 px) aus data._style. */

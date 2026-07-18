@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.23.1 – 2026-07-18
+
+- **„API-Key verschwindet" behoben:** Nach dem Speichern in der KI-Verwaltung zeigt das Schlüssel-Feld jetzt deutlich den gespeicherten Zustand – grüner Badge „✓ hinterlegt" am Label und der maskierte Schlüssel als Platzhalter im Feld („gespeichert: ••••9999 – zum Ändern neuen Schlüssel eingeben"). Aus Sicherheitsgründen wird der Klartext bewusst nie wieder angezeigt; ein leeres Feld lässt den gespeicherten Wert unverändert.
+- **OPcache-Fehler behoben:** Auf Servern mit aktivem OPcache konnte direkt nach dem Speichern noch die alte Konfiguration gelesen werden – der Schlüssel wirkte dadurch verloren. Die Datei wird jetzt nach dem Schreiben sofort im Cache invalidiert und zur Kontrolle frisch zurückgelesen; schlägt das fehl, erscheint eine klare Fehlermeldung statt einer falschen Erfolgsmeldung.
+
 ## 1.23.0 – 2026-07-18
 
 - **🗝 KI-Verwaltung im Backend (nur Anbieter-Domain):** Neuer Menüpunkt unter System – kein FTP mehr nötig. Dort werden die API-Schlüssel (Anthropic für den Chat, OpenAI für Bilder), Modelle, der Token-Preis pro Bild und das Rate-Limit eingetragen; das CMS schreibt die Dienst-Konfiguration (`ai-server/config.php`) automatisch. Gespeicherte Schlüssel werden maskiert angezeigt, leere Felder behalten den vorhandenen Wert.

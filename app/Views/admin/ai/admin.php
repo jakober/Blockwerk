@@ -13,16 +13,21 @@ $mask = static fn (string $value): string => $value === '' ? '' : '••••'
 <div class="card narrow">
     <h2>🗝 API-Schlüssel &amp; Preise</h2>
     <p class="muted small">Diese Werte werden direkt in die Dienst-Konfiguration (<code>ai-server/config.php</code>) geschrieben – kein FTP nötig.
-    Gespeicherte Schlüssel werden maskiert angezeigt; leer lassen = unverändert behalten.</p>
+    Aus Sicherheitsgründen werden gespeicherte Schlüssel <strong>nie wieder im Klartext angezeigt</strong> –
+    das Feld ist danach leer, der Schlüssel aber sicher hinterlegt (✓). Ein leeres Feld lässt den gespeicherten Wert unverändert.</p>
     <form method="post" action="<?= e(url('/admin/ai-admin/config')) ?>">
         <?= csrf_field() ?>
         <div class="form-group">
-            <label for="anthropic_key">Anthropic-API-Key (Chat / Claude)<?= !empty($config['anthropic_key']) ? ' – gespeichert: ' . e($mask($config['anthropic_key'])) : '' ?></label>
-            <input type="password" id="anthropic_key" name="anthropic_key" autocomplete="off" placeholder="sk-ant-…">
+            <label for="anthropic_key">Anthropic-API-Key (Chat / Claude)
+                <?= !empty($config['anthropic_key']) ? '<span class="badge badge-green">✓ hinterlegt</span>' : '' ?></label>
+            <input type="password" id="anthropic_key" name="anthropic_key" autocomplete="off"
+                   placeholder="<?= !empty($config['anthropic_key']) ? 'gespeichert: ' . e($mask($config['anthropic_key'])) . ' – zum Ändern neuen Schlüssel eingeben' : 'sk-ant-…' ?>">
         </div>
         <div class="form-group">
-            <label for="openai_key">OpenAI-API-Key (Bildgenerierung)<?= !empty($config['openai_key']) ? ' – gespeichert: ' . e($mask($config['openai_key'])) : '' ?></label>
-            <input type="password" id="openai_key" name="openai_key" autocomplete="off" placeholder="sk-…">
+            <label for="openai_key">OpenAI-API-Key (Bildgenerierung)
+                <?= !empty($config['openai_key']) ? '<span class="badge badge-green">✓ hinterlegt</span>' : '' ?></label>
+            <input type="password" id="openai_key" name="openai_key" autocomplete="off"
+                   placeholder="<?= !empty($config['openai_key']) ? 'gespeichert: ' . e($mask($config['openai_key'])) . ' – zum Ändern neuen Schlüssel eingeben' : 'sk-…' ?>">
         </div>
         <div class="form-row">
             <div class="form-group grow">
@@ -45,8 +50,10 @@ $mask = static fn (string $value): string => $value === '' ? '' : '••••'
             </div>
         </div>
         <div class="form-group">
-            <label for="admin_password">Passwort für <code>ai-server/admin.php</code> (optional – die Verwaltung hier braucht es nicht)<?= !empty($config['admin_password']) ? ' – gespeichert: ' . e($mask($config['admin_password'])) : '' ?></label>
-            <input type="password" id="admin_password" name="admin_password" autocomplete="new-password">
+            <label for="admin_password">Passwort für <code>ai-server/admin.php</code> (optional – die Verwaltung hier braucht es nicht)
+                <?= !empty($config['admin_password']) ? '<span class="badge badge-green">✓ hinterlegt</span>' : '' ?></label>
+            <input type="password" id="admin_password" name="admin_password" autocomplete="new-password"
+                   placeholder="<?= !empty($config['admin_password']) ? 'gespeichert: ' . e($mask($config['admin_password'])) . ' – zum Ändern neues Passwort eingeben' : '' ?>">
         </div>
         <div class="form-group checkbox-group">
             <label><input type="checkbox" name="mock" <?= !empty($config['mock']) ? 'checked' : '' ?>> Mock-Modus (nur zum Testen – keine echten KI-Antworten!)</label>

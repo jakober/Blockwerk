@@ -89,9 +89,21 @@ class AiAdminController extends AdminController
             'mock' => !empty($_POST['mock']) ? true : false,
         ];
 
+        $file = $this->serverDir() . '/config.php';
         $php = "<?php\n// Automatisch über die KI-Verwaltung im Backend geschrieben.\nreturn " . var_export($config, true) . ";\n";
-        if (file_put_contents($this->serverDir() . '/config.php', $php) === false) {
+        if (file_put_contents($file, $php) === false) {
             flash('error', 'Die Konfiguration konnte nicht geschrieben werden – bitte Schreibrechte für ai-server/ prüfen.');
+            redirect('/admin/ai-admin');
+        }
+
+        // OPcache würde sonst noch kurz die alte Datei liefern – sofort
+        // invalidieren und zur Kontrolle frisch zurücklesen.
+        if (function_exists('opcache_invalidate')) {
+            @opcache_invalidate($file, true);
+        }
+        $check = require $file;
+        if (!is_array($check) || ($check['anthropic_key'] ?? null) !== $config['anthropic_key']) {
+            flash('error', 'Die Konfiguration wurde geschrieben, konnte aber nicht zuverlässig zurückgelesen werden – bitte Schreibrechte und OPcache-Einstellungen prüfen.');
         } else {
             flash('success', 'KI-Dienst-Konfiguration gespeichert – der Dienst ist sofort aktiv.');
         }

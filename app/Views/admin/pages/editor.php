@@ -8,7 +8,7 @@
  */
 $mode = $mode ?? 'page';
 ?>
-<link rel="stylesheet" href="<?= e(url('/assets/css/cms-blocks.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset('/assets/css/cms-blocks.css')) ?>">
 <?= $designHead ?>
 
 <div id="editor"
@@ -56,5 +56,5 @@ $mode = $mode ?? 'page';
 <style id="ed-page-css"></style>
 <script>window.CMS_GLOBAL_BLOCKS = <?= json_encode($globalBlocks ?? [], JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) ?>;</script>
 <script type="application/json" id="editor-data"><?= $contentJson ?></script>
-<script src="<?= e(url('/assets/js/admin-tools.js')) ?>"></script>
-<script src="<?= e(url('/assets/js/editor.js')) ?>"></script>
+<script src="<?= e(asset('/assets/js/admin-tools.js')) ?>"></script>
+<script src="<?= e(asset('/assets/js/editor.js')) ?>"></script>

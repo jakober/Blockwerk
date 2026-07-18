@@ -203,7 +203,7 @@ class Renderer
     {
         $head = '';
         if (stripos($html, 'cms-blocks.css') === false) {
-            $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css">' . "\n";
+            $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css?v=' . e(rawurlencode(cms_version())) . '">' . "\n";
         }
         $head .= $this->designHead($layout) . $extraHead;
 
@@ -212,7 +212,7 @@ class Renderer
         }
 
         if (stripos($html, 'cms-blocks.js') === false) {
-            $script = '<script src="' . e(App::base()) . '/assets/js/cms-blocks.js" defer></script>' . "\n";
+            $script = '<script src="' . e(App::base()) . '/assets/js/cms-blocks.js?v=' . e(rawurlencode(cms_version())) . '" defer></script>' . "\n";
             if (($pos = stripos($html, '</body>')) !== false) {
                 $html = substr_replace($html, $script, $pos, 0);
             } else {

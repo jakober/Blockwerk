@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seite nicht gefunden</title>
-<link rel="stylesheet" href="<?= e(url('/assets/css/site.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset('/assets/css/site.css')) ?>">
 </head>
 <body>
 <main class="container error-page">

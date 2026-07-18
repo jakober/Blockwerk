@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Anmelden – Blockwerk Orange</title>
 <link rel="icon" type="image/svg+xml" href="<?= e(url('/assets/img/logo.svg')) ?>">
-<link rel="stylesheet" href="<?= e(url('/assets/css/admin.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset('/assets/css/admin.css')) ?>">
 </head>
 <body class="auth-body">
 <div class="auth-card">

@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.12.1 – 2026-07-18
+
+- **Cache-Busting für CSS/JS:** Alle Stylesheets und Skripte (Admin, Login, Installer, Frontend-Blöcke) werden jetzt mit der CMS-Version in der URL eingebunden (`?v=…`). Nach einem Update laden Browser die Dateien automatisch frisch – vorher konnte ein alter Browser-Cache dafür sorgen, dass z. B. das Backend nach dem Orange-Update weiterhin blau aussah.
+
 ## 1.12.0 – 2026-07-18
 
 - **Mobiles Backend-Menü:** Auf schmalen Bildschirmen gibt es jetzt eine feste Kopfleiste in voller Breite – links Logo und „Blockwerk Orange", rechts das Burger-Icon, immer sichtbar (auch beim Scrollen und im Editor).

@@ -12,6 +12,28 @@ function url(string $path = ''): string
     return $base . '/' . ltrim($path, '/');
 }
 
+/**
+ * Installierte CMS-Version (aus der VERSION-Datei), z. B. für Cache-Busting.
+ */
+function cms_version(): string
+{
+    static $version = null;
+    if ($version === null) {
+        $file = dirname(__DIR__) . '/VERSION';
+        $version = is_file($file) ? trim((string) file_get_contents($file)) : '0';
+    }
+    return $version !== '' ? $version : '0';
+}
+
+/**
+ * Asset-URL mit Versions-Parameter: nach jedem Update laden Browser
+ * CSS/JS automatisch frisch statt aus dem Cache.
+ */
+function asset(string $path): string
+{
+    return url($path) . '?v=' . rawurlencode(cms_version());
+}
+
 function redirect(string $path): never
 {
     header('Location: ' . url($path));

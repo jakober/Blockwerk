@@ -67,4 +67,4 @@ $toLocal = static fn (?string $dt): string => $dt ? date('Y-m-d\TH:i', (int) str
         </div>
     </form>
 </div>
-<script src="<?= e(url('/assets/js/admin-tools.js')) ?>"></script>
+<script src="<?= e(asset('/assets/js/admin-tools.js')) ?>"></script>

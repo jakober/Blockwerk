@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.12.0 – 2026-07-18
+
+- **Mobiles Backend-Menü:** Auf schmalen Bildschirmen gibt es jetzt eine feste Kopfleiste in voller Breite – links Logo und „Blockwerk Orange", rechts das Burger-Icon, immer sichtbar (auch beim Scrollen und im Editor).
+- **Menü-Schublade von links:** Ein Tipp auf das Burger-Icon fährt die Admin-Navigation als Schublade von links über den Inhalt (mit Abdunkelung dahinter); Tipp auf den Hintergrund oder erneut auf das Icon schließt sie. Das Icon animiert zum ✕.
+
 ## 1.11.0 – 2026-07-18
 
 - **Neuer Name: Blockwerk Orange!** Das CMS heißt jetzt „Blockwerk Orange" – umbenannt in Admin-Seitenleiste, Login, Installations-Assistent, Ein-Datei-Installer, README und Doku.

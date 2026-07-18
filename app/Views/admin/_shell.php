@@ -34,17 +34,21 @@ if (!\Core\Auth::isAdmin()) {
 <div class="admin">
     <aside class="sidebar">
         <div class="sidebar-brand"><?php include APP_PATH . '/Views/_logo.php'; ?><span class="brand-text">Blockwerk<span class="brand-orange">Orange</span></span></div>
-        <nav class="sidebar-nav">
-            <?php foreach ($nav as $key => [$label, $href, $icon]): ?>
-                <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
-                    <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
-                </a>
-            <?php endforeach; ?>
-        </nav>
-        <div class="sidebar-footer">
-            <a href="<?= e(url('/')) ?>" target="_blank" rel="noopener">Website ansehen ↗</a>
+        <button type="button" class="admin-burger" aria-label="Menü öffnen" aria-expanded="false"><span></span><span></span><span></span></button>
+        <div class="sidebar-drawer">
+            <nav class="sidebar-nav">
+                <?php foreach ($nav as $key => [$label, $href, $icon]): ?>
+                    <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
+                        <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="<?= e(url('/')) ?>" target="_blank" rel="noopener">Website ansehen ↗</a>
+            </div>
         </div>
     </aside>
+    <div class="nav-backdrop"></div>
     <div class="main">
         <header class="topbar">
             <h1><?= e($title ?? '') ?></h1>
@@ -64,5 +68,18 @@ if (!\Core\Auth::isAdmin()) {
         </div>
     </div>
 </div>
+<script>
+(function () {
+    var burger = document.querySelector('.admin-burger');
+    var backdrop = document.querySelector('.nav-backdrop');
+    if (!burger) { return; }
+    function toggle(open) {
+        document.body.classList.toggle('nav-open', open);
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    burger.addEventListener('click', function () { toggle(!document.body.classList.contains('nav-open')); });
+    if (backdrop) { backdrop.addEventListener('click', function () { toggle(false); }); }
+})();
+</script>
 </body>
 </html>

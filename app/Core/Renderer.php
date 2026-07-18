@@ -240,6 +240,13 @@ class Renderer
         if (stripos($html, 'cms-blocks.css') === false) {
             $head .= '<link rel="stylesheet" href="' . e(App::base()) . '/assets/css/cms-blocks.css?v=' . e(rawurlencode(cms_version())) . '">' . "\n";
         }
+        // Scroll-Animationen: cms-js SOFORT setzen (nicht erst per defer-Skript
+        // am Seitenende), sonst blitzen animierte Blöcke beim Laden kurz auf
+        // und blenden dann wieder aus. Ohne JS bleibt cms-js aus → alles sichtbar.
+        $head .= '<script>document.documentElement.classList.add(\'cms-js\');'
+            . 'addEventListener(\'load\',function(){if(!window.__cmsAnimReady){'
+            . 'document.querySelectorAll(\'.cms-anim\').forEach(function(e){e.classList.add(\'in-view\')})}})'
+            . '</script>' . "\n";
         $head .= $this->designHead($layout) . $extraHead;
         // Eigene Einbindungen des Layouts (z. B. Analytics) – unverändert.
         $headCode = trim((string) ($layout['head_code'] ?? ''));

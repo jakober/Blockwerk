@@ -227,6 +227,8 @@
 /* Scroll-Animationen: Blöcke mit .cms-anim beim Sichtbarwerden einblenden. */
 (function () {
     document.documentElement.classList.add('cms-js');
+    // Signal an den Head-Notfallschutz: das Anim-Skript ist geladen.
+    window.__cmsAnimReady = true;
     const els = document.querySelectorAll('.cms-anim');
     if (!els.length) return;
     if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

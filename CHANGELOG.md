@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.27.1 – 2026-07-18
+
+- **Scroll-Animationen behoben:** Animierte Blöcke (z. B. „von links einfahren") blitzten beim Laden kurz auf und blendeten dann wieder aus – das sah aus, als würde die Animation nicht funktionieren. Ursache: Die nötige Kennzeichnung wurde erst vom Skript am Seitenende gesetzt. Jetzt passiert das sofort im Seitenkopf – die Blöcke starten unsichtbar und fahren erst beim Scrollen sauber ein. Zusätzlicher Notfallschutz: Sollte das Skript einmal nicht laden, werden alle Inhalte trotzdem angezeigt (nie unsichtbar hängen). Wichtig: Im Editor sind die Animationen weiterhin ausgeschaltet – sichtbar werden sie über „Vorschau ↗" bzw. auf der Website.
+
 ## 1.27.0 – 2026-07-18
 
 - **Vier neue Gesamt-Designs:** Die Design-Auswahl hat jetzt zehn Themes. Neu dabei:

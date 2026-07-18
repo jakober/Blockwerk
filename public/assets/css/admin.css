@@ -824,3 +824,15 @@ body.nav-open .admin-burger span:nth-child(3) { transform: translateY(-7px) rota
     body.is-editor .ed-topbar,
     body.is-editor .ed-main { min-width: 980px; }
 }
+
+/* ===== Menü-Designer (/admin/menu) ===== */
+.menu-preview { position: relative; border: 1px dashed var(--border); border-radius: 10px; padding: 18px; background: var(--cms-bg, #fff); min-height: 90px; }
+.menu-variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.menu-variant { position: relative; display: flex; flex-direction: column; gap: 4px; border: 2px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; background: var(--surface); }
+.menu-variant input { position: absolute; opacity: 0; pointer-events: none; }
+.menu-variant.is-active { border-color: var(--primary); background: #fff1e6; }
+.menu-variant:hover { border-color: var(--primary); }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
+.check input { width: auto; }
+.color-pick { display: flex; align-items: center; gap: 14px; }
+.color-pick input[type=color] { width: 46px; height: 32px; padding: 2px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }

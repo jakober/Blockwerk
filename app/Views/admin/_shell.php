@@ -8,6 +8,7 @@ $nav = [
     'media' => ['Mediathek', '/admin/media', '▧'],
     'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
     'themes' => ['Designs', '/admin/themes', '✦'],
+    'menu' => ['Menü', '/admin/menu', '☰'],
     'layouts' => ['Layouts', '/admin/layouts', '▦'],
     'templates' => ['Templates', '/admin/templates', '⧉'],
     'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
@@ -17,7 +18,7 @@ $nav = [
 ];
 // Redakteure sehen nur die Inhalts-Bereiche.
 if (!\Core\Auth::isAdmin()) {
-    $nav = array_diff_key($nav, array_flip(['themes', 'layouts', 'templates', 'fonts', 'users', 'update', 'settings']));
+    $nav = array_diff_key($nav, array_flip(['themes', 'menu', 'layouts', 'templates', 'fonts', 'users', 'update', 'settings']));
 }
 ?>
 <!doctype html>

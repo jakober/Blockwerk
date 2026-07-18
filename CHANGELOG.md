@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.13.0 – 2026-07-18
+
+- **Neuer Bereich „Menü" im Backend:** Das Hauptmenü wird jetzt komplett visuell gestaltet – ohne HTML. Menü-Vorlage als Auswahlkarten (Dropdown, Mega-Menü, Vertikal, Nur oberste Ebene), Schriftgröße, Innenabstand, Abstand zwischen Punkten, Ausrichtung, GROSSBUCHSTABEN, eigene Farben (Text, Aufklapp-Hintergrund, Aufklapp-Text) per Color-Picker, Mega-Menü über volle Breite und der mobile Breakpoint.
+- **Live-Vorschau:** Jede Änderung im Menü-Designer wird sofort in einer echten Vorschau mit den eigenen Seiten angezeigt – inklusive funktionierendem Hover-/Mega-Aufklappen.
+- **Template wird im Hintergrund erzeugt:** Beim Speichern generiert das CMS das Menü-Template ({{template:main-menu}}) automatisch und übernimmt die Einstellungen auch in alle visuell gebauten Layouts (Menü-Baustein). Im Templates-Bereich ist das Menü-Template entsprechend gekennzeichnet; das HTML bleibt für Profis weiterhin zugänglich.
+
 ## 1.12.1 – 2026-07-18
 
 - **Cache-Busting für CSS/JS:** Alle Stylesheets und Skripte (Admin, Login, Installer, Frontend-Blöcke) werden jetzt mit der CMS-Version in der URL eingebunden (`?v=…`). Nach einem Update laden Browser die Dateien automatisch frisch – vorher konnte ein alter Browser-Cache dafür sorgen, dass z. B. das Backend nach dem Orange-Update weiterhin blau aussah.

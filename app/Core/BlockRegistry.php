@@ -483,6 +483,15 @@ class BlockRegistry
      * Die Werte landen als CSS-Variablen am <nav>; Mobil-/Touch-Logik
      * übernimmt cms-blocks.js über data-nav / data-breakpoint.
      */
+    /**
+     * Öffentlich für den Menü-Designer (/admin/menu): erzeugt aus den
+     * visuellen Einstellungen das fertige Navigations-HTML.
+     */
+    public static function menuHtml(array $data): string
+    {
+        return self::lMenu($data);
+    }
+
     private static function lMenu(array $data): string
     {
         $variant = in_array($data['variant'] ?? 'dropdown', ['dropdown', 'mega', 'vertical', 'simple'], true)

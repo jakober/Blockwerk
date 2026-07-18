@@ -2,6 +2,12 @@
 $isEdit = $template !== null;
 $action = $isEdit ? '/admin/templates/' . $template['id'] : '/admin/templates';
 ?>
+<?php if (($template['tkey'] ?? '') === 'main-menu'): ?>
+    <div class="alert alert-success" style="margin-bottom:18px">
+        ☰ Dieses Template wird vom <a href="<?= e(url('/admin/menu')) ?>"><strong>Menü-Designer</strong></a> automatisch erzeugt –
+        gestalte das Menü dort bequem visuell. Änderungen am HTML hier werden beim nächsten Speichern im Menü-Designer überschrieben.
+    </div>
+<?php endif; ?>
 <div class="editor-grid">
     <div class="card">
         <form method="post" action="<?= e(url($action)) ?>">

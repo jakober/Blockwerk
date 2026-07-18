@@ -13,7 +13,12 @@
             <tbody>
                 <?php foreach ($templates as $template): ?>
                     <tr>
-                        <td><a href="<?= e(url('/admin/templates/' . $template['id'] . '/edit')) ?>"><strong><?= e($template['name']) ?></strong></a></td>
+                        <td>
+                            <a href="<?= e(url('/admin/templates/' . $template['id'] . '/edit')) ?>"><strong><?= e($template['name']) ?></strong></a>
+                            <?php if ($template['tkey'] === 'main-menu'): ?>
+                                <span class="badge">wird vom <a href="<?= e(url('/admin/menu')) ?>">Menü-Designer</a> verwaltet</span>
+                            <?php endif; ?>
+                        </td>
                         <td><code>{{template:<?= e($template['tkey']) ?>}}</code></td>
                         <td class="muted"><?= e($template['updated_at']) ?></td>
                         <td class="actions-col">

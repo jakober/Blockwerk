@@ -30,9 +30,28 @@ class FontController extends AdminController
     public function store(): void
     {
         $family = trim($_POST['family'] ?? '');
+        $error = self::download($family);
+        if ($error !== null) {
+            flash('error', $error);
+        } else {
+            flash('success', 'Schrift "' . $family . '" heruntergeladen und lokal gespeichert.');
+        }
+        redirect('/admin/fonts');
+    }
+
+    /**
+     * Lädt eine Google-Schrift herunter, speichert sie lokal (GDPR) und legt
+     * den Font-Eintrag an. Gibt null (Erfolg) oder eine Fehlermeldung zurück.
+     * Auch vom KI-Assistenten genutzt.
+     */
+    public static function download(string $family): ?string
+    {
+        $family = trim($family);
         if (!preg_match('/^[A-Za-z0-9 ]{2,60}$/', $family)) {
-            flash('error', 'Bitte einen gültigen Google-Fonts-Namen eingeben (z. B. "Inter" oder "Playfair Display").');
-            redirect('/admin/fonts');
+            return 'Bitte einen gültigen Google-Fonts-Namen angeben (z. B. „Inter" oder „Playfair Display").';
+        }
+        if (Font::findByFolder(slugify($family)) !== null) {
+            return 'Die Schrift „' . $family . '" ist bereits installiert.';
         }
 
         $folder = slugify($family);
@@ -41,36 +60,30 @@ class FontController extends AdminController
         try {
             $cssUrl = 'https://fonts.googleapis.com/css2?family='
                 . str_replace(' ', '+', $family) . ':wght@400;600;700&display=swap';
-            $css = $this->fetch($cssUrl);
+            $css = self::fetchStatic($cssUrl);
             if ($css === null || !str_contains($css, '@font-face')) {
                 throw new \RuntimeException('Die Schrift wurde bei Google Fonts nicht gefunden.');
             }
-
             if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
                 throw new \RuntimeException('Das Schriften-Verzeichnis konnte nicht angelegt werden.');
             }
-
-            // Alle Font-Dateien herunterladen und die URLs auf lokale Pfade umschreiben.
-            $css = preg_replace_callback('/url\((https:[^)]+)\)/', function (array $m) use ($dir): string {
+            $css = preg_replace_callback('/url\((https:[^)]+)\)/', static function (array $m) use ($dir): string {
                 $fontUrl = $m[1];
                 $filename = basename(parse_url($fontUrl, PHP_URL_PATH) ?: 'font.woff2');
-                $data = $this->fetch($fontUrl);
+                $data = self::fetchStatic($fontUrl);
                 if ($data === null) {
                     throw new \RuntimeException('Eine Font-Datei konnte nicht geladen werden.');
                 }
                 file_put_contents($dir . '/' . $filename, $data);
                 return 'url(' . $filename . ')';
             }, $css) ?? '';
-
             file_put_contents($dir . '/font.css', $css);
         } catch (\RuntimeException $e) {
-            flash('error', 'Download fehlgeschlagen: ' . $e->getMessage());
-            redirect('/admin/fonts');
+            return 'Download fehlgeschlagen: ' . $e->getMessage();
         }
 
         Font::create($family, $family, $folder);
-        flash('success', 'Schrift "' . $family . '" heruntergeladen und lokal gespeichert.');
-        redirect('/admin/fonts');
+        return null;
     }
 
     public function delete(string $id): void
@@ -91,7 +104,7 @@ class FontController extends AdminController
     }
 
     /** Lädt eine URL mit Browser-User-Agent (nötig, damit Google WOFF2 liefert). */
-    private function fetch(string $url): ?string
+    private static function fetchStatic(string $url): ?string
     {
         $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 

@@ -117,6 +117,13 @@ Regeln für Layout-Änderungen ("überall auf der Website"):
 3. update_layout mit dem VOLLSTÄNDIGEN neuen Builder-JSON aufrufen. Änderungen wirken sofort auf allen Seiten mit diesem Layout.
 4. Klassische Layouts (HTML) kannst du nur lesen – bitte den Nutzer in dem Fall, den visuellen Baukasten zu nutzen.
 
+## Weitere Bereiche, die du verwalten kannst
+
+- **News & Events** (create_post/update_post/list_posts): eigene Beiträge mit Titel, Kurzbeschreibung (excerpt), Inhalt (body = sauberes HTML), Beitragsbild und – bei Events – Beginn/Ende (Format „JJJJ-MM-TT HH:MM") und Ort. type ist "news" oder "event".
+- **Globale Blöcke** (create_global_block/update_global_block/list_global_blocks): wiederverwendbare Inhaltsbereiche mit demselben Content-JSON wie Seiten. Werden über den „Globaler Block"-Block auf mehreren Seiten eingebettet – eine Änderung wirkt überall.
+- **Templates** (create_template/update_template/list_templates): wiederverwendbare HTML-Bausteine mit Schlüssel (für {{template:schlüssel}}). Das Menü-Template „main-menu" NICHT hier ändern – dafür ist der Menü-Designer zuständig.
+- **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).
+
 ## Arbeitsweise
 
 - Erstelle erst Bilder (generate_image), dann die Seite (create_page) mit den gelieferten Bild-URLs.
@@ -185,6 +192,120 @@ PROMPT
                     'type' => 'object',
                     'properties' => ['page_id' => ['type' => 'integer']],
                     'required' => ['page_id'],
+                ],
+            ],
+            [
+                'name' => 'create_post',
+                'description' => 'Legt einen News-Beitrag oder ein Event an (veröffentlicht).',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'type' => ['type' => 'string', 'enum' => ['news', 'event'], 'description' => '"news" oder "event"'],
+                        'title' => ['type' => 'string'],
+                        'excerpt' => ['type' => 'string', 'description' => 'Kurzbeschreibung für Listen (optional)'],
+                        'body' => ['type' => 'string', 'description' => 'Inhalt als HTML (<p>, <strong>, <ul>…)'],
+                        'image' => ['type' => 'string', 'description' => 'Beitragsbild-URL (optional)'],
+                        'start_at' => ['type' => 'string', 'description' => 'Event-Beginn „JJJJ-MM-TT HH:MM" (nur Events)'],
+                        'end_at' => ['type' => 'string', 'description' => 'Event-Ende (optional)'],
+                        'location' => ['type' => 'string', 'description' => 'Ort (nur Events)'],
+                    ],
+                    'required' => ['type', 'title'],
+                ],
+            ],
+            [
+                'name' => 'update_post',
+                'description' => 'Ändert einen bestehenden News-/Event-Beitrag. Nur übergebene Felder werden geändert.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'post_id' => ['type' => 'integer'],
+                        'title' => ['type' => 'string'],
+                        'excerpt' => ['type' => 'string'],
+                        'body' => ['type' => 'string'],
+                        'image' => ['type' => 'string'],
+                        'start_at' => ['type' => 'string'],
+                        'end_at' => ['type' => 'string'],
+                        'location' => ['type' => 'string'],
+                    ],
+                    'required' => ['post_id'],
+                ],
+            ],
+            [
+                'name' => 'list_posts',
+                'description' => 'Listet News oder Events (id, Titel, Datum).',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => ['type' => ['type' => 'string', 'enum' => ['news', 'event']]],
+                    'required' => ['type'],
+                ],
+            ],
+            [
+                'name' => 'list_global_blocks',
+                'description' => 'Listet die globalen Blöcke (id, Name).',
+                'input_schema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'create_global_block',
+                'description' => 'Legt einen globalen Block (wiederverwendbarer Inhaltsbereich) mit Content-JSON an.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'title' => ['type' => 'string'],
+                        'content' => ['type' => 'object', 'properties' => ['rows' => ['type' => 'array']], 'required' => ['rows']],
+                    ],
+                    'required' => ['title', 'content'],
+                ],
+            ],
+            [
+                'name' => 'update_global_block',
+                'description' => 'Ersetzt den Inhalt eines globalen Blocks (per id aus list_global_blocks).',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'block_id' => ['type' => 'integer'],
+                        'content' => ['type' => 'object', 'properties' => ['rows' => ['type' => 'array']], 'required' => ['rows']],
+                    ],
+                    'required' => ['block_id', 'content'],
+                ],
+            ],
+            [
+                'name' => 'list_templates',
+                'description' => 'Listet die Templates (id, Name, Schlüssel).',
+                'input_schema' => ['type' => 'object', 'properties' => []],
+            ],
+            [
+                'name' => 'create_template',
+                'description' => 'Legt ein Template (wiederverwendbarer HTML-Baustein) an.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'name' => ['type' => 'string'],
+                        'key' => ['type' => 'string', 'description' => 'Schlüssel für {{template:schlüssel}}'],
+                        'html' => ['type' => 'string'],
+                    ],
+                    'required' => ['name', 'key', 'html'],
+                ],
+            ],
+            [
+                'name' => 'update_template',
+                'description' => 'Ändert ein Template (per id). Nicht für das Menü-Template „main-menu" verwenden.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'template_id' => ['type' => 'integer'],
+                        'name' => ['type' => 'string'],
+                        'html' => ['type' => 'string'],
+                    ],
+                    'required' => ['template_id', 'html'],
+                ],
+            ],
+            [
+                'name' => 'load_font',
+                'description' => 'Lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO-konform). Danach im Layout als Schrift wählbar.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => ['family' => ['type' => 'string', 'description' => 'Google-Fonts-Name, z. B. „Inter" oder „Playfair Display"']],
+                    'required' => ['family'],
                 ],
             ],
             [

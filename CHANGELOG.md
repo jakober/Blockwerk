@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.28.0 – 2026-07-18
+
+- **Der KI-Assistent kann jetzt fast alles bearbeiten:** Neben Seiten und Layouts beherrscht die KI nun auch
+  - **News & Events** – Beiträge anlegen und ändern (Titel, Kurzbeschreibung, Inhalt, Beitragsbild; bei Events Beginn/Ende und Ort),
+  - **Globale Blöcke** – wiederverwendbare Inhaltsbereiche erstellen und ändern (wirken überall, wo sie eingebettet sind),
+  - **Templates** – wiederverwendbare HTML-Bausteine anlegen und bearbeiten (das Menü-Template bleibt dem Menü-Designer vorbehalten),
+  - **Schriften** – eine Google-Schrift per Auftrag herunterladen und DSGVO-konform lokal speichern.
+  Beispiele: „Schreib eine News zur Eröffnung", „Leg ein Event für den 20.12. um 18 Uhr an", „Lade die Schrift Poppins", „Baue einen globalen Aktionsbalken". Alle Änderungen laufen durch dieselbe Prüfung wie die manuelle Bearbeitung; bei globalen Blöcken wird der alte Stand als Version gesichert.
+
 ## 1.27.1 – 2026-07-18
 
 - **Scroll-Animationen behoben:** Animierte Blöcke (z. B. „von links einfahren") blitzten beim Laden kurz auf und blendeten dann wieder aus – das sah aus, als würde die Animation nicht funktionieren. Ursache: Die nötige Kennzeichnung wurde erst vom Skript am Seitenende gesetzt. Jetzt passiert das sofort im Seitenkopf – die Blöcke starten unsichtbar und fahren erst beim Scrollen sauber ein. Zusätzlicher Notfallschutz: Sollte das Skript einmal nicht laden, werden alle Inhalte trotzdem angezeigt (nie unsichtbar hängen). Wichtig: Im Editor sind die Animationen weiterhin ausgeschaltet – sichtbar werden sie über „Vorschau ↗" bzw. auf der Website.

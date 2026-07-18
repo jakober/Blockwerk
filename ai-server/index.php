@@ -144,6 +144,22 @@ function mockChat(array $messages): array
             $lastUserText = strtolower($message['content']);
         }
     }
+    // News-Szenario: Nutzer erwähnt "news" → create_post.
+    if (str_contains($lastUserText, 'news') && $lastToolResult === null) {
+        return ['id' => 'mock-n1', 'role' => 'assistant', 'stop_reason' => 'tool_use', 'usage' => $usage, 'content' => [
+            ['type' => 'tool_use', 'id' => 'toolu_mock_post', 'name' => 'create_post', 'input' => [
+                'type' => 'news', 'title' => 'Unsere neue Website ist online',
+                'excerpt' => 'Ab sofort präsentieren wir uns im frischen Design.',
+                'body' => '<p>Wir freuen uns, unsere runderneuerte Website vorzustellen – erstellt mit dem KI-Assistenten.</p>',
+            ]],
+        ]];
+    }
+    if (str_contains($lastUserText, 'news') && $lastToolResult !== null) {
+        return ['id' => 'mock-n2', 'role' => 'assistant', 'stop_reason' => 'end_turn', 'usage' => $usage, 'content' => [
+            ['type' => 'text', 'text' => 'Erledigt! Ich habe den News-Beitrag „Unsere neue Website ist online" angelegt.'],
+        ]];
+    }
+
     if (str_contains($lastUserText, 'footer')) {
         if ($lastToolResult === null) {
             return ['id' => 'mock-l1', 'role' => 'assistant', 'stop_reason' => 'tool_use', 'usage' => $usage, 'content' => [

@@ -19,6 +19,13 @@ class Font
         return $stmt->fetch() ?: null;
     }
 
+    public static function findByFolder(string $folder): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM fonts WHERE folder = ?');
+        $stmt->execute([$folder]);
+        return $stmt->fetch() ?: null;
+    }
+
     public static function create(string $name, string $family, string $folder): int
     {
         $pdo = Database::pdo();

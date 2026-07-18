@@ -115,6 +115,17 @@ class AiController extends AdminController
         }
     }
 
+    /** Datum/Uhrzeit aus KI-Eingabe in DB-Format normalisieren (oder null). */
+    private function dt(mixed $value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+        if ($value === '') {
+            return null;
+        }
+        $ts = strtotime($value);
+        return $ts !== false ? date('Y-m-d H:i:s', $ts) : null;
+    }
+
     /** Führt ein Tool der KI aus; Rückgabe ist das tool_result (Text). */
     private function runTool(string $name, array $input, array &$actions, mixed &$balance): string
     {
@@ -178,6 +189,151 @@ class AiController extends AdminController
                         return 'FEHLER: Seite nicht gefunden.';
                     }
                     return 'Titel: ' . $page['title'] . "\nContent-JSON:\n" . ((string) $page['content'] ?: '{"rows":[]}');
+
+                case 'create_post':
+                    $type = ($input['type'] ?? '') === 'event' ? 'event' : 'news';
+                    $title = trim((string) ($input['title'] ?? ''));
+                    if ($title === '') {
+                        return 'FEHLER: Titel fehlt.';
+                    }
+                    $pid = \Models\Post::create([
+                        'type' => $type,
+                        'title' => $title,
+                        'slug' => slugify($title),
+                        'excerpt' => trim((string) ($input['excerpt'] ?? '')) ?: null,
+                        'body' => (string) ($input['body'] ?? ''),
+                        'image' => trim((string) ($input['image'] ?? '')) ?: null,
+                        'published' => 1,
+                        'published_at' => null,
+                        'start_at' => $this->dt($input['start_at'] ?? null),
+                        'end_at' => $this->dt($input['end_at'] ?? null),
+                        'location' => trim((string) ($input['location'] ?? '')) ?: null,
+                    ]);
+                    Cache::clear();
+                    $post = \Models\Post::find($pid);
+                    $actions[] = ['type' => 'page', 'label' => ($type === 'event' ? 'Event' : 'News') . ' „' . $title . '“ erstellt',
+                        'editorUrl' => url('/admin/' . ($type === 'event' ? 'events' : 'news') . '/' . $pid . '/edit'),
+                        'viewUrl' => url('/' . ($type === 'event' ? 'events' : 'news') . '/' . ($post['slug'] ?? ''))];
+                    return ($type === 'event' ? 'Event' : 'News-Beitrag') . ' erstellt: id=' . $pid;
+
+                case 'update_post':
+                    $post = \Models\Post::find((int) ($input['post_id'] ?? 0));
+                    if ($post === null) {
+                        return 'FEHLER: Beitrag nicht gefunden.';
+                    }
+                    \Models\Post::update((int) $post['id'], [
+                        'title' => trim((string) ($input['title'] ?? $post['title'])) ?: $post['title'],
+                        'slug' => $post['slug'],
+                        'excerpt' => array_key_exists('excerpt', $input) ? (trim((string) $input['excerpt']) ?: null) : $post['excerpt'],
+                        'body' => array_key_exists('body', $input) ? (string) $input['body'] : $post['body'],
+                        'image' => array_key_exists('image', $input) ? (trim((string) $input['image']) ?: null) : $post['image'],
+                        'published' => $post['published'],
+                        'published_at' => $post['published_at'],
+                        'start_at' => array_key_exists('start_at', $input) ? $this->dt($input['start_at']) : $post['start_at'],
+                        'end_at' => array_key_exists('end_at', $input) ? $this->dt($input['end_at']) : $post['end_at'],
+                        'location' => array_key_exists('location', $input) ? (trim((string) $input['location']) ?: null) : $post['location'],
+                    ]);
+                    Cache::clear();
+                    $actions[] = ['type' => 'page', 'label' => 'Beitrag „' . $post['title'] . '“ aktualisiert',
+                        'editorUrl' => url('/admin/' . ($post['type'] === 'event' ? 'events' : 'news') . '/' . $post['id'] . '/edit'),
+                        'viewUrl' => url('/' . ($post['type'] === 'event' ? 'events' : 'news') . '/' . $post['slug'])];
+                    return 'Beitrag id=' . $post['id'] . ' aktualisiert.';
+
+                case 'list_posts':
+                    $type = ($input['type'] ?? '') === 'event' ? 'event' : 'news';
+                    $lines = [];
+                    foreach (\Models\Post::allByType($type) as $post) {
+                        $date = $type === 'event' ? ($post['start_at'] ?? '') : ($post['published_at'] ?? $post['created_at'] ?? '');
+                        $lines[] = 'id=' . $post['id'] . ' „' . $post['title'] . '“' . ($date ? ' (' . $date . ')' : '') . ($post['published'] ? '' : ' [Entwurf]');
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine ' . ($type === 'event' ? 'Events' : 'News') . '.';
+
+                case 'list_global_blocks':
+                    $lines = [];
+                    foreach (Page::globals() as $g) {
+                        $lines[] = 'id=' . $g['id'] . ' „' . $g['title'] . '“';
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine globalen Blöcke.';
+
+                case 'create_global_block':
+                    $title = trim((string) ($input['title'] ?? ''));
+                    if ($title === '') {
+                        return 'FEHLER: Name fehlt.';
+                    }
+                    $content = BlockRegistry::sanitizeTree(is_array($input['content'] ?? null) ? $input['content'] : []);
+                    if ($content['rows'] === []) {
+                        return 'FEHLER: Content-JSON enthielt keine gültigen Blöcke.';
+                    }
+                    $gid = Page::create([
+                        'parent_id' => null, 'title' => $title, 'slug' => 'global-' . slugify($title),
+                        'layout_id' => null, 'in_menu' => 0, 'menu_order' => 0, 'published' => 0,
+                        'lang' => cms_default_lang(), 'is_global' => 1,
+                        'content' => json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{"rows":[]}',
+                    ]);
+                    Cache::clear();
+                    $actions[] = ['type' => 'page', 'label' => 'Globaler Block „' . $title . '“ erstellt',
+                        'editorUrl' => url('/admin/pages/' . $gid . '/editor'), 'viewUrl' => url('/admin/globals')];
+                    return 'Globaler Block erstellt: id=' . $gid . ' (im „Globaler Block"-Block über diese id einbettbar).';
+
+                case 'update_global_block':
+                    $g = Page::find((int) ($input['block_id'] ?? 0));
+                    if ($g === null || (int) ($g['is_global'] ?? 0) !== 1) {
+                        return 'FEHLER: Globaler Block nicht gefunden.';
+                    }
+                    $content = BlockRegistry::sanitizeTree(is_array($input['content'] ?? null) ? $input['content'] : []);
+                    if ($content['rows'] === []) {
+                        return 'FEHLER: Content-JSON enthielt keine gültigen Blöcke.';
+                    }
+                    PageVersion::add((int) $g['id'], (string) $g['title'], $g['content'], ($_SESSION['username'] ?? '') . ' (KI)');
+                    Page::saveContent((int) $g['id'], json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{"rows":[]}');
+                    Cache::clear();
+                    $actions[] = ['type' => 'page', 'label' => 'Globaler Block „' . $g['title'] . '“ aktualisiert – wirkt überall',
+                        'editorUrl' => url('/admin/pages/' . $g['id'] . '/editor'), 'viewUrl' => url('/admin/globals')];
+                    return 'Globaler Block id=' . $g['id'] . ' aktualisiert.';
+
+                case 'list_templates':
+                    $lines = [];
+                    foreach (\Models\Template::all() as $t) {
+                        $lines[] = 'id=' . $t['id'] . ' „' . $t['name'] . '“ (Schlüssel: ' . $t['tkey'] . ')';
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine Templates.';
+
+                case 'create_template':
+                    $name = trim((string) ($input['name'] ?? ''));
+                    $key = slugify((string) ($input['key'] ?? ''));
+                    if ($name === '' || $key === '') {
+                        return 'FEHLER: Name und Schlüssel sind nötig.';
+                    }
+                    if (\Models\Template::findByKey($key) !== null) {
+                        return 'FEHLER: Ein Template mit dem Schlüssel „' . $key . '" existiert bereits.';
+                    }
+                    $tid = \Models\Template::create($name, $key, (string) ($input['html'] ?? ''));
+                    $actions[] = ['type' => 'page', 'label' => 'Template „' . $name . '“ erstellt',
+                        'editorUrl' => url('/admin/templates/' . $tid . '/edit'), 'viewUrl' => url('/admin/templates')];
+                    return 'Template erstellt: id=' . $tid . ', einbettbar mit {{template:' . $key . '}}.';
+
+                case 'update_template':
+                    $t = \Models\Template::find((int) ($input['template_id'] ?? 0));
+                    if ($t === null) {
+                        return 'FEHLER: Template nicht gefunden.';
+                    }
+                    if ($t['tkey'] === 'main-menu') {
+                        return 'FEHLER: Das Menü-Template wird über den Menü-Designer verwaltet, nicht hier.';
+                    }
+                    \Models\Template::update((int) $t['id'], trim((string) ($input['name'] ?? $t['name'])) ?: $t['name'], $t['tkey'], (string) ($input['html'] ?? $t['html']));
+                    $actions[] = ['type' => 'page', 'label' => 'Template „' . $t['name'] . '“ aktualisiert',
+                        'editorUrl' => url('/admin/templates/' . $t['id'] . '/edit'), 'viewUrl' => url('/admin/templates')];
+                    return 'Template id=' . $t['id'] . ' aktualisiert.';
+
+                case 'load_font':
+                    $fontError = FontController::download((string) ($input['family'] ?? ''));
+                    if ($fontError !== null) {
+                        return 'FEHLER: ' . $fontError;
+                    }
+                    Cache::clear();
+                    $actions[] = ['type' => 'page', 'label' => 'Schrift „' . trim((string) ($input['family'] ?? '')) . '“ geladen',
+                        'editorUrl' => url('/admin/fonts'), 'viewUrl' => url('/admin/layouts')];
+                    return 'Schrift „' . trim((string) ($input['family'] ?? '')) . '“ heruntergeladen und lokal gespeichert. Weise den Nutzer darauf hin, sie im gewünschten Layout unter Design als Überschriften-/Textschrift auszuwählen.';
 
                 case 'list_media':
                     $folderId = null;

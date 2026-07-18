@@ -156,6 +156,68 @@ class Page
         ]);
     }
 
+    /**
+     * Baumstruktur neu ordnen: erwartet eine flache Liste in Baum-Reihenfolge,
+     * jeweils {id, parent_id}. Setzt parent_id und menu_order (fortlaufend je
+     * Elterngruppe). Ignoriert unbekannte IDs und Zyklen, damit nur gültige
+     * Bäume gespeichert werden.
+     *
+     * @param array<int, array{id:int, parent_id:?int}> $items
+     */
+    public static function reorder(array $items): void
+    {
+        $pdo = Database::pdo();
+
+        // Gültige, nicht gelöschte, nicht-globale Seiten-IDs einsammeln.
+        $valid = [];
+        foreach ($pdo->query('SELECT id FROM pages WHERE ' . self::LIVE)->fetchAll() as $row) {
+            $valid[(int) $row['id']] = true;
+        }
+
+        // Eltern-Zuordnung aus der Eingabe (nur gültige IDs).
+        $parentOf = [];
+        foreach ($items as $item) {
+            $id = (int) ($item['id'] ?? 0);
+            if (!isset($valid[$id])) {
+                continue;
+            }
+            $parent = $item['parent_id'] ?? null;
+            $parent = ($parent === null || $parent === '' || (int) $parent === 0) ? null : (int) $parent;
+            if ($parent !== null && !isset($valid[$parent])) {
+                $parent = null;
+            }
+            $parentOf[$id] = $parent;
+        }
+
+        $pdo->beginTransaction();
+        $counters = [];
+        $stmt = $pdo->prepare('UPDATE pages SET parent_id = ?, menu_order = ? WHERE id = ?');
+        foreach ($parentOf as $id => $parent) {
+            // Zyklenschutz: eine Seite darf nicht ihr eigener Vorfahre werden.
+            if (self::createsCycle($id, $parent, $parentOf)) {
+                $parent = null;
+            }
+            $key = $parent ?? 0;
+            $order = $counters[$key] = ($counters[$key] ?? 0) + 1;
+            $stmt->execute([$parent, $order, $id]);
+        }
+        $pdo->commit();
+    }
+
+    /** Prüft, ob $parent (direkt oder indirekt) $id als Vorfahre hätte. */
+    private static function createsCycle(int $id, ?int $parent, array $parentOf): bool
+    {
+        $seen = [];
+        while ($parent !== null) {
+            if ($parent === $id || isset($seen[$parent])) {
+                return true;
+            }
+            $seen[$parent] = true;
+            $parent = $parentOf[$parent] ?? null;
+        }
+        return false;
+    }
+
     public static function saveContent(int $id, string $json): void
     {
         $stmt = Database::pdo()->prepare('UPDATE pages SET content = ? WHERE id = ?');

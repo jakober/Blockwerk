@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.32.0 – 2026-07-18
+
+- **Seiten per Drag & Drop sortieren und verschachteln:** Die Seitenverwaltung zeigt die Seiten jetzt als Baum. Über den Ziehpunkt (⠿) lässt sich jede Seite mit der Maus verschieben:
+  - **Reihenfolge ändern:** an den oberen oder unteren Rand einer anderen Seite ziehen – die Seite wird davor bzw. danach eingeordnet.
+  - **Zur Unterseite machen:** auf die Mitte einer anderen Seite ziehen – die Seite wird deren Unterseite.
+  - **Wieder zur Hauptseite machen:** an den Rand einer Seite auf der obersten Ebene ziehen.
+  - Änderungen werden sofort gespeichert (kurze Bestätigung „✓ Reihenfolge gespeichert"); Verschieben in die eigene Unterseite wird verhindert. Die neue Reihenfolge gilt auch für das Menü.
+
 ## 1.31.0 – 2026-07-18
 
 - **Backup wiederherstellen:** Unter **Updates** gibt es jetzt neben „Backup herunterladen" die neue Karte **„Wiederherstellen"**. Dort lädt man eine zuvor heruntergeladene Backup-ZIP hoch und spielt sie komplett zurück: **Datenbank** (alle Inhalte, Seiten, Einstellungen) und **Uploads** (Medien & Schriften) werden auf den Stand der Sicherung zurückgesetzt. Die Konfigurationsdatei (Datenbank-Zugang) bleibt bewusst unverändert, damit die Verbindung der Installation erhalten bleibt. Vor dem Einspielen erscheint eine Sicherheitsabfrage.

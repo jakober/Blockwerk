@@ -161,6 +161,21 @@ class PageController extends AdminController
         ]);
     }
 
+    /** Baum per Drag & Drop neu ordnen (JSON: [{id, parent_id}, …]). */
+    public function reorder(): void
+    {
+        header('Content-Type: application/json');
+        $data = json_decode(file_get_contents('php://input') ?: '', true);
+        if (!is_array($data) || !is_array($data['items'] ?? null)) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'error' => 'Ungültige Daten.']);
+            return;
+        }
+        Page::reorder($data['items']);
+        \Core\Cache::clear();
+        echo json_encode(['ok' => true]);
+    }
+
     public function saveContent(string $id): void
     {
         $page = Page::find((int) $id);

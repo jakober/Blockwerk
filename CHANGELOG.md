@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.16.1 – 2026-07-18
+
+- **Geräte-Vorschau sichtbar gemacht:** Die drei Ansicht-Umschalter im Editor (Desktop/Tablet/Smartphone) zeigen jetzt einen deutlichen Unterschied – der Canvas wird schmal wie das Gerät, eine Beschriftung („Smartphone-Ansicht · 400 px …") erscheint darüber und die Spalten stapeln sich untereinander, genau wie im Frontend auf schmalen Bildschirmen. Vorher verhinderte eine CSS-Spezifitätsregel das Schmalstellen.
+- **Icons repariert:** Die Umschalter nutzen jetzt klare eingebaute SVG-Symbole (Monitor, Tablet, Smartphone) statt Unicode-Zeichen – das Tablet-Symbol wurde je nach System gar nicht angezeigt. Der aktive Modus ist orange gefüllt.
+
 ## 1.16.0 – 2026-07-18
 
 - **Einfügen per Klick:** Zwischen den Zeilen und unter jeder Spalte gibt es jetzt „+ Zeile"- und „+ Block"-Knöpfe – Ziehen ist nicht mehr nötig (bleibt aber möglich).

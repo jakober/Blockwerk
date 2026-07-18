@@ -21,10 +21,16 @@ $mode = $mode ?? 'page';
         <a class="btn btn-ghost" href="<?= e($backUrl) ?>"><?= e($backLabel) ?></a>
         <strong class="ed-title"><?= e($editorTitle) ?></strong>
         <div class="ed-presets" title="Neue Zeile mit Spaltenaufteilung hinzufügen"></div>
-        <div class="ed-devices" title="Vorschau-Breite umschalten">
-            <button type="button" data-device="desktop" class="is-active" title="Desktop-Breite">🖥</button>
-            <button type="button" data-device="tablet" title="Tablet-Breite (768 px)">▭</button>
-            <button type="button" data-device="phone" title="Smartphone-Breite (400 px)">📱</button>
+        <div class="ed-devices" title="Ansicht: So sieht die Seite auf Desktop, Tablet oder Smartphone aus">
+            <button type="button" data-device="desktop" class="is-active" title="Desktop-Ansicht">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </button>
+            <button type="button" data-device="tablet" title="Tablet-Ansicht (768 px, Spalten untereinander)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M10.5 18h3"/></svg>
+            </button>
+            <button type="button" data-device="phone" title="Smartphone-Ansicht (400 px, Spalten untereinander)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+            </button>
         </div>
         <span id="ed-status" class="ed-status"></span>
         <?php if (!empty($versionsUrl)): ?>

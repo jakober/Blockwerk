@@ -1046,21 +1046,46 @@ body.nav-open .admin-burger span:nth-child(3) { transform: translateY(-7px) rota
 /* Geräte-Vorschau im Editor */
 .ed-devices { display: flex; gap: 4px; }
 .ed-devices button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
     border: 1px solid var(--border);
     background: var(--surface);
     border-radius: 7px;
-    padding: 3px 9px;
     cursor: pointer;
-    font-size: 14px;
-    line-height: 1.3;
+    color: var(--muted);
 }
-.ed-devices button.is-active { border-color: var(--primary); background: #fff1e6; }
+.ed-devices button:hover { border-color: var(--primary); color: var(--primary); }
+.ed-devices button.is-active { border-color: var(--primary); background: var(--primary); color: #fff; }
 .ed-canvas { transition: max-width .25s ease; }
-.ed-canvas.is-tablet { max-width: 768px; }
-.ed-canvas.is-phone { max-width: 400px; }
-.ed-canvas.is-phone .ed-cols { grid-template-columns: 1fr; }
-.ed-canvas.is-phone .ed-col { grid-column: auto; }
-.ed-canvas.is-phone .ed-col-resizer { display: none; }
+body.is-editor .ed-canvas.is-tablet, .ed-canvas.is-tablet { max-width: 768px; }
+body.is-editor .ed-canvas.is-phone, .ed-canvas.is-phone { max-width: 400px; }
+body.is-editor .ed-canvas.is-phone { padding: 18px 14px; }
+/* Geräte-Modus: Canvas wird zum „Gerät“ mit Beschriftung, Spalten stapeln
+   sich untereinander – wie im Frontend unterhalb von 769 px. */
+.ed-canvas.is-tablet::before, .ed-canvas.is-phone::before {
+    content: '⇱ Tablet-Ansicht · 768 px – Spalten untereinander wie auf dem Gerät';
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin: 0 auto 12px;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: #fff1e6;
+    border: 1px solid #fed7aa;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+}
+.ed-canvas.is-phone::before { content: '⇱ Smartphone-Ansicht · 400 px – Spalten untereinander wie auf dem Gerät'; }
+.ed-canvas.is-tablet .ed-cols, .ed-canvas.is-phone .ed-cols { grid-template-columns: 1fr; }
+.ed-canvas.is-tablet .ed-col, .ed-canvas.is-phone .ed-col { grid-column: auto; }
+.ed-canvas.is-tablet .ed-col-resizer, .ed-canvas.is-phone .ed-col-resizer,
+.ed-canvas.is-tablet .ed-col-bar, .ed-canvas.is-phone .ed-col-bar { display: none; }
+.ed-canvas.is-tablet .ed-row, .ed-canvas.is-phone .ed-row { background: #fff; }
+.ed-canvas.is-tablet .ed-row { border-radius: 0; }
 
 /* Deutlichere Einfüge-Markierung beim Ziehen */
 .ed-block.insert-before { box-shadow: 0 -4px 0 0 var(--primary); }

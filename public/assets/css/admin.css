@@ -891,3 +891,13 @@ body.nav-open .admin-burger span:nth-child(3) { transform: translateY(-7px) rota
 }
 .modal h3 { margin: 0 0 10px; font-size: 18px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+/* ===== Navigations-Gruppen in der Seitenleiste ===== */
+.nav-group {
+    padding: 16px 12px 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #b08d68;
+}

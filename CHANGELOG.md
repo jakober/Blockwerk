@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.15.0 – 2026-07-18
+
+- **Strukturierte Admin-Navigation:** Die Seitenleiste ist jetzt in Gruppen gegliedert statt einer langen Liste – **Inhalte** (Seiten, News, Events, Formulare, Mediathek, Globale Blöcke), **Gestaltung** (Designs, Menü, Layouts, Templates, Schriften) und **System** (Benutzer, Updates, Einstellungen), mit dezenten Zwischenüberschriften. Das Dashboard bleibt oben. Redakteure sehen weiterhin nur die Inhalts-Bereiche; auch das mobile Menü zeigt die Gruppen.
+
 ## 1.14.2 – 2026-07-18
 
 - **Einheitliche Eingabefelder:** Datums-/Uhrzeitfelder (z. B. Beginn/Ende bei Events, Veröffentlichungszeitpunkt bei News) sowie E-Mail-, URL-, Such- und Telefonfelder sehen jetzt exakt aus wie alle anderen Eingabefelder im Backend – gleicher Rahmen, gleiche Rundung, gleiche Höhe.

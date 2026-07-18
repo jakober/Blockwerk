@@ -1,24 +1,33 @@
 <?php
-$nav = [
-    'dashboard' => ['Dashboard', '/admin', '◈'],
-    'pages' => ['Seiten', '/admin/pages', '▤'],
-    'news' => ['News', '/admin/news', '❑'],
-    'events' => ['Events', '/admin/events', '◷'],
-    'forms' => ['Formulare', '/admin/forms', '✉'],
-    'media' => ['Mediathek', '/admin/media', '▧'],
-    'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
-    'themes' => ['Designs', '/admin/themes', '✦'],
-    'menu' => ['Menü', '/admin/menu', '☰'],
-    'layouts' => ['Layouts', '/admin/layouts', '▦'],
-    'templates' => ['Templates', '/admin/templates', '⧉'],
-    'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
-    'users' => ['Benutzer', '/admin/users', '◉'],
-    'update' => ['Updates', '/admin/update', '⟳'],
-    'settings' => ['Einstellungen', '/admin/settings', '⚙'],
+// Navigation in Gruppen ('' = ohne Überschrift, ganz oben).
+$navGroups = [
+    '' => [
+        'dashboard' => ['Dashboard', '/admin', '◈'],
+    ],
+    'Inhalte' => [
+        'pages' => ['Seiten', '/admin/pages', '▤'],
+        'news' => ['News', '/admin/news', '❑'],
+        'events' => ['Events', '/admin/events', '◷'],
+        'forms' => ['Formulare', '/admin/forms', '✉'],
+        'media' => ['Mediathek', '/admin/media', '▧'],
+        'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
+    ],
+    'Gestaltung' => [
+        'themes' => ['Designs', '/admin/themes', '✦'],
+        'menu' => ['Menü', '/admin/menu', '☰'],
+        'layouts' => ['Layouts', '/admin/layouts', '▦'],
+        'templates' => ['Templates', '/admin/templates', '⧉'],
+        'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
+    ],
+    'System' => [
+        'users' => ['Benutzer', '/admin/users', '◉'],
+        'update' => ['Updates', '/admin/update', '⟳'],
+        'settings' => ['Einstellungen', '/admin/settings', '⚙'],
+    ],
 ];
 // Redakteure sehen nur die Inhalts-Bereiche.
 if (!\Core\Auth::isAdmin()) {
-    $nav = array_diff_key($nav, array_flip(['themes', 'menu', 'layouts', 'templates', 'fonts', 'users', 'update', 'settings']));
+    unset($navGroups['Gestaltung'], $navGroups['System']);
 }
 ?>
 <!doctype html>
@@ -38,10 +47,15 @@ if (!\Core\Auth::isAdmin()) {
         <button type="button" class="admin-burger" aria-label="Menü öffnen" aria-expanded="false"><span></span><span></span><span></span></button>
         <div class="sidebar-drawer">
             <nav class="sidebar-nav">
-                <?php foreach ($nav as $key => [$label, $href, $icon]): ?>
-                    <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
-                        <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
-                    </a>
+                <?php foreach ($navGroups as $groupLabel => $items): ?>
+                    <?php if ($groupLabel !== ''): ?>
+                        <div class="nav-group"><?= e($groupLabel) ?></div>
+                    <?php endif; ?>
+                    <?php foreach ($items as $key => [$label, $href, $icon]): ?>
+                        <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
+                            <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
+                        </a>
+                    <?php endforeach; ?>
                 <?php endforeach; ?>
             </nav>
             <div class="sidebar-footer">

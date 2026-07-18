@@ -183,10 +183,12 @@
                         panel.style.width = '';
                         return;
                     }
-                    const ul = panel.closest('ul');
-                    if (!ul) return;
-                    const rect = ul.getBoundingClientRect();
-                    panel.style.left = (-rect.left) + 'px';
+                    // Panel bündig an den linken Rand des sichtbaren Bereichs
+                    // setzen und genau so breit wie der Inhalt (clientWidth =
+                    // ohne vertikalen Scrollbalken) – kein horizontaler Überhang.
+                    var parent = panel.offsetParent || panel.parentElement;
+                    if (!parent) return;
+                    panel.style.left = (-parent.getBoundingClientRect().left) + 'px';
                     panel.style.width = document.documentElement.clientWidth + 'px';
                 });
             };

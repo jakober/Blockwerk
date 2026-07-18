@@ -42,6 +42,14 @@
     .cms-row:not([data-bp]) > .cms-col { grid-column: span 12; }
 }
 
+/* Kein horizontaler Scrollbalken: vollbreite Elemente (100vw) sind bei
+   vorhandenem vertikalem Scrollbalken minimal breiter als der Inhalt.
+   overflow-x auf dem Wurzelelement wird an den Viewport weitergereicht –
+   das verhindert horizontales Scrollen, ohne position: sticky zu brechen
+   (der Sticky-Kontext bleibt der Viewport). */
+:where(html) { overflow-x: hidden; }
+:where(body) { overflow-x: clip; }
+
 /* Element über die volle Browserbreite ausbrechen lassen (z. B. Hero) */
 .cms-fullwidth {
     width: 100vw;
@@ -608,6 +616,7 @@ h1.cms-heading { font-size: 2.3em; }
 
 /* --- Mega-Menü: hübscher, mit Akzentkante und Animation --- */
 .cms-mega-panel {
+    box-sizing: border-box; /* Padding zählt zur per JS gesetzten Breite */
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 20px 38px;

@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.29.1 – 2026-07-18
+
+- **Horizontaler Scrollbalken im Frontend behoben:** Zwei Ursachen sorgten für ungewolltes seitliches Scrollen auf der Website:
+  - Das **Mega-Menü-Panel** ragte über den rechten Rand (durch Padding, das nicht zur Breite zählte, und eine ungenaue Positionierung des vollbreiten Panels). Es sitzt jetzt exakt bündig über die Inhaltsbreite.
+  - **Vollbreite Elemente** (Hero, farbige Sektionen) sind bei sichtbarem vertikalem Scrollbalken minimal breiter als der Inhalt. Ein globaler Schutz auf Wurzel-Ebene verhindert das seitliche Scrollen jetzt in allen Templates – ohne den fixierten Kopfbereich (sticky) oder das vertikale Scrollen zu beeinträchtigen. Betrifft alle Designs und den visuellen Baukasten.
+
 ## 1.29.0 – 2026-07-18
 
 - **Schönere Scrollbalken im Backend:** Überall dort, wo im Admin-Bereich gescrollt wird (Seitenleiste/Menü, Blöcke-Palette und Eigenschaften im Editor, lange Dialoge), erscheinen jetzt dezente, schlanke Scrollbalken im Orange-Design statt der Standard-Browser-Balken – auf dunklen Flächen wie der Seitenleiste hell abgestimmt. Betrifft nur das Backend; die Website selbst bleibt unverändert.

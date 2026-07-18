@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.24.0 – 2026-07-18
+
+- **KI kann jetzt Layouts ändern:** Der KI-Assistent hat zwei neue Werkzeuge – `get_layout` (Layout lesen) und `update_layout` (visuelles Layout ändern). Damit funktionieren Aufträge wie „Passe den Footer an" oder „Füge auf allen Seiten eine Kontaktbox über dem Footer ein": Die KI liest das Layout, fügt die Sektion an der richtigen Stelle (vor dem Footer, nach dem Inhaltsbereich) ein und speichert – die Änderung gilt sofort auf allen Seiten mit diesem Layout.
+- **Mit Sicherheitsnetz:** Layout-Änderungen laufen durch dieselbe Validierung wie der Baukasten; das CMS erzwingt, dass der Inhaltsbereich (l-content) genau einmal erhalten bleibt – kaputte Layouts werden abgelehnt und die KI korrigiert sich. Klassische HTML-Layouts kann die KI nur lesen, nicht ändern.
+
 ## 1.23.1 – 2026-07-18
 
 - **„API-Key verschwindet" behoben:** Nach dem Speichern in der KI-Verwaltung zeigt das Schlüssel-Feld jetzt deutlich den gespeicherten Zustand – grüner Badge „✓ hinterlegt" am Label und der maskierte Schlüssel als Platzhalter im Feld („gespeichert: ••••9999 – zum Ändern neuen Schlüssel eingeben"). Aus Sicherheitsgründen wird der Klartext bewusst nie wieder angezeigt; ein leeres Feld lässt den gespeicherten Wert unverändert.

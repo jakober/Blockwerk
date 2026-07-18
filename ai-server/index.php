@@ -137,6 +137,40 @@ function mockChat(array $messages): array
 
     $usage = ['input_tokens' => 1200, 'output_tokens' => 700];
 
+    // Layout-Szenario: Nutzer erwähnt "footer" → get_layout → update_layout.
+    $lastUserText = '';
+    foreach ($messages as $message) {
+        if (($message['role'] ?? '') === 'user' && is_string($message['content'] ?? null)) {
+            $lastUserText = strtolower($message['content']);
+        }
+    }
+    if (str_contains($lastUserText, 'footer')) {
+        if ($lastToolResult === null) {
+            return ['id' => 'mock-l1', 'role' => 'assistant', 'stop_reason' => 'tool_use', 'usage' => $usage, 'content' => [
+                ['type' => 'text', 'text' => 'Ich sehe mir zuerst das Layout an.'],
+                ['type' => 'tool_use', 'id' => 'toolu_mock_getlayout', 'name' => 'get_layout', 'input' => ['layout_id' => 2]],
+            ]];
+        }
+        if (str_contains($lastToolResult, 'Builder-JSON')) {
+            $json = substr($lastToolResult, (int) strpos($lastToolResult, "\n") + 1);
+            $builder = json_decode($json, true);
+            if (is_array($builder) && is_array($builder['rows'] ?? null) && $builder['rows'] !== []) {
+                $contactRow = ['columns' => [['span' => 12, 'blocks' => [
+                    ['type' => 'heading', 'data' => ['text' => 'Kontakt aufnehmen', 'level' => 'h2', 'variant' => 'centered']],
+                    ['type' => 'form', 'data' => ['subject' => 'Anfrage über die Website', 'button_text' => 'Nachricht senden']],
+                ]]], 'style' => ['bg' => 'surface', 'pt' => 40, 'pb' => 40]];
+                array_splice($builder['rows'], count($builder['rows']) - 1, 0, [$contactRow]);
+                return ['id' => 'mock-l2', 'role' => 'assistant', 'stop_reason' => 'tool_use', 'usage' => $usage, 'content' => [
+                    ['type' => 'tool_use', 'id' => 'toolu_mock_updlayout', 'name' => 'update_layout',
+                     'input' => ['layout_id' => 2, 'builder' => $builder]],
+                ]];
+            }
+        }
+        return ['id' => 'mock-l3', 'role' => 'assistant', 'stop_reason' => 'end_turn', 'usage' => $usage, 'content' => [
+            ['type' => 'text', 'text' => 'Fertig! Ich habe im Layout eine Kontakt-Sektion direkt über dem Footer eingefügt – sie erscheint jetzt auf allen Seiten.'],
+        ]];
+    }
+
     if ($lastToolResult === null) {
         // Erste Runde: Bild generieren lassen.
         return ['id' => 'mock-1', 'role' => 'assistant', 'stop_reason' => 'tool_use', 'usage' => $usage, 'content' => [

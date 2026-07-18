@@ -179,6 +179,52 @@ class AiController extends AdminController
                     }
                     return 'Titel: ' . $page['title'] . "\nContent-JSON:\n" . ((string) $page['content'] ?: '{"rows":[]}');
 
+                case 'get_layout':
+                    $layout = \Models\Layout::find((int) ($input['layout_id'] ?? 0));
+                    if ($layout === null) {
+                        return 'FEHLER: Layout nicht gefunden.';
+                    }
+                    $builder = trim((string) ($layout['builder'] ?? ''));
+                    if ($builder !== '') {
+                        return 'Layout „' . $layout['name'] . '“ (id=' . $layout['id'] . ', visuell). Builder-JSON:' . "\n" . $builder;
+                    }
+                    return 'Layout „' . $layout['name'] . '“ (id=' . $layout['id'] . ', klassisch/HTML – NICHT per update_layout änderbar). HTML:' . "\n" . (string) $layout['html'];
+
+                case 'update_layout':
+                    $layout = \Models\Layout::find((int) ($input['layout_id'] ?? 0));
+                    if ($layout === null) {
+                        return 'FEHLER: Layout nicht gefunden.';
+                    }
+                    if (trim((string) ($layout['builder'] ?? '')) === '') {
+                        return 'FEHLER: Dieses Layout ist klassisch (HTML) und kann nicht per update_layout geändert werden.';
+                    }
+                    $builder = BlockRegistry::sanitizeTree(is_array($input['builder'] ?? null) ? $input['builder'] : []);
+                    if ($builder['rows'] === []) {
+                        return 'FEHLER: Das Builder-JSON enthielt keine gültigen Zeilen/Blöcke.';
+                    }
+                    $contentBlocks = 0;
+                    foreach ($builder['rows'] as $row) {
+                        foreach ($row['columns'] ?? [] as $column) {
+                            foreach ($column['blocks'] ?? [] as $block) {
+                                if (($block['type'] ?? '') === 'l-content') {
+                                    $contentBlocks++;
+                                }
+                            }
+                        }
+                    }
+                    if ($contentBlocks !== 1) {
+                        return 'FEHLER: Das Layout muss genau EINEN l-content-Block enthalten (gefunden: ' . $contentBlocks . '). Bitte das vorhandene Layout als Basis nehmen.';
+                    }
+                    \Models\Layout::saveBuilder((int) $layout['id'], json_encode($builder, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null);
+                    Cache::clear();
+                    $actions[] = [
+                        'type' => 'page',
+                        'label' => 'Layout „' . $layout['name'] . '“ aktualisiert – gilt auf allen Seiten',
+                        'editorUrl' => url('/admin/layouts/' . $layout['id'] . '/builder'),
+                        'viewUrl' => url('/'),
+                    ];
+                    return 'Layout id=' . $layout['id'] . ' aktualisiert – die Änderung ist auf allen Seiten mit diesem Layout aktiv.';
+
                 case 'generate_image':
                     $prompt = trim((string) ($input['prompt'] ?? ''));
                     if ($prompt === '') {

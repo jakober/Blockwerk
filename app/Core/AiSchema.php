@@ -30,7 +30,8 @@ class AiSchema
         foreach (Layout::all() as $layout) {
             $design = json_decode((string) ($layout['design'] ?? ''), true) ?: [];
             $colors = $design['colors'] ?? [];
-            $layouts[] = '- id=' . $layout['id'] . ' „' . $layout['name'] . '“'
+            $visual = trim((string) ($layout['builder'] ?? '')) !== '';
+            $layouts[] = '- id=' . $layout['id'] . ' „' . $layout['name'] . '“ [' . ($visual ? 'visuell – per update_layout änderbar' : 'klassisch/HTML – nur lesbar') . ']'
                 . ($colors !== [] ? ' (Farben: ' . implode(', ', array_map(
                     static fn (string $k, string $v): string => $k . '=' . $v,
                     array_keys($colors),
@@ -91,10 +92,24 @@ Jeder Block: {"type": "...", "data": {...}}. Optional data._style = {"mt","mb","
 5. Generiere für zentrale Stellen (Hero, Text+Bild) Bilder per generate_image mit detaillierten fotografischen Prompts (Stil, Licht, Motiv – ohne Text im Bild). Nutze alternativ passende vorhandene Mediathek-Bilder.
 6. Schließe Kontakt-/Landingpages mit einer Kontakt-Sektion ab (heading + form).
 
+## Layouts (Kopf-/Fußzeile, gilt auf ALLEN Seiten)
+
+Visuell gebaute Layouts haben ein Builder-JSON mit exakt derselben Struktur wie Seiten-Content ({"rows":[...]}), zusätzlich mit Layout-Blöcken:
+- l-brand: {logo, show_name} – Logo & Website-Name
+- l-menu: Hauptmenü (Daten unverändert lassen – wird über den Menü-Designer gepflegt)
+- l-content: {} – Platzhalter für den Seiteninhalt, MUSS genau EINMAL vorkommen
+- l-languages: {} – Sprachumschalter
+
+Regeln für Layout-Änderungen ("überall auf der Website"):
+1. IMMER zuerst get_layout aufrufen und das vorhandene Builder-JSON als Basis nehmen – Kopfzeile (l-brand/l-menu) und l-content nie entfernen oder verdoppeln.
+2. Der Footer sind die Zeilen NACH der l-content-Zeile. "Über dem Footer auf allen Seiten" = neue Zeile direkt vor der ersten Footer-Zeile (nach l-content) einfügen.
+3. update_layout mit dem VOLLSTÄNDIGEN neuen Builder-JSON aufrufen. Änderungen wirken sofort auf allen Seiten mit diesem Layout.
+4. Klassische Layouts (HTML) kannst du nur lesen – bitte den Nutzer in dem Fall, den visuellen Baukasten zu nutzen.
+
 ## Arbeitsweise
 
 - Erstelle erst Bilder (generate_image), dann die Seite (create_page) mit den gelieferten Bild-URLs.
-- Für Änderungswünsche: get_page lesen, dann update_page mit dem vollständigen neuen Content-JSON.
+- Für Änderungswünsche: get_page bzw. get_layout lesen, dann update_page/update_layout mit dem vollständigen neuen JSON.
 - Wenn ein Tool "FEHLER:" meldet, korrigiere die Eingabe und versuche es erneut.
 - Fasse am Ende kurz zusammen, was du angelegt hast.
 
@@ -159,6 +174,32 @@ PROMPT
                     'type' => 'object',
                     'properties' => ['page_id' => ['type' => 'integer']],
                     'required' => ['page_id'],
+                ],
+            ],
+            [
+                'name' => 'get_layout',
+                'description' => 'Liest ein Layout (Kopf-/Fußzeile der Website): Name, Typ und Builder-JSON (visuell) bzw. HTML (klassisch). Vor jeder Layout-Änderung aufrufen.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => ['layout_id' => ['type' => 'integer']],
+                    'required' => ['layout_id'],
+                ],
+            ],
+            [
+                'name' => 'update_layout',
+                'description' => 'Ersetzt das Builder-JSON eines VISUELLEN Layouts – wirkt sofort auf allen Seiten mit diesem Layout. l-content muss genau einmal enthalten sein.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'layout_id' => ['type' => 'integer'],
+                        'builder' => [
+                            'type' => 'object',
+                            'description' => 'Vollständiges Builder-JSON ({"rows": [...]}) inkl. der Layout-Blöcke.',
+                            'properties' => ['rows' => ['type' => 'array']],
+                            'required' => ['rows'],
+                        ],
+                    ],
+                    'required' => ['layout_id', 'builder'],
                 ],
             ],
             [

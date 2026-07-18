@@ -57,10 +57,19 @@
         },
         'l-menu': {
             label: 'Menü', icon: '☰',
-            defaults: { variant: 'dropdown', align: 'left' },
+            defaults: { variant: 'dropdown', align: 'left', font_size: 16, item_padding: 14, gap: 4, transform: 'normal', color: '', dropdown_bg: '', dropdown_text: '', mega_full: 0, breakpoint: 900 },
             fields: [
                 { key: 'variant', label: 'Menü-Vorlage', type: 'select', options: [['dropdown', 'Dropdown (Hover)'], ['mega', 'Mega-Menü'], ['vertical', 'Vertikal'], ['simple', 'Nur oberste Ebene']] },
                 { key: 'align', label: 'Ausrichtung', type: 'select', options: [['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] },
+                { key: 'font_size', label: 'Schriftgröße (px)', type: 'number' },
+                { key: 'item_padding', label: 'Abstand in den Menüpunkten (px)', type: 'number' },
+                { key: 'gap', label: 'Abstand zwischen Menüpunkten (px)', type: 'number' },
+                { key: 'transform', label: 'Schreibweise', type: 'select', options: [['normal', 'Normal'], ['uppercase', 'GROSSBUCHSTABEN']] },
+                { key: 'color', label: 'Textfarbe', type: 'colorclear' },
+                { key: 'dropdown_bg', label: 'Hintergrund des Aufklapp-Menüs', type: 'colorclear' },
+                { key: 'dropdown_text', label: 'Textfarbe im Aufklapp-Menü', type: 'colorclear' },
+                { key: 'mega_full', label: 'Mega-Menü über die volle Seitenbreite', type: 'checkbox' },
+                { key: 'breakpoint', label: 'Mobiles Menü ab Bildschirmbreite (px, 0 = nie)', type: 'number' },
             ],
         },
         'l-content': {

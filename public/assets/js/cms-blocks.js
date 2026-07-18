@@ -148,3 +148,78 @@
         const timer = setInterval(tick, 1000);
     });
 })();
+
+/* ---------- Navigation: Mobil-Menü, Touch-Bedienung, Mega-Vollbreite ---------- */
+(function () {
+    'use strict';
+
+    document.querySelectorAll('[data-nav]').forEach(function (nav) {
+        const breakpoint = parseInt(nav.getAttribute('data-breakpoint'), 10) || 0;
+        const toggle = nav.querySelector('.cms-nav-toggle');
+
+        const applyMode = function () {
+            const mobile = breakpoint > 0 && window.innerWidth <= breakpoint;
+            nav.classList.toggle('is-mobile', mobile);
+            if (!mobile) nav.classList.remove('is-open');
+        };
+        applyMode();
+        window.addEventListener('resize', applyMode);
+
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                const rect = nav.getBoundingClientRect();
+                nav.style.setProperty('--nav-mob-top', Math.max(0, rect.bottom) + 'px');
+                const open = nav.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        }
+
+        // Mega-Menü über die volle Seitenbreite ausrichten
+        if (nav.classList.contains('is-mega-full')) {
+            const position = function () {
+                nav.querySelectorAll('.cms-mega-panel').forEach(function (panel) {
+                    if (nav.classList.contains('is-mobile')) {
+                        panel.style.left = '';
+                        panel.style.width = '';
+                        return;
+                    }
+                    const ul = panel.closest('ul');
+                    if (!ul) return;
+                    const rect = ul.getBoundingClientRect();
+                    panel.style.left = (-rect.left) + 'px';
+                    panel.style.width = document.documentElement.clientWidth + 'px';
+                });
+            };
+            position();
+            window.addEventListener('resize', position);
+        }
+    });
+
+    // Touch-Geräte (Tablets/Handys ohne Maus): erster Tipp öffnet das
+    // Untermenü/Mega-Panel, zweiter Tipp folgt dem Link.
+    if (window.matchMedia('(hover: none)').matches) {
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.cms-menu li.has-children > a, .menu li.has-children > a');
+            if (!link) {
+                if (!e.target.closest('.cms-mega-panel, ul.submenu')) {
+                    document.querySelectorAll('.cms-menu li.is-open, .menu li.is-open').forEach(function (li) {
+                        li.classList.remove('is-open');
+                    });
+                }
+                return;
+            }
+            const li = link.parentElement;
+            const nav = link.closest('.cms-nav');
+            if (nav && nav.classList.contains('is-mobile')) return; // Mobil: Listen sind offen
+            if (!li.classList.contains('is-open')) {
+                e.preventDefault();
+                if (li.parentElement) {
+                    li.parentElement.querySelectorAll(':scope > li.is-open').forEach(function (other) {
+                        if (other !== li) other.classList.remove('is-open');
+                    });
+                }
+                li.classList.add('is-open');
+            }
+        });
+    }
+})();

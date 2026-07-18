@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.10.0 – 2026-07-17
+
+- **Menü komplett visuell gestaltbar:** Der Menü-Block im Layout-Baukasten hat jetzt volle Design-Optionen ohne CSS – Schriftgröße, Innenabstand der Menüpunkte, Abstand zwischen Punkten, Ausrichtung, GROSSBUCHSTABEN, Textfarbe sowie **Hintergrund- und Textfarbe des Aufklapp-Menüs** (gilt für Hover-Dropdown UND Mega-Menü). Die HTML-Templates bleiben optional weiter anpassbar.
+- **Mega-Menü aufgehübscht:** sanfte Einblend-Animation, Akzentkante oben, sauber begrenzte und zentrierte Spalten, Hover-Effekte – wahlweise **über die volle Seitenbreite** oder nur in Inhaltsbreite.
+- **Automatisches Mobil-Menü:** Pro Menü ist ein Breakpoint (px) einstellbar – darunter erscheint automatisch ein Burger-Menü mit aufklappender Vollbreiten-Liste (inkl. animiertem Burger-Icon, eingerückten Unterebenen, Panel-Farben).
+- **Touch-Unterstützung:** Auf Geräten ohne Maus (Tablets/Handys) öffnet der erste Tipp auf einen Menüpunkt mit Unterpunkten das Dropdown/Mega-Panel, der zweite Tipp folgt dem Link – funktioniert auch in den HTML-Themes.
+
 ## 1.9.0 – 2026-07-17
 
 - **Visueller Layout-Baukasten:** Layouts lassen sich jetzt komplett per Drag & Drop bauen – mit denselben Zeilen und flexiblen Spalten wie im Seiten-Editor. Neue Layout-Blöcke: **Logo & Name** (optional mit Logo-Bild), **Menü** (mit wählbarer Menü-Vorlage und Ausrichtung), **Inhaltsbereich** (dort erscheint der Seiteninhalt; nur einmal einsetzbar) und **Sprachumschalter**. Alle normalen Inhalts-Blöcke (Text, Bild, Social Media, globale Blöcke …) funktionieren im Layout ebenfalls – z. B. für die Fußzeile. Vollbreite farbige Kopf-/Fußzeilen über die bekannten Zeilen-Einstellungen.

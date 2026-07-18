@@ -475,13 +475,57 @@ class BlockRegistry
         return $html . '</a>';
     }
 
+    /**
+     * Menü-Block des Layout-Baukastens – komplett visuell konfigurierbar:
+     * Vorlage (Dropdown/Mega/…), Ausrichtung, Schriftgröße, Abstände,
+     * Farben des Aufklapp-Panels, Mega-Menü in voller Breite sowie der
+     * Breakpoint, ab dem automatisch das mobile Burger-Menü erscheint.
+     * Die Werte landen als CSS-Variablen am <nav>; Mobil-/Touch-Logik
+     * übernimmt cms-blocks.js über data-nav / data-breakpoint.
+     */
     private static function lMenu(array $data): string
     {
         $variant = in_array($data['variant'] ?? 'dropdown', ['dropdown', 'mega', 'vertical', 'simple'], true)
             ? $data['variant'] : 'dropdown';
         $align = in_array($data['align'] ?? 'left', ['left', 'center', 'right'], true)
             ? $data['align'] : 'left';
-        return '<nav class="t-nav bwl-menu is-' . $align . '">{{menu:' . $variant . '}}</nav>';
+
+        $vars = '';
+        $fontSize = (int) ($data['font_size'] ?? 0);
+        if ($fontSize >= 10 && $fontSize <= 40) {
+            $vars .= '--nav-fs:' . $fontSize . 'px;';
+        }
+        $padding = $data['item_padding'] ?? '';
+        if ($padding !== '' && (int) $padding >= 0 && (int) $padding <= 60) {
+            $vars .= '--nav-pad:' . (int) $padding . 'px;';
+        }
+        $gap = $data['gap'] ?? '';
+        if ($gap !== '' && (int) $gap >= 0 && (int) $gap <= 60) {
+            $vars .= '--nav-gap:' . (int) $gap . 'px;';
+        }
+        if (($data['transform'] ?? '') === 'uppercase') {
+            $vars .= '--nav-tt:uppercase;--nav-ls:1px;';
+        }
+        foreach (['color' => '--nav-color', 'dropdown_bg' => '--nav-dd-bg', 'dropdown_text' => '--nav-dd-text'] as $key => $var) {
+            $value = (string) ($data[$key] ?? '');
+            if (preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+                $vars .= $var . ':' . strtolower($value) . ';';
+            }
+        }
+
+        $breakpoint = (int) ($data['breakpoint'] ?? 900);
+        $breakpoint = max(0, min(2000, $breakpoint));
+
+        $classes = 't-nav bwl-menu cms-nav is-' . $align;
+        if ($variant === 'mega' && !empty($data['mega_full'])) {
+            $classes .= ' is-mega-full';
+        }
+
+        return '<nav class="' . $classes . '" data-nav data-breakpoint="' . $breakpoint . '"'
+            . ($vars !== '' ? ' style="' . $vars . '"' : '') . '>'
+            . '<button type="button" class="cms-nav-toggle" aria-label="Menü öffnen" aria-expanded="false">'
+            . '<span></span><span></span><span></span></button>'
+            . '{{menu:' . $variant . '}}</nav>';
     }
 
     private static function searchForm(array $data): string

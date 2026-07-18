@@ -570,3 +570,139 @@ h1.cms-heading { font-size: 2.3em; }
 .bwl-menu.is-right { justify-content: flex-end; }
 /* Zeilen im Baukasten: Spalteninhalte vertikal mittig (typisch Kopfzeile) */
 .bwl-page .cms-col { display: flex; flex-direction: column; justify-content: center; }
+
+/* =====================================================================
+   Menü 2.0: visuelle Optionen, schöneres Mega-Menü, Mobil- & Touch-Menü
+   Variablen vom Menü-Block: --nav-fs, --nav-pad, --nav-gap, --nav-tt,
+   --nav-color, --nav-dd-bg, --nav-dd-text; data-breakpoint für mobil.
+   ===================================================================== */
+
+.cms-nav { position: relative; }
+.cms-nav .cms-menu {
+    font-size: var(--nav-fs, 1em);
+    gap: var(--nav-gap, 4px);
+    color: var(--nav-color, inherit);
+}
+.cms-nav .cms-menu > li > a {
+    padding: 9px var(--nav-pad, 14px);
+    text-transform: var(--nav-tt, none);
+    letter-spacing: var(--nav-ls, normal);
+}
+
+/* --- Aufklapp-Panels: sanfte Animation statt hart ein/aus --- */
+.cms-menu-dropdown ul.submenu {
+    display: block;
+    visibility: hidden; opacity: 0; transform: translateY(10px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    pointer-events: none;
+    background: var(--nav-dd-bg, var(--cms-bg));
+    color: var(--nav-dd-text, var(--cms-text));
+}
+.cms-menu-dropdown li.has-children:hover > ul.submenu,
+.cms-menu-dropdown li.has-children:focus-within > ul.submenu,
+.cms-menu-dropdown li.is-open > ul.submenu {
+    visibility: visible; opacity: 1; transform: none; pointer-events: auto;
+}
+
+/* --- Mega-Menü: hübscher, mit Akzentkante und Animation --- */
+.cms-mega-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px 38px;
+    visibility: hidden; opacity: 0; transform: translateY(12px);
+    transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    pointer-events: none;
+    background: var(--nav-dd-bg, var(--cms-bg));
+    color: var(--nav-dd-text, var(--cms-text));
+    padding: 30px 34px 28px;
+    border-radius: 16px;
+    border-top: 3px solid var(--cms-primary);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .22);
+}
+.cms-menu-mega > li:hover > .cms-mega-panel,
+.cms-menu-mega > li:focus-within > .cms-mega-panel,
+.cms-menu-mega > li.is-open > .cms-mega-panel {
+    visibility: visible; opacity: 1; transform: none; pointer-events: auto;
+}
+.cms-mega-panel ul a { padding: 6px 0 6px 2px; transition: padding .12s, color .12s; }
+.cms-mega-panel ul a:hover { padding-left: 8px; }
+.cms-mega-head { color: var(--nav-dd-text, var(--cms-text)); }
+
+/* Aufklapp-Zustände auch für Theme-Menüs (HTML-Layouts) per Tipp/Klick */
+.t-nav li.is-open > ul.submenu, .main-nav li.is-open > ul.submenu { display: block; }
+
+/* --- Mega-Menü über die volle Seitenbreite (Position setzt cms-blocks.js) --- */
+.cms-nav.is-mega-full .cms-mega-panel { border-radius: 0 0 18px 18px; max-width: none; }
+
+/* --- Burger-Button & mobiles Menü (Breakpoint via data-breakpoint) --- */
+.cms-nav-toggle {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 10px;
+    color: var(--nav-color, inherit);
+}
+.cms-nav-toggle span { display: block; width: 25px; height: 3px; border-radius: 2px; background: currentColor; transition: transform .2s, opacity .2s; }
+.cms-nav.is-open .cms-nav-toggle span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.cms-nav.is-open .cms-nav-toggle span:nth-child(2) { opacity: 0; }
+.cms-nav.is-open .cms-nav-toggle span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+.cms-nav.is-mobile { display: flex; justify-content: flex-end; }
+.cms-nav.is-mobile .cms-nav-toggle { display: inline-flex; }
+.cms-nav.is-mobile > ul.cms-menu { display: none; }
+.cms-nav.is-mobile.is-open > ul.cms-menu {
+    display: block;
+    position: fixed; left: 0; right: 0;
+    top: var(--nav-mob-top, 64px);
+    max-height: calc(100vh - var(--nav-mob-top, 64px));
+    overflow: auto;
+    margin: 0; padding: 14px 20px 26px;
+    background: var(--nav-dd-bg, var(--cms-bg));
+    color: var(--nav-dd-text, var(--cms-text));
+    box-shadow: 0 30px 50px rgba(0, 0, 0, .3);
+    z-index: 150;
+}
+.cms-nav.is-mobile.is-open .cms-menu li { display: block; position: static; }
+.cms-nav.is-mobile.is-open .cms-menu a {
+    display: block; padding: 12px 10px; border-radius: 9px; font-size: 1.05em;
+}
+.cms-nav.is-mobile.is-open .cms-menu a:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+.cms-nav.is-mobile.is-open .cms-menu ul.submenu,
+.cms-nav.is-mobile.is-open .cms-mega-panel {
+    display: block; position: static;
+    visibility: visible; opacity: 1; transform: none; pointer-events: auto;
+    background: transparent; box-shadow: none; border: none;
+    width: auto !important; left: auto !important; min-width: 0;
+    padding: 0 0 4px 18px; margin: 0;
+    border-left: 2px solid color-mix(in srgb, var(--cms-primary) 40%, transparent);
+}
+.cms-nav.is-mobile .cms-mega-head { border-bottom: none; margin-bottom: 0; }
+.cms-nav.is-mobile li.has-children > a::after { content: ""; }
+
+/* Mega-Menü: Panel-Textfarben & Vollbreiten-Spalten sauber begrenzen */
+.cms-mega-panel ul a { color: color-mix(in srgb, var(--nav-dd-text, var(--cms-text)) 82%, transparent); }
+.cms-mega-panel ul a:hover { color: var(--cms-primary); }
+.cms-mega-head { border-bottom-color: color-mix(in srgb, var(--cms-primary) 55%, transparent); }
+.cms-nav.is-mega-full .cms-mega-panel {
+    justify-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 250px));
+    padding: 34px 48px 32px;
+}
+
+/* Vollbreite: Spaltenbreite begrenzen (überstimmt die Hover-Grundregel) */
+.cms-nav.is-mega-full .cms-menu-mega > li > .cms-mega-panel {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 250px));
+    justify-content: center;
+    gap: 22px 44px;
+}
+
+/* Vollbreite: Flex statt Grid – perfekt zentrierte, gleich breite Spalten */
+.cms-nav.is-mega-full .cms-menu-mega > li > .cms-mega-panel {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 24px 52px;
+}
+.cms-nav.is-mega-full .cms-mega-col { width: 230px; }
+
+/* Logo & Name: erbt die Textfarbe (damit die Gestaltungs-Option greift) */
+.bwl-brand { color: inherit; }
+
+/* Mobiles Menü: Links erben die Panel-Textfarbe (lesbar auf jedem Hintergrund) */
+.cms-nav.is-mobile.is-open .cms-menu a { color: inherit; }
+.cms-nav.is-mobile.is-open .cms-menu ul.submenu a { color: color-mix(in srgb, currentColor 85%, transparent); }

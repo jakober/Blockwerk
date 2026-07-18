@@ -38,7 +38,7 @@
             <input type="text" name="name" id="folder-rename-name" placeholder="Neuer Name">
             <button type="submit" class="btn btn-small">Umbenennen</button>
         </form>
-        <form method="post" class="inline" id="folder-delete-form" onsubmit="return confirm('Ordner löschen? Die Dateien bleiben erhalten und liegen dann unter „Alle Dateien“.')">
+        <form method="post" class="inline" id="folder-delete-form" data-confirm="Ordner löschen? Die Dateien bleiben erhalten und liegen dann unter „Alle Dateien“." data-confirm-danger data-confirm-ok="Ordner löschen">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-small btn-danger">Ordner löschen</button>
         </form>
@@ -70,7 +70,7 @@
                 <div class="media-actions">
                     <button type="button" class="btn btn-small" data-edit>✎</button>
                     <button type="button" class="btn btn-small" data-copy="<?= e($fileUrl) ?>">URL</button>
-                    <form method="post" action="<?= e(url('/admin/media/' . $item['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Datei „<?= e($item['filename']) ?>“ wirklich löschen?')">
+                    <form method="post" action="<?= e(url('/admin/media/' . $item['id'] . '/delete')) ?>" class="inline" data-confirm="Datei „<?= e($item['filename']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-small btn-danger">✕</button>
                     </form>
@@ -188,7 +188,7 @@
             headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
             body: JSON.stringify(payload),
         }).then((r) => r.json()).then((res) => {
-            if (!res.ok) { alert(res.error || 'Speichern fehlgeschlagen.'); return; }
+            if (!res.ok) { window.AdminDialog.alert(res.error || 'Speichern fehlgeschlagen.'); return; }
             editItem.dataset.name = payload.filename || editItem.dataset.name;
             editItem.dataset.alt = payload.alt;
             editItem.dataset.title = payload.title;
@@ -199,7 +199,7 @@
             nameEl.title = editItem.dataset.name;
             modal.hidden = true;
             applyFilter();
-        }).catch(() => alert('Verbindung fehlgeschlagen.'));
+        }).catch(() => window.AdminDialog.alert('Verbindung fehlgeschlagen.'));
     });
 
     /* ---------- Upload (Drag & Drop) ---------- */
@@ -315,9 +315,9 @@
         const form = el.querySelector('form');
         form.action = item.deleteUrl;
         form.querySelector('[name=_csrf]').value = csrf;
-        form.addEventListener('submit', (e) => {
-            if (!confirm('Datei „' + item.name + '“ wirklich löschen?')) e.preventDefault();
-        });
+        form.setAttribute('data-confirm', 'Datei „' + item.name + '“ wirklich löschen?');
+        form.setAttribute('data-confirm-danger', '');
+        form.setAttribute('data-confirm-ok', 'Löschen');
         setTimeout(() => el.classList.remove('is-new'), 900);
         return el;
     }

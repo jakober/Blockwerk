@@ -32,7 +32,7 @@ $renderItem = function (array $page) use (&$renderItem, $byParent, $layouts): vo
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-small btn-ghost" title="Seite als Entwurf duplizieren">⧉</button>
                 </form>
-                <form method="post" action="<?= e(url('/admin/pages/' . $id . '/delete')) ?>" class="inline" onsubmit="return confirm('Seite „<?= e($page['title']) ?>“ in den Papierkorb verschieben?')">
+                <form method="post" action="<?= e(url('/admin/pages/' . $id . '/delete')) ?>" class="inline" data-confirm="Seite „<?= e($page['title']) ?>“ in den Papierkorb verschieben?" data-confirm-danger data-confirm-ok="In den Papierkorb">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                 </form>

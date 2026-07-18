@@ -47,7 +47,7 @@
                 </div>
                 <p class="muted small"><?= e($theme['description']) ?></p>
                 <?php if ($key !== $activeKey): ?>
-                    <form method="post" action="<?= e(url('/admin/themes/' . $key . '/apply')) ?>" onsubmit="return confirm('Design „<?= e($theme['name']) ?>“ aktivieren? Das Standard-Layout wird dabei ersetzt.')">
+                    <form method="post" action="<?= e(url('/admin/themes/' . $key . '/apply')) ?>" data-confirm="Design „<?= e($theme['name']) ?>“ aktivieren? Das Standard-Layout wird dabei ersetzt." data-confirm-ok="Aktivieren">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-primary btn-block">Aktivieren</button>
                     </form>

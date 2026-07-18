@@ -44,6 +44,7 @@ if (!\Core\Auth::isAdmin()) {
 <link rel="icon" type="image/svg+xml" href="<?= e(url('/assets/img/logo.svg')) ?>">
 <link rel="stylesheet" href="<?= e(asset('/assets/css/admin.css')) ?>">
 <script>window.CMS_BASE = <?= json_encode(\Core\App::base()) ?>;</script>
+<script defer src="<?= e(asset('/assets/js/admin-dialog.js')) ?>"></script>
 </head>
 <body class="<?= e($bodyClass ?? '') ?>">
 <div class="admin">

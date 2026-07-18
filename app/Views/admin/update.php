@@ -67,28 +67,140 @@ $updateAvailable = $remoteVersion !== null && version_compare($remoteVersion, $c
 
 <div class="card narrow">
     <h2>Wiederherstellen</h2>
-    <p class="muted small">Spielt eine zuvor heruntergeladene Backup-ZIP wieder ein: <strong>Datenbank</strong> und <strong>Uploads</strong> werden auf den Stand der Sicherung zurückgesetzt. Die Konfiguration (Datenbank-Zugang) bleibt unverändert.</p>
+    <p class="muted small">Spielt eine zuvor heruntergeladene Backup-ZIP wieder ein: <strong>Datenbank</strong> und <strong>Uploads</strong> (alle Inhalte, Seiten, Medien &amp; Einstellungen) werden auf den Stand der Sicherung zurückgesetzt. Die Konfiguration (Datenbank-Zugang) und die <strong>installierte Version</strong> bleiben unverändert.</p>
     <p class="restore-warn small"><strong>Achtung:</strong> Der aktuelle Stand wird dabei überschrieben. Am besten vorher ein frisches Backup herunterladen.</p>
-    <form method="post" action="<?= e(url('/admin/restore')) ?>" enctype="multipart/form-data" id="restore-form">
-        <?= csrf_field() ?>
-        <input type="file" name="backup" id="restore-file" accept=".zip,application/zip" required>
+    <form id="restore-form" data-chunk-url="<?= e(url('/admin/restore/chunk')) ?>" data-run-url="<?= e(url('/admin/restore/run')) ?>" data-csrf="<?= e(csrf_token()) ?>">
+        <input type="file" id="restore-file" accept=".zip,application/zip" required>
         <button type="submit" class="btn btn-danger" id="restore-btn">Sicherung wiederherstellen</button>
     </form>
+    <div class="restore-progress" id="restore-progress" hidden>
+        <div class="restore-bar"><div class="restore-bar-fill" id="restore-bar-fill"></div></div>
+        <div class="restore-progress-meta">
+            <span id="restore-phase">Wird vorbereitet …</span>
+            <span id="restore-eta" class="muted"></span>
+        </div>
+    </div>
 </div>
 <script>
 (function () {
     var form = document.getElementById('restore-form');
     if (!form) return;
-    form.addEventListener('submit', function (e) {
-        var file = document.getElementById('restore-file');
-        if (!file.value) { return; }
-        if (!confirm('Wirklich diese Sicherung einspielen? Alle aktuellen Inhalte, Seiten und Medien werden durch den Stand der Backup-Datei ersetzt.')) {
-            e.preventDefault();
-            return;
+    var fileInput = document.getElementById('restore-file');
+    var btn = document.getElementById('restore-btn');
+    var box = document.getElementById('restore-progress');
+    var fill = document.getElementById('restore-bar-fill');
+    var phaseEl = document.getElementById('restore-phase');
+    var etaEl = document.getElementById('restore-eta');
+    var CHUNK = 1024 * 1024; // 1 MB pro Häppchen (unter allen Server-Limits)
+
+    function setBar(frac, label) {
+        var pct = Math.max(0, Math.min(100, Math.round(frac * 100)));
+        fill.style.width = pct + '%';
+        phaseEl.textContent = label + ' · ' + pct + ' %';
+    }
+    function etaText(startTs, frac) {
+        if (frac <= 0.01) return '';
+        var elapsed = (Date.now() - startTs) / 1000;
+        var remain = elapsed * (1 - frac) / frac;
+        if (!isFinite(remain) || remain < 1) return 'gleich fertig';
+        if (remain < 60) return 'noch ca. ' + Math.ceil(remain) + ' s';
+        return 'noch ca. ' + Math.ceil(remain / 60) + ' min';
+    }
+
+    async function uploadFile(file, token) {
+        var total = file.size;
+        var offset = 0, index = 0;
+        var start = Date.now();
+        var base = form.dataset.chunkUrl + '?token=' + token + '&index=';
+        while (offset < total) {
+            var slice = file.slice(offset, offset + CHUNK);
+            var buf = await slice.arrayBuffer();
+            var resp = await fetch(base + index, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream', 'X-CSRF-Token': form.dataset.csrf },
+                body: buf
+            });
+            if (!resp.ok) throw new Error('Upload-Fehler (' + resp.status + ')');
+            offset += CHUNK; index++;
+            var frac = Math.min(offset, total) / total;
+            setBar(frac * 0.5, 'Hochladen'); // Upload ist die erste Hälfte des Balkens
+            etaEl.textContent = etaText(start, frac);
         }
-        var btn = document.getElementById('restore-btn');
+    }
+
+    async function runRestore(token) {
+        var start = Date.now();
+        var resp = await fetch(form.dataset.runUrl + '?token=' + token, {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': form.dataset.csrf }
+        });
+        if (!resp.ok || !resp.body) throw new Error('Server-Fehler (' + resp.status + ')');
+        var reader = resp.body.getReader();
+        var dec = new TextDecoder();
+        var buf = '';
+        while (true) {
+            var r = await reader.read();
+            if (r.done) break;
+            buf += dec.decode(r.value, { stream: true });
+            var nl;
+            while ((nl = buf.indexOf('\n')) >= 0) {
+                var line = buf.slice(0, nl).trim();
+                buf = buf.slice(nl + 1);
+                if (!line) continue;
+                var ev = JSON.parse(line);
+                if (ev.error) throw new Error(ev.error);
+                if (ev.phase === 'done') {
+                    setBar(1, 'Fertig');
+                    etaEl.textContent = '';
+                    return;
+                }
+                if (ev.total) {
+                    var frac = (ev.done || 0) / ev.total;
+                    setBar(0.5 + frac * 0.5, 'Einspielen'); // Einspielen ist die zweite Hälfte
+                    etaEl.textContent = etaText(start, frac);
+                }
+            }
+        }
+    }
+
+    function randToken() {
+        var a = new Uint8Array(16);
+        (window.crypto || {}).getRandomValues ? window.crypto.getRandomValues(a) : a.forEach(function (_, i) { a[i] = i; });
+        return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var file = fileInput.files[0];
+        if (!file) { window.AdminDialog.alert('Bitte zuerst eine Backup-ZIP auswählen.'); return; }
+
+        var ok = await window.AdminDialog.confirm(
+            'Wirklich diese Sicherung einspielen? Alle aktuellen Inhalte, Seiten und Medien werden durch den Stand der Backup-Datei ersetzt. Die installierte Version bleibt erhalten.',
+            { danger: true, confirmText: 'Wiederherstellen' }
+        );
+        if (!ok) return;
+
         btn.disabled = true;
-        btn.textContent = 'Wird wiederhergestellt …';
+        fileInput.disabled = true;
+        box.hidden = false;
+        setBar(0, 'Hochladen');
+        etaEl.textContent = '';
+
+        try {
+            var token = randToken();
+            await uploadFile(file, token);
+            await runRestore(token);
+            phaseEl.textContent = '✓ Wiederherstellung abgeschlossen';
+            await window.AdminDialog.alert('Die Sicherung wurde erfolgreich eingespielt. Alle Inhalte, Seiten und Medien entsprechen jetzt dem Backup. Die installierte Version ist unverändert.', { title: 'Fertig' });
+            window.location.reload();
+        } catch (err) {
+            phaseEl.textContent = 'Fehler';
+            etaEl.textContent = '';
+            btn.disabled = false;
+            fileInput.disabled = false;
+            box.hidden = true;
+            window.AdminDialog.alert('Wiederherstellung fehlgeschlagen: ' + (err && err.message ? err.message : err));
+        }
     });
 })();
 </script>

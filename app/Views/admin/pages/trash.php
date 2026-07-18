@@ -21,7 +21,7 @@
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-primary">Wiederherstellen</button>
                             </form>
-                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/destroy')) ?>" class="inline" onsubmit="return confirm('„<?= e($page['title']) ?>“ ENDGÜLTIG löschen? Das kann nicht rückgängig gemacht werden.')">
+                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/destroy')) ?>" class="inline" data-confirm="„<?= e($page['title']) ?>“ ENDGÜLTIG löschen? Das kann nicht rückgängig gemacht werden." data-confirm-danger data-confirm-ok="Endgültig löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Endgültig löschen</button>
                             </form>

@@ -26,7 +26,7 @@
                             <span style="font-family:'<?= e($font['family']) ?>',sans-serif;font-size:19px">Zwölf Boxkämpfer jagen Viktor quer über den Sylter Deich 0123</span>
                         </td>
                         <td class="actions-col">
-                            <form method="post" action="<?= e(url('/admin/fonts/' . $font['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Schrift „<?= e($font['name']) ?>“ wirklich löschen?')">
+                            <form method="post" action="<?= e(url('/admin/fonts/' . $font['id'] . '/delete')) ?>" class="inline" data-confirm="Schrift „<?= e($font['name']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

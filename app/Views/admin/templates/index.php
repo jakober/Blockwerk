@@ -23,7 +23,7 @@
                         <td class="muted"><?= e($template['updated_at']) ?></td>
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url('/admin/templates/' . $template['id'] . '/edit')) ?>">Bearbeiten</a>
-                            <form method="post" action="<?= e(url('/admin/templates/' . $template['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Template „<?= e($template['name']) ?>“ wirklich löschen?')">
+                            <form method="post" action="<?= e(url('/admin/templates/' . $template['id'] . '/delete')) ?>" class="inline" data-confirm="Template „<?= e($template['name']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

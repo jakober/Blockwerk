@@ -27,7 +27,7 @@
                         <td class="muted"><?= e(format_date_de($global['updated_at'], true)) ?></td>
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url('/admin/pages/' . $global['id'] . '/editor')) ?>">Inhalt bearbeiten</a>
-                            <form method="post" action="<?= e(url('/admin/pages/' . $global['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('„<?= e($global['title']) ?>“ in den Papierkorb verschieben? Er wird dann auf allen Seiten ausgeblendet.')">
+                            <form method="post" action="<?= e(url('/admin/pages/' . $global['id'] . '/delete')) ?>" class="inline" data-confirm="„<?= e($global['title']) ?>“ in den Papierkorb verschieben? Er wird dann auf allen Seiten ausgeblendet." data-confirm-danger data-confirm-ok="In den Papierkorb">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

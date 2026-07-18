@@ -17,7 +17,7 @@
                         <td><strong><?= e(format_date_de($version['created_at'], true)) ?></strong></td>
                         <td class="muted"><?= e($version['username'] ?? '–') ?></td>
                         <td class="actions-col">
-                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/versions/' . $version['id'] . '/restore')) ?>" class="inline" onsubmit="return confirm('Diese Version wiederherstellen? Der aktuelle Stand wird vorher gesichert.')">
+                            <form method="post" action="<?= e(url('/admin/pages/' . $page['id'] . '/versions/' . $version['id'] . '/restore')) ?>" class="inline" data-confirm="Diese Version wiederherstellen? Der aktuelle Stand wird vorher gesichert." data-confirm-ok="Wiederherstellen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-primary">Wiederherstellen</button>
                             </form>

@@ -109,7 +109,7 @@
 </form>
 
 <form method="post" action="<?= e(url('/admin/menu/reset')) ?>" id="menu-reset-form"
-      onsubmit="return confirm('Menü wirklich zurücksetzen? Standard-Vorlage und Standardfarben werden wiederhergestellt.')">
+      data-confirm="Menü wirklich zurücksetzen? Standard-Vorlage und Standardfarben werden wiederhergestellt." data-confirm-ok="Zurücksetzen">
     <?= csrf_field() ?>
 </form>
 

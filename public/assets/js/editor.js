@@ -871,7 +871,7 @@
     function duplicateBlock(r, c, b) {
         const blocks = state.rows[r].columns[c].blocks;
         if (blocks[b].type === 'l-content') {
-            alert('Der Inhaltsbereich kann nur einmal im Layout vorkommen.');
+            window.AdminDialog.alert('Der Inhaltsbereich kann nur einmal im Layout vorkommen.');
             return;
         }
         const copy = JSON.parse(JSON.stringify(blocks[b]));
@@ -891,7 +891,7 @@
 
     function insertNewBlock(r, c, index, type) {
         if (type === 'l-content' && countBlocksOfType('l-content') > 0) {
-            alert('Der Inhaltsbereich ist bereits im Layout vorhanden – er kann nur einmal eingesetzt werden.');
+            window.AdminDialog.alert('Der Inhaltsbereich ist bereits im Layout vorhanden – er kann nur einmal eingesetzt werden.');
             return;
         }
         state.rows[r].columns[c].blocks.splice(index, 0, newBlock(type));
@@ -1336,7 +1336,7 @@
         canvas.parentElement.scrollTop = canvas.parentElement.scrollHeight;
     }
 
-    function rowAction(act, r) {
+    async function rowAction(act, r) {
         const rows = state.rows;
         if (act === 'row-up' && r > 0) {
             [rows[r - 1], rows[r]] = [rows[r], rows[r - 1]];
@@ -1344,14 +1344,14 @@
             [rows[r], rows[r + 1]] = [rows[r + 1], rows[r]];
         } else if (act === 'row-del') {
             const hasContent = rows[r].columns.some((col) => col.blocks.length);
-            if (hasContent && !confirm('Diese Zeile enthält Inhalte. Wirklich löschen?')) return;
+            if (hasContent && !(await window.AdminDialog.confirm('Diese Zeile enthält Inhalte. Wirklich löschen?', { danger: true, confirmText: 'Löschen' }))) return;
             rows.splice(r, 1);
         } else if (act === 'col-add') {
             const used = rows[r].columns.reduce((sum, col) => sum + col.span, 0);
             rows[r].columns.push({ id: uid('col'), span: Math.min(Math.max(12 - used, 1), 12), blocks: [] });
         } else if (act === 'row-dup') {
             if (rows[r].columns.some((col) => col.blocks.some((bl) => bl.type === 'l-content'))) {
-                alert('Diese Zeile enthält den Inhaltsbereich – er kann nur einmal im Layout vorkommen.');
+                window.AdminDialog.alert('Diese Zeile enthält den Inhaltsbereich – er kann nur einmal im Layout vorkommen.');
                 return;
             }
             const copy = JSON.parse(JSON.stringify(rows[r]));
@@ -1369,7 +1369,7 @@
         render();
     }
 
-    function colAction(act, r, c) {
+    async function colAction(act, r, c) {
         const cols = state.rows[r].columns;
         const col = cols[c];
         if (act === 'wider') {
@@ -1378,10 +1378,10 @@
             col.span = Math.max(1, col.span - 1);
         } else if (act === 'col-del') {
             if (cols.length === 1) {
-                alert('Die letzte Spalte einer Zeile kann nicht gelöscht werden. Lösche stattdessen die Zeile.');
+                window.AdminDialog.alert('Die letzte Spalte einer Zeile kann nicht gelöscht werden. Lösche stattdessen die Zeile.');
                 return;
             }
-            if (col.blocks.length && !confirm('Diese Spalte enthält Inhalte. Wirklich löschen?')) return;
+            if (col.blocks.length && !(await window.AdminDialog.confirm('Diese Spalte enthält Inhalte. Wirklich löschen?', { danger: true, confirmText: 'Löschen' }))) return;
             cols.splice(c, 1);
         } else {
             return;
@@ -1581,7 +1581,7 @@
             if (dragData.kind === 'new') {
                 // Der Inhaltsbereich darf im Layout nur einmal vorkommen.
                 if (dragData.type === 'l-content' && countBlocksOfType('l-content') > 0) {
-                    alert('Der Inhaltsbereich ist bereits im Layout vorhanden – er kann nur einmal eingesetzt werden. Verschiebe ihn stattdessen an die gewünschte Stelle.');
+                    window.AdminDialog.alert('Der Inhaltsbereich ist bereits im Layout vorhanden – er kann nur einmal eingesetzt werden. Verschiebe ihn stattdessen an die gewünschte Stelle.');
                     dragData = null;
                     clearDropHints();
                     return;

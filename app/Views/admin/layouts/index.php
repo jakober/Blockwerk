@@ -35,12 +35,12 @@
                             <a class="btn btn-small btn-primary" href="<?= e(url('/admin/layouts/' . $layout['id'] . '/builder')) ?>">Visuell bearbeiten</a>
                             <a class="btn btn-small btn-ghost" href="<?= e(url('/admin/layouts/' . $layout['id'] . '/edit')) ?>">HTML &amp; Design</a>
                             <?php if ($isVisual): ?>
-                                <form method="post" action="<?= e(url('/admin/layouts/' . $layout['id'] . '/builder-reset')) ?>" class="inline" onsubmit="return confirm('Visuellen Modus deaktivieren? Das Layout nutzt dann wieder sein HTML; die Baukasten-Struktur geht verloren.')">
+                                <form method="post" action="<?= e(url('/admin/layouts/' . $layout['id'] . '/builder-reset')) ?>" class="inline" data-confirm="Visuellen Modus deaktivieren? Das Layout nutzt dann wieder sein HTML; die Baukasten-Struktur geht verloren.">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-small btn-ghost" title="Zurück zum HTML-Modus">→ HTML</button>
                                 </form>
                             <?php endif; ?>
-                            <form method="post" action="<?= e(url('/admin/layouts/' . $layout['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Layout „<?= e($layout['name']) ?>“ wirklich löschen?')">
+                            <form method="post" action="<?= e(url('/admin/layouts/' . $layout['id'] . '/delete')) ?>" class="inline" data-confirm="Layout „<?= e($layout['name']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.33.0 – 2026-07-18
+
+- **Einheitliche Bestätigungs-Dialoge im Backend:** Überall, wo bisher die schlichten Browser-Fenster („alert"/„confirm") verwendet wurden – beim Löschen von Seiten, Medien, Layouts, Schriften, Templates, Benutzern, News/Events, beim Zurücksetzen des Menüs, beim Aktivieren eines Designs usw. – erscheint jetzt der schöne, zum Backend passende Dialog. Bestätigungen für unwiderrufliche Aktionen haben einen roten Knopf.
+- **Wiederherstellung mit Fortschrittsbalken:** Beim Einspielen einer Sicherung füllt sich jetzt ein Balken, der den Fortschritt in Prozent und die geschätzte Restzeit anzeigt (erst „Hochladen", dann „Einspielen"). Die Backup-Datei wird dabei in kleinen Häppchen hochgeladen – dadurch entfällt das frühere Problem mit dem **„Ungültigen/abgelaufenen Formular-Token"** bei größeren Sicherungen, und es gibt keine Server-Größenbeschränkung mehr.
+- **Wiederherstellung lässt die Version unverändert:** Eine eingespielte Sicherung setzt alle Inhalte, Seiten, Medien und Einstellungen auf den Stand des Backups zurück – die **installierte Blockwerk-Version bleibt aber erhalten**. Nach dem Import wird das Datenbank-Schema automatisch an den aktuellen Programmstand angepasst, sodass auch ältere Sicherungen problemlos laufen.
+
 ## 1.32.0 – 2026-07-18
 
 - **Seiten per Drag & Drop sortieren und verschachteln:** Die Seitenverwaltung zeigt die Seiten jetzt als Baum. Über den Ziehpunkt (⠿) lässt sich jede Seite mit der Maus verschieben:

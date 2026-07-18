@@ -33,7 +33,7 @@
                             </details>
                         </td>
                         <td class="actions-col">
-                            <form method="post" action="<?= e(url('/admin/forms/' . $entry['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Einsendung wirklich löschen?')">
+                            <form method="post" action="<?= e(url('/admin/forms/' . $entry['id'] . '/delete')) ?>" class="inline" data-confirm="Einsendung wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

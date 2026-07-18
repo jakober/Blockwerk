@@ -56,63 +56,162 @@ class BackupController extends AdminController
     }
 
     /**
-     * Komplette Wiederherstellung aus einer heruntergeladenen Backup-ZIP:
-     * spielt den Datenbank-Dump zurück und stellt die Uploads wieder her.
-     * Die Konfigurationsdatei (config/config.php) wird bewusst NICHT
-     * überschrieben, damit die Datenbank-Verbindung der aktuellen
-     * Installation erhalten bleibt.
+     * Chunk-Upload der Backup-ZIP: Der Browser lädt die Datei in kleinen
+     * Häppchen hoch (Fortschrittsanzeige, keine Server-Größenlimits). Jeder
+     * Chunk wird an eine temporäre Datei angehängt. Das CSRF-Token kommt im
+     * Header – so scheitert der Upload nicht mehr am Formular-Token, wenn die
+     * Datei groß ist. Rohdaten stehen in php://input.
      */
-    public function restore(): void
+    public function restoreChunk(): void
     {
-        if (!class_exists('ZipArchive')) {
-            flash('error', 'Die PHP-Erweiterung "zip" fehlt auf diesem Server.');
-            redirect('/admin/update');
+        header('Content-Type: application/json');
+        $token = $this->restoreToken($_GET['token'] ?? '');
+        $index = (int) ($_GET['index'] ?? -1);
+        if ($token === '' || $index < 0) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'error' => 'Ungültige Upload-Daten.']);
+            return;
         }
 
-        $file = $_FILES['backup'] ?? null;
-        if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
-            flash('error', $this->uploadError($file['error'] ?? UPLOAD_ERR_NO_FILE));
-            redirect('/admin/update');
+        $path = $this->restorePath($token);
+        $data = file_get_contents('php://input') ?: '';
+        // Beim ersten Chunk neu anlegen, danach anhängen.
+        $ok = file_put_contents($path, $data, $index === 0 ? 0 : FILE_APPEND) !== false;
+        if (!$ok) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error' => 'Chunk konnte nicht gespeichert werden (Speicherplatz?).']);
+            return;
+        }
+        echo json_encode(['ok' => true, 'size' => filesize($path) ?: 0]);
+    }
+
+    /**
+     * Wiederherstellung ausführen und den Fortschritt als Stream (eine
+     * JSON-Zeile pro Schritt) an den Browser senden. Spielt den Datenbank-
+     * Dump zurück und stellt die Uploads wieder her; die Konfigurationsdatei
+     * bleibt unangetastet. Die installierte Blockwerk-Version bleibt erhalten:
+     * das Schema wird nach dem Import auf den aktuellen Code-Stand gebracht.
+     */
+    public function restoreRun(): void
+    {
+        header('Content-Type: application/x-ndjson; charset=utf-8');
+        header('Cache-Control: no-cache');
+        header('X-Accel-Buffering: no'); // nginx: nicht puffern
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+
+        $emit = static function (array $data): void {
+            echo json_encode($data) . "\n";
+            @ob_flush();
+            @flush();
+        };
+
+        $token = $this->restoreToken($_GET['token'] ?? '');
+        $path = $token !== '' ? $this->restorePath($token) : '';
+
+        if (!class_exists('ZipArchive')) {
+            $emit(['error' => 'Die PHP-Erweiterung "zip" fehlt auf diesem Server.']);
+            return;
+        }
+        if ($path === '' || !is_file($path)) {
+            $emit(['error' => 'Die hochgeladene Datei wurde nicht gefunden. Bitte erneut versuchen.']);
+            return;
         }
 
         $zip = new ZipArchive();
-        if ($zip->open($file['tmp_name']) !== true) {
-            flash('error', 'Die Datei konnte nicht gelesen werden – ist es eine gültige ZIP-Datei?');
-            redirect('/admin/update');
+        if ($zip->open($path) !== true) {
+            @unlink($path);
+            $emit(['error' => 'Die Datei ist keine gültige ZIP-Sicherung.']);
+            return;
         }
-
         $sql = $zip->getFromName('datenbank.sql');
         if ($sql === false) {
             $zip->close();
-            flash('error', 'In der ZIP fehlt die Datei „datenbank.sql". Bitte eine mit „Backup herunterladen" erstellte Sicherung verwenden.');
-            redirect('/admin/update');
+            @unlink($path);
+            $emit(['error' => 'In der ZIP fehlt „datenbank.sql". Bitte eine mit „Backup herunterladen" erstellte Sicherung verwenden.']);
+            return;
         }
+
+        $statements = $this->splitSql($sql);
+        $uploadEntries = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if ($name !== false && str_starts_with($name, 'public/uploads/') && !str_ends_with($name, '/') && !str_contains($name, '..')) {
+                $uploadEntries[] = $name;
+            }
+        }
+        $total = count($statements) + count($uploadEntries);
+        $done = 0;
+        $emit(['phase' => 'start', 'total' => $total]);
 
         try {
-            $this->importDatabase($sql);
+            $pdo = Database::pdo();
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+            foreach ($statements as $statement) {
+                $pdo->exec($statement);
+                $done++;
+                if ($done % 15 === 0) {
+                    $emit(['phase' => 'db', 'done' => $done, 'total' => $total]);
+                }
+            }
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+            $emit(['phase' => 'db', 'done' => $done, 'total' => $total]);
         } catch (\Throwable $e) {
             $zip->close();
-            flash('error', 'Datenbank-Wiederherstellung fehlgeschlagen: ' . $e->getMessage());
-            redirect('/admin/update');
+            @unlink($path);
+            $emit(['error' => 'Datenbank-Wiederherstellung fehlgeschlagen: ' . $e->getMessage()]);
+            return;
         }
 
-        $restoredFiles = $this->restoreUploads($zip);
+        // Uploads (Medien & Schriften) wiederherstellen.
+        $target = BASE_PATH . '/public';
+        foreach ($uploadEntries as $name) {
+            $dest = $target . '/' . substr($name, strlen('public/'));
+            $dir = dirname($dest);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            $stream = $zip->getStream($name);
+            if ($stream !== false) {
+                $out = @fopen($dest, 'wb');
+                if ($out !== false) {
+                    stream_copy_to_stream($stream, $out);
+                    fclose($out);
+                }
+                fclose($stream);
+            }
+            $done++;
+            if ($done % 8 === 0) {
+                $emit(['phase' => 'files', 'done' => $done, 'total' => $total]);
+            }
+        }
         $zip->close();
+        @unlink($path);
+
+        // Version der Installation bewahren: Schema auf aktuellen Code-Stand
+        // bringen (fügt neue Spalten hinzu) und schema_version zurücksetzen.
+        Database::createSchema($pdo);
+        \Models\Setting::set('schema_version', \Core\Updater::currentVersion());
 
         \Core\Cache::clear();
-        flash('success', 'Sicherung wiederhergestellt: Datenbank eingespielt und ' . $restoredFiles . ' Upload-Datei(en) zurückgesetzt. Die Konfiguration blieb unverändert.');
-        redirect('/admin/update');
+        $emit(['phase' => 'done', 'done' => $total, 'total' => $total]);
     }
 
-    /** Führt den SQL-Dump anweisungsweise aus (quote-sicher zerlegt). */
-    private function importDatabase(string $sql): void
+    /** Nur Hex-Zeichen als Token zulassen (dient als Dateiname). */
+    private function restoreToken(mixed $raw): string
     {
-        $pdo = Database::pdo();
-        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-        foreach ($this->splitSql($sql) as $statement) {
-            $pdo->exec($statement);
+        $token = preg_replace('/[^a-f0-9]/', '', strtolower((string) $raw)) ?? '';
+        return strlen($token) >= 8 && strlen($token) <= 64 ? $token : '';
+    }
+
+    private function restorePath(string $token): string
+    {
+        $dir = BASE_PATH . '/cache';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
         }
-        $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+        return $dir . '/restore-' . $token . '.part';
     }
 
     /**
@@ -163,49 +262,6 @@ class BackupController extends AdminController
             $statements,
             static fn (string $s): bool => !str_starts_with($s, '--')
         ));
-    }
-
-    /** Stellt die Dateien unter public/uploads/ aus der ZIP wieder her. */
-    private function restoreUploads(ZipArchive $zip): int
-    {
-        $target = BASE_PATH . '/public';
-        $count = 0;
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if ($name === false || !str_starts_with($name, 'public/uploads/') || str_ends_with($name, '/')) {
-                continue;
-            }
-            // Pfad-Traversal-Schutz.
-            if (str_contains($name, '..')) {
-                continue;
-            }
-            $dest = $target . '/' . substr($name, strlen('public/'));
-            $dir = dirname($dest);
-            if (!is_dir($dir)) {
-                @mkdir($dir, 0775, true);
-            }
-            $stream = $zip->getStream($name);
-            if ($stream === false) {
-                continue;
-            }
-            $out = @fopen($dest, 'wb');
-            if ($out !== false) {
-                stream_copy_to_stream($stream, $out);
-                fclose($out);
-                $count++;
-            }
-            fclose($stream);
-        }
-        return $count;
-    }
-
-    private function uploadError(int $code): string
-    {
-        return match ($code) {
-            UPLOAD_ERR_NO_FILE => 'Bitte zuerst eine Backup-ZIP auswählen.',
-            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Die Datei ist größer als vom Server erlaubt (siehe upload_max_filesize / post_max_size).',
-            default => 'Die Datei konnte nicht hochgeladen werden (Fehlercode ' . $code . ').',
-        };
     }
 
     private function addFolder(ZipArchive $zip, string $dir, string $prefix): void

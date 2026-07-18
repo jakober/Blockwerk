@@ -19,7 +19,7 @@
                     <td class="actions-col">
                         <a class="btn btn-small" href="<?= e(url('/admin/users/' . $user['id'] . '/edit')) ?>"><?= (int) $user['id'] === $ownId ? 'Profil / Passwort ändern' : 'Bearbeiten' ?></a>
                         <?php if ((int) $user['id'] !== $ownId): ?>
-                            <form method="post" action="<?= e(url('/admin/users/' . $user['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('Benutzer „<?= e($user['username']) ?>“ wirklich löschen?')">
+                            <form method="post" action="<?= e(url('/admin/users/' . $user['id'] . '/delete')) ?>" class="inline" data-confirm="Benutzer „<?= e($user['username']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

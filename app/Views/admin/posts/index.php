@@ -30,7 +30,7 @@
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url($basePath . '/' . $post['id'] . '/edit')) ?>">Bearbeiten</a>
                             <a class="btn btn-small btn-ghost" href="<?= e(url('/' . ($type === 'event' ? 'events' : 'news') . '/' . $post['slug'])) ?>" target="_blank" rel="noopener">Ansehen ↗</a>
-                            <form method="post" action="<?= e(url($basePath . '/' . $post['id'] . '/delete')) ?>" class="inline" onsubmit="return confirm('„<?= e($post['title']) ?>“ wirklich löschen?')">
+                            <form method="post" action="<?= e(url($basePath . '/' . $post['id'] . '/delete')) ?>" class="inline" data-confirm="„<?= e($post['title']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">Löschen</button>
                             </form>

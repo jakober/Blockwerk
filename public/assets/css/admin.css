@@ -1136,9 +1136,13 @@ body.is-editor .ed-canvas.is-phone { padding: 18px 14px; }
     font-size: 12px;
     font-weight: 700;
 }
-.ed-canvas.is-phone::before { content: '⇱ Smartphone-Ansicht · 400 px – Spalten untereinander wie auf dem Gerät'; }
-.ed-canvas.is-tablet .ed-cols, .ed-canvas.is-phone .ed-cols { grid-template-columns: 1fr; }
-.ed-canvas.is-tablet .ed-col, .ed-canvas.is-phone .ed-col { grid-column: auto; }
+.ed-canvas.is-phone::before { content: '⇱ Smartphone-Ansicht · 400 px – Spalten stapeln wie auf dem Gerät'; }
+/* Geräte-Vorschau stapelt die Spalten – außer bei Zeilen, die auf
+   „Nebeneinander lassen" (data-bp="0") gestellt sind. */
+.ed-canvas.is-tablet .ed-row:not([data-bp="0"]) .ed-cols,
+.ed-canvas.is-phone .ed-row:not([data-bp="0"]) .ed-cols { grid-template-columns: 1fr; }
+.ed-canvas.is-tablet .ed-row:not([data-bp="0"]) .ed-col,
+.ed-canvas.is-phone .ed-row:not([data-bp="0"]) .ed-col { grid-column: auto; }
 .ed-canvas.is-tablet .ed-col-resizer, .ed-canvas.is-phone .ed-col-resizer,
 .ed-canvas.is-tablet .ed-col-bar, .ed-canvas.is-phone .ed-col-bar { display: none; }
 .ed-canvas.is-tablet .ed-row, .ed-canvas.is-phone .ed-row { background: #fff; }

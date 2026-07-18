@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.35.0 – 2026-07-18
+
+- **Spalten auch auf dem Smartphone nebeneinander:** In den Zeilen-Einstellungen (Inhalts-Editor **und** visueller Layout-Baukasten) gibt es jetzt die klare Auswahl **„Spalten auf dem Smartphone"** mit drei Optionen: „Automatisch untereinander (empfohlen)", „Nebeneinander lassen" (die Spalten bleiben auch auf schmalen Handys in einer Reihe) und „Ab eigener Breite stapeln …" (eigener Umbruchpunkt). Standardmäßig stapeln die Spalten wie bisher – nur wo gewünscht bleiben sie nebeneinander. Die **Smartphone-Vorschau** im Editor zeigt das Verhalten jetzt korrekt an (bislang wurden dort immer alle Spalten gestapelt). Ersetzt das frühere, wenig verständliche Zahlenfeld.
+
 ## 1.34.0 – 2026-07-18
 
 - **Schriftart je Überschriften-Ebene wählbar:** In den Layout-Design-Einstellungen (dort, wo auch die Farben eingestellt werden) lässt sich jetzt zusätzlich zur allgemeinen Schrift „für Überschriften" und „für Fließtext" optional für **jede einzelne Ebene H1–H6** eine eigene installierte Schrift festlegen (aufklappbarer Bereich „Einzelne Überschriften separat"). Wird für eine Ebene nichts gewählt, gilt die allgemeine Überschriften-Schrift; ist auch die nicht gesetzt, die Standard-/Systemschrift. Gilt sowohl im Frontend als auch in der Editor-Vorschau. Für eigenes CSS stehen die Ebenen als Variablen `--cms-font-h1` … `--cms-font-h6` bereit.

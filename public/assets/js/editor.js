@@ -633,6 +633,12 @@
             canvas.appendChild(makeRowInsert(r));
             const rowEl = document.createElement('div');
             rowEl.className = 'ed-row';
+            // Mobiles Spaltenverhalten in der Geräte-Vorschau spiegeln:
+            // data-bp="0" = bleibt nebeneinander, sonst stapelt die Vorschau.
+            const rowBp = row.style && row.style.bp;
+            if (rowBp === 0 || rowBp === '0' || Number(rowBp) > 0) {
+                rowEl.setAttribute('data-bp', String(Number(rowBp) || 0));
+            }
             if (selected && selected.kind === 'row' && selected.r === r) rowEl.classList.add('is-selected');
             bindRowDropzone(rowEl, r);
 
@@ -759,6 +765,12 @@
         colsEl.style.paddingTop = (12 + (parseInt(style.pt, 10) || 0)) + 'px';
         colsEl.style.paddingBottom = (12 + (parseInt(style.pb, 10) || 0)) + 'px';
         rowEl.classList.toggle('ed-row-fullwidth', style.width === 'full');
+        // Mobiles Spaltenverhalten (für die Geräte-Vorschau).
+        if (style.bp === 0 || style.bp === '0' || Number(style.bp) > 0) {
+            rowEl.setAttribute('data-bp', String(Number(style.bp) || 0));
+        } else {
+            rowEl.removeAttribute('data-bp');
+        }
     }
 
     function applyRowStyles() {
@@ -1228,17 +1240,51 @@
             });
         });
 
-        // Mobiles Verhalten der Spalten
+        // Mobiles Verhalten der Spalten – verständliche Auswahl.
+        // Intern gesteuert über style.bp: leer = Standard (768 px),
+        // 0 = nie stapeln (bleiben nebeneinander), N = ab N px stapeln.
+        const bpMode = () => {
+            if (style.bp === '' || style.bp === undefined || style.bp === null) return '';
+            return Number(style.bp) === 0 ? 'side' : 'custom';
+        };
+        const bpWrap = document.createElement('div');
+        const renderBpCustom = () => {
+            bpWrap.innerHTML = '';
+            if (bpMode() !== 'custom') return;
+            addField(bpWrap, {
+                key: 'bp', label: 'Untereinander ab … px Bildschirmbreite', type: 'number',
+            }, style.bp, (v) => {
+                style.bp = (v === '' ? 600 : v);
+                markDirty();
+                applyRowStyles();
+            });
+            const hint = document.createElement('p');
+            hint.className = 'muted small';
+            hint.textContent = 'Schmaler als dieser Wert werden die Spalten untereinander gestapelt.';
+            bpWrap.appendChild(hint);
+        };
+
         addField(inspectorBody, {
-            key: 'bp', label: 'Spalten untereinander ab … px Bildschirmbreite', type: 'number',
-        }, style.bp, (v) => {
+            key: 'bpmode', label: 'Spalten auf dem Smartphone', type: 'select',
+            options: [
+                ['', 'Automatisch untereinander (empfohlen)'],
+                ['side', 'Nebeneinander lassen'],
+                ['custom', 'Ab eigener Breite stapeln …'],
+            ],
+        }, bpMode(), (v) => {
             if (v === '') delete style.bp;
-            else style.bp = v;
+            else if (v === 'side') style.bp = 0;
+            else if (v === 'custom') style.bp = (Number(style.bp) > 0 ? style.bp : 600);
             markDirty();
+            renderBpCustom();
+            applyRowStyles();
         });
+        inspectorBody.appendChild(bpWrap);
+        renderBpCustom();
+
         const bpHint = document.createElement('p');
         bpHint.className = 'muted small';
-        bpHint.textContent = 'Leer = automatisch (768 px, empfohlen). 0 = Spalten bleiben auch mobil nebeneinander.';
+        bpHint.textContent = '„Nebeneinander lassen" hält die Spalten auch auf schmalen Handys in einer Reihe. Nutze die Smartphone-Vorschau oben zum Prüfen.';
         inspectorBody.appendChild(bpHint);
     }
 

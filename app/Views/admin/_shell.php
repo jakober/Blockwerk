@@ -25,7 +25,7 @@ if (!\Core\Auth::isAdmin()) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($title ?? 'Admin') ?> – Blockwerk</title>
+<title><?= e($title ?? 'Admin') ?> – Blockwerk Orange</title>
 <link rel="icon" type="image/svg+xml" href="<?= e(url('/assets/img/logo.svg')) ?>">
 <link rel="stylesheet" href="<?= e(url('/assets/css/admin.css')) ?>">
 <script>window.CMS_BASE = <?= json_encode(\Core\App::base()) ?>;</script>
@@ -33,7 +33,7 @@ if (!\Core\Auth::isAdmin()) {
 <body class="<?= e($bodyClass ?? '') ?>">
 <div class="admin">
     <aside class="sidebar">
-        <div class="sidebar-brand"><?php include APP_PATH . '/Views/_logo.php'; ?>Blockwerk</div>
+        <div class="sidebar-brand"><?php include APP_PATH . '/Views/_logo.php'; ?><span class="brand-text">Blockwerk<span class="brand-orange">Orange</span></span></div>
         <nav class="sidebar-nav">
             <?php foreach ($nav as $key => [$label, $href, $icon]): ?>
                 <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">

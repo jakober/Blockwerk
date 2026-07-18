@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Anmelden</title>
+<title>Anmelden – Blockwerk Orange</title>
 <link rel="icon" type="image/svg+xml" href="<?= e(url('/assets/img/logo.svg')) ?>">
 <link rel="stylesheet" href="<?= e(url('/assets/css/admin.css')) ?>">
 </head>
 <body class="auth-body">
 <div class="auth-card">
-    <div class="auth-brand"><?php $logoSize = 34; include APP_PATH . '/Views/_logo.php'; ?>Blockwerk<span>Anmeldung</span></div>
+    <div class="auth-brand"><?php $logoSize = 34; include APP_PATH . '/Views/_logo.php'; ?>Blockwerk <span class="brand-orange">Orange</span><span>Anmeldung</span></div>
 
     <?php if (!empty($flash)): ?>
         <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>

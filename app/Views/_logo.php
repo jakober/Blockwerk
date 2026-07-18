@@ -10,5 +10,5 @@ $logoSize = (int) ($logoSize ?? 28);
   <rect x="4" y="4" width="18" height="18" rx="4.5" fill="currentColor"/>
   <rect x="4" y="26" width="18" height="18" rx="4.5" fill="currentColor"/>
   <rect x="26" y="26" width="18" height="18" rx="4.5" fill="currentColor"/>
-  <rect x="28" y="2" width="18" height="18" rx="4.5" fill="#f59e0b"/>
+  <rect x="28" y="2" width="18" height="18" rx="4.5" fill="#ea580c"/>
 </svg>

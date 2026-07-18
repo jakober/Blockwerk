@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Installation – Schritt 1</title>
+<title>Installation – Schritt 1 – Blockwerk Orange</title>
 <link rel="icon" type="image/svg+xml" href="<?= e(url('/assets/img/logo.svg')) ?>">
 <link rel="stylesheet" href="<?= e(url('/assets/css/admin.css')) ?>">
 </head>
 <body class="auth-body">
 <div class="auth-card wide">
-    <div class="auth-brand"><?php $logoSize = 34; include APP_PATH . '/Views/_logo.php'; ?>Blockwerk<span>Installation</span></div>
+    <div class="auth-brand"><?php $logoSize = 34; include APP_PATH . '/Views/_logo.php'; ?>Blockwerk <span class="brand-orange">Orange</span><span>Installation</span></div>
     <div class="steps"><span class="step active">1. Datenbank</span><span class="step">2. Website &amp; Admin</span></div>
     <p class="muted">Gib die Zugangsdaten deiner MySQL/MariaDB-Datenbank ein. Alle Tabellen werden automatisch angelegt – falls die Datenbank noch nicht existiert, wird versucht, sie zu erstellen.</p>
 

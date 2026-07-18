@@ -154,30 +154,30 @@ $extractedNow = is_file($dir . '/public/index.php');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blockwerk-Installation</title>
+<title>Blockwerk Orange – Installation</title>
 <style>
 * { box-sizing: border-box; }
 body {
     margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #312e81 100%); padding: 24px;
-    font-size: 15px; line-height: 1.55; color: #0f172a;
+    background: linear-gradient(135deg, #2a1508 0%, #9a3412 100%); padding: 24px;
+    font-size: 15px; line-height: 1.55; color: #2b1d12;
 }
 .card { background: #fff; border-radius: 14px; padding: 36px; width: 100%; max-width: 560px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
 .brand { font-size: 26px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 4px; }
 .brand span { font-weight: 400; color: #64748b; font-size: 16px; margin-left: 10px; }
 p.lead { color: #475569; margin-top: 6px; }
 ul.checks { list-style: none; padding: 0; margin: 18px 0; }
-ul.checks li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 2px; border-bottom: 1px dashed #e2e8f0; }
+ul.checks li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 2px; border-bottom: 1px dashed #ece0d3; }
 .ok { color: #16a34a; font-weight: 700; }
 .fail { color: #dc2626; font-weight: 600; font-size: 13px; text-align: right; }
 label { display: block; font-weight: 600; font-size: 13px; margin: 14px 0 6px; }
-input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font: inherit; }
-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
+input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid #ece0d3; border-radius: 8px; font: inherit; }
+input:focus { outline: none; border-color: #ea580c; box-shadow: 0 0 0 3px rgba(234,88,12,.15); }
 .btn { display: inline-block; width: 100%; text-align: center; margin-top: 18px; padding: 12px 18px; border: none; border-radius: 9px;
-    background: #4f46e5; color: #fff; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
-.btn:hover { background: #4338ca; }
-.btn[disabled] { background: #cbd5e1; cursor: not-allowed; }
+    background: #ea580c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn:hover { background: #c2410c; }
+.btn[disabled] { background: #e2cfbc; cursor: not-allowed; }
 .alert { background: #fee2e2; color: #991b1b; border-radius: 8px; padding: 11px 14px; margin: 14px 0; font-size: 14px; }
 .success { background: #dcfce7; color: #166534; border-radius: 8px; padding: 11px 14px; margin: 14px 0; }
 .muted { color: #64748b; font-size: 13px; }
@@ -187,11 +187,11 @@ input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(7
 <div class="card">
     <div class="brand">
         <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-7px;margin-right:10px">
-            <rect x="4" y="4" width="18" height="18" rx="4.5" fill="#4f46e5"/>
-            <rect x="4" y="26" width="18" height="18" rx="4.5" fill="#4f46e5"/>
-            <rect x="26" y="26" width="18" height="18" rx="4.5" fill="#4f46e5"/>
-            <rect x="28" y="2" width="18" height="18" rx="4.5" fill="#f59e0b"/>
-        </svg>Blockwerk<span>Installation</span></div>
+            <rect x="4" y="4" width="18" height="18" rx="4.5" fill="#ea580c"/>
+            <rect x="4" y="26" width="18" height="18" rx="4.5" fill="#ea580c"/>
+            <rect x="26" y="26" width="18" height="18" rx="4.5" fill="#ea580c"/>
+            <rect x="28" y="2" width="18" height="18" rx="4.5" fill="#fbbf24"/>
+        </svg>Blockwerk <em style="font-style:normal;color:#ea580c">Orange</em><span>Installation</span></div>
 
     <?php foreach ($errors as $error): ?>
         <div class="alert"><?= htmlspecialchars($error) ?></div>

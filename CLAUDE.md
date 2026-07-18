@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Blockwerk** — a small, extensible CMS written in dependency-free PHP 8 (no Composer, no framework) with a MySQL/MariaDB backend and a vanilla-JS drag-and-drop content editor. The product name "Blockwerk" appears in the admin shell, login/install screens, installer and docs. UI language is German — keep all user-facing strings (admin UI, flash messages, seed content) in German.
+**Blockwerk Orange** — a small, extensible CMS written in dependency-free PHP 8 (no Composer, no framework) with a MySQL/MariaDB backend and a vanilla-JS drag-and-drop content editor. The product name "Blockwerk Orange" appears in the admin shell, login/install screens, installer and docs; the backend design and logo use orange tones. UI language is German — keep all user-facing strings (admin UI, flash messages, seed content) in German.
 
 ## Running
 

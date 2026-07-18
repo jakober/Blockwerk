@@ -1,6 +1,13 @@
-# Changelog – Blockwerk
+# Changelog – Blockwerk Orange
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
+
+## 1.11.0 – 2026-07-18
+
+- **Neuer Name: Blockwerk Orange!** Das CMS heißt jetzt „Blockwerk Orange" – umbenannt in Admin-Seitenleiste, Login, Installations-Assistent, Ein-Datei-Installer, README und Doku.
+- **Backend komplett in Orangetönen:** Das gesamte Admin-Design (Primärfarbe, Seitenleiste, Login-Verlauf, Hover-Flächen) sowie Logo und Favicon wurden auf ein warmes Orange umgestellt.
+- **Backend responsive:** Auf schmalen Bildschirmen wird die Seitenleiste zu einer horizontal scrollbaren Kopfleiste, Formularzeilen brechen automatisch um und breite Tabellen scrollen innerhalb ihrer Karte.
+- **Grafische Editoren mit fester Arbeitsbreite:** Seiten-, Layout- und Menü-Editor behalten auf kleinen Screens ihre volle Breite und werden stattdessen horizontal gescrollt – nichts wird gequetscht.
 
 ## 1.10.0 – 2026-07-17
 

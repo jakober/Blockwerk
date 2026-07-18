@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.14.2 – 2026-07-18
+
+- **Einheitliche Eingabefelder:** Datums-/Uhrzeitfelder (z. B. Beginn/Ende bei Events, Veröffentlichungszeitpunkt bei News) sowie E-Mail-, URL-, Such- und Telefonfelder sehen jetzt exakt aus wie alle anderen Eingabefelder im Backend – gleicher Rahmen, gleiche Rundung, gleiche Höhe.
+
 ## 1.14.1 – 2026-07-18
 
 - **Menü-Designer wirkt jetzt überall:** Layouts und Design-Themes, die das Menü direkt über `{{menu}}` einbinden (statt über das Menü-Template), ignorierten die Einstellungen aus dem Menü-Designer komplett – deshalb änderte sich das Menü dort nie, egal was man wählte. Jetzt rendert `{{menu}}` immer das voll gestaltete Designer-Menü (Vorlage, Farben, Größen, mobiler Breakpoint). `{{menu:variante}}` bleibt für explizite Sonderfälle erhalten.

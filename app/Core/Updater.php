@@ -48,7 +48,7 @@ class Updater
         return $url !== '' ? $url : self::DEFAULT_VERSION_URL;
     }
 
-    public static function remoteVersion(): ?string
+    public static function remoteVersion(int $timeout = 120): ?string
     {
         // raw.githubusercontent.com cached bis zu 5 Minuten (auch mit
         // Query-Parametern). Für GitHub-URLs deshalb zuerst die API fragen –
@@ -57,18 +57,56 @@ class Updater
         $raw = null;
         if (preg_match('#^https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/(.+)/VERSION$#', $url, $m)) {
             $api = 'https://api.github.com/repos/' . $m[1] . '/' . $m[2] . '/contents/VERSION?ref=' . rawurlencode($m[3]);
-            $apiRaw = self::fetch($api, ['Accept: application/vnd.github.raw']);
+            $apiRaw = self::fetch($api, ['Accept: application/vnd.github.raw'], $timeout);
             // Nur übernehmen, wenn die Antwort wirklich wie eine Version aussieht.
             if ($apiRaw !== null && preg_match('/^\d+\.\d+\.\d+\s*$/', $apiRaw)) {
                 $raw = $apiRaw;
             }
         }
-        $raw ??= self::fetch($url);
+        $raw ??= self::fetch($url, [], $timeout);
         if ($raw === null) {
             return null;
         }
         $version = trim($raw);
         return preg_match('/^\d+\.\d+\.\d+$/', $version) ? $version : null;
+    }
+
+    /**
+     * Verfügbare Version aus dem Cache (in den Einstellungen). Wird bei Bedarf
+     * mit kurzem Timeout aufgefrischt, damit Seitenaufrufe nicht hängen.
+     */
+    public static function cachedRemoteVersion(bool $force = false): ?string
+    {
+        $cached = trim((string) \Models\Setting::get('update_remote', ''));
+        $checkedAt = (int) \Models\Setting::get('update_checked_at', '0');
+        $ttl = 6 * 3600; // höchstens alle 6 Stunden online nachsehen
+        if (!$force && $cached !== '' && (time() - $checkedAt) < $ttl) {
+            return $cached !== '' ? $cached : null;
+        }
+        $remote = self::remoteVersion($force ? 20 : 4);
+        \Models\Setting::set('update_checked_at', (string) time());
+        if ($remote !== null) {
+            \Models\Setting::set('update_remote', $remote);
+            return $remote;
+        }
+        // Bei Fehler den letzten bekannten Wert behalten (nicht bei jedem Aufruf neu versuchen).
+        return $cached !== '' ? $cached : null;
+    }
+
+    /** Wärmt den Cache beim Betreten des Backends – ohne Ergebnis zurückzugeben. */
+    public static function refreshIfStale(): void
+    {
+        self::cachedRemoteVersion(false);
+    }
+
+    /** Gibt die verfügbare neuere Version zurück (nur Cache-Lesen, kein Netz), sonst null. */
+    public static function updateAvailable(): ?string
+    {
+        $cached = trim((string) \Models\Setting::get('update_remote', ''));
+        if ($cached === '') {
+            return null;
+        }
+        return version_compare($cached, self::currentVersion(), '>') ? $cached : null;
     }
 
     /** Führt das Update aus. Gibt null (Erfolg) oder eine Fehlermeldung zurück. */
@@ -151,7 +189,7 @@ class Updater
         return null;
     }
 
-    public static function fetch(string $url, array $headers = []): ?string
+    public static function fetch(string $url, array $headers = [], int $timeout = 120): ?string
     {
         $ua = 'Blockwerk-Updater';
         if (function_exists('curl_init')) {
@@ -159,7 +197,8 @@ class Updater
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_CONNECTTIMEOUT => max(2, min($timeout, 10)),
+                CURLOPT_TIMEOUT => $timeout,
                 CURLOPT_USERAGENT => $ua,
                 CURLOPT_HTTPHEADER => $headers,
             ]);
@@ -169,7 +208,7 @@ class Updater
             return is_string($data) && $status < 400 ? $data : null;
         }
         $headerLines = implode("\r\n", array_merge(['User-Agent: ' . $ua], $headers));
-        $context = stream_context_create(['http' => ['timeout' => 120, 'header' => $headerLines]]);
+        $context = stream_context_create(['http' => ['timeout' => $timeout, 'header' => $headerLines]]);
         $data = @file_get_contents($url, false, $context);
         return $data !== false ? $data : null;
     }

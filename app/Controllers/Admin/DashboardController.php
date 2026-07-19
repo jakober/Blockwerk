@@ -19,10 +19,17 @@ class DashboardController extends AdminController
             'templates' => (int) $pdo->query('SELECT COUNT(*) FROM templates')->fetchColumn(),
         ];
 
+        if (\Core\Shop::enabled()) {
+            $counts['shop_products'] = (int) $pdo->query('SELECT COUNT(*) FROM shop_products')->fetchColumn();
+            $counts['shop_orders'] = (int) $pdo->query('SELECT COUNT(*) FROM shop_orders')->fetchColumn();
+        }
+
         $this->view('admin/dashboard', [
             'title' => 'Dashboard',
             'active' => 'dashboard',
             'counts' => $counts,
+            'currentVersion' => \Core\Updater::currentVersion(),
+            'updateVersion' => \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : null,
         ]);
     }
 }

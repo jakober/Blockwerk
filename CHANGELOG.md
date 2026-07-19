@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.0 – 2026-07-19
+
+- **Automatische Update-Prüfung.** Beim Betreten des Backends wird (höchstens alle 6 Stunden, im Hintergrund und mit kurzem Timeout) geprüft, ob eine neue Version verfügbar ist. Ist das der Fall, erscheint im **Dashboard** ein deutlicher Hinweis mit Direktlink zu den Updates, und der Menüpunkt **Updates** bekommt eine kleine Markierung.
+- **Updates-Seite zeigt die verfügbare Version sofort** – ohne erst „Nach Updates suchen" klicken zu müssen (der Knopf bleibt für eine erneute Prüfung).
+- **Dashboard überarbeitet:** Der „Schnellstart"-Block ist raus. Stattdessen gibt es einen **Schnellzugriff** (KI-Assistent, Neue Seite, Mediathek, Website ansehen), einen **System**-Block (installierte Version + Update-Status + PHP-Version) und – bei aktivem Shop – zusätzliche Kennzahlen (Produkte, Bestellungen).
+
 ## 1.52.1 – 2026-07-19
 
 - **Hilfe-Knopf (unten rechts) wieder entfernt** – auf Wunsch. Das schnelle Modell für die Planung und einfache Schritte bleibt erhalten.

@@ -1391,3 +1391,14 @@ body.is-editor #editor { min-height: 0; }
     background: rgba(255, 255, 255, .4);
     background-clip: padding-box;
 }
+
+/* Dashboard-Infoblöcke + Update-Hinweis */
+.nav-badge { display: inline-block; margin-left: 6px; background: var(--danger, #dc2626); color: #fff; border-radius: 9px; min-width: 16px; text-align: center; font-size: 11px; line-height: 16px; padding: 0 4px; font-weight: 700; vertical-align: middle; }
+.dash-update { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; border: 1px solid #f0c9a8; background: #fff6ed; margin-bottom: 16px; }
+.dash-update:hover { border-color: var(--primary); }
+.dash-update-icon { font-size: 26px; color: var(--primary); flex-shrink: 0; }
+.dash-update-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.dash-update-btn { flex-shrink: 0; }
+.dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.dash-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+@media (max-width: 720px) { .dash-cols { grid-template-columns: 1fr; } }

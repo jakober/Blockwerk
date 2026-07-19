@@ -46,6 +46,8 @@ if (\Core\Updater::isVendorHost()) {
 if (!\Core\Auth::isAdmin()) {
     unset($navGroups['Gestaltung'], $navGroups['System'], $navGroups['Inhalte']['ai']);
 }
+// Verfügbares Update (nur Cache-Lesen) – markiert den „Updates"-Menüpunkt.
+$navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : null;
 ?>
 <!doctype html>
 <html lang="de">
@@ -72,6 +74,7 @@ if (!\Core\Auth::isAdmin()) {
                     <?php foreach ($items as $key => [$label, $href, $icon]): ?>
                         <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
                             <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
+                            <?php if ($key === 'update' && $navUpdateVersion !== null): ?><span class="nav-badge" title="Update auf <?= e($navUpdateVersion) ?> verfügbar">1</span><?php endif; ?>
                         </a>
                     <?php endforeach; ?>
                 <?php endforeach; ?>

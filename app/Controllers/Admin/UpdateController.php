@@ -22,7 +22,8 @@ class UpdateController extends AdminController
             'title' => 'Updates',
             'active' => 'update',
             'currentVersion' => Updater::currentVersion(),
-            'remoteVersion' => $_SESSION['update_remote_version'] ?? null,
+            // Verfügbare Version direkt anzeigen (aus dem Cache) – kein Klick auf „Suchen" nötig.
+            'remoteVersion' => Updater::cachedRemoteVersion(false),
             'updateDone' => $done,
             'changelog' => is_array($done) ? $this->changelogSince($done['from']) : [],
         ]);
@@ -30,12 +31,9 @@ class UpdateController extends AdminController
 
     public function check(): void
     {
-        $remote = Updater::remoteVersion();
-        if ($remote === null) {
-            unset($_SESSION['update_remote_version']);
+        // Erzwungene, frische Prüfung.
+        if (Updater::cachedRemoteVersion(true) === null) {
             flash('error', 'Die verfügbare Version konnte gerade nicht abgerufen werden – bitte später noch einmal versuchen.');
-        } else {
-            $_SESSION['update_remote_version'] = $remote;
         }
         redirect('/admin/update');
     }

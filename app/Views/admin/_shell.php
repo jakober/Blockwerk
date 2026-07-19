@@ -114,5 +114,30 @@ if (!\Core\Auth::isAdmin()) {
     if (backdrop) { backdrop.addEventListener('click', function () { toggle(false); }); }
 })();
 </script>
+<?php if (\Core\Auth::isAdmin() && \Core\Ai::configured()): ?>
+<div id="ai-help">
+    <button type="button" id="ai-help-btn" aria-label="KI-Hilfe zu dieser Seite" title="KI-Hilfe zu dieser Seite">✨</button>
+    <div id="ai-help-panel" hidden>
+        <div class="ai-help-head">
+            <strong>✨ Hilfe</strong> <span class="muted small">zu „<?= e($title ?? 'dieser Seite') ?>"</span>
+            <button type="button" id="ai-help-close" aria-label="Schließen">×</button>
+        </div>
+        <div class="ai-help-msgs" id="ai-help-msgs"></div>
+        <form id="ai-help-form" class="ai-help-form">
+            <input type="text" id="ai-help-input" placeholder="Frage zu dieser Seite …" autocomplete="off">
+            <button type="submit" class="btn btn-small btn-primary">Fragen</button>
+        </form>
+    </div>
+</div>
+<script>
+window.__aiHelp = {
+    url: <?= json_encode(url('/admin/ai/help')) ?>,
+    csrf: <?= json_encode(csrf_token()) ?>,
+    page: <?= json_encode($active ?? '') ?>,
+    title: <?= json_encode($title ?? '') ?>
+};
+</script>
+<script defer src="<?= e(asset('/assets/js/ai-help.js')) ?>"></script>
+<?php endif; ?>
 </body>
 </html>

@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.51.0 – 2026-07-19
+
+- **Hilfe-Knopf im Backend.** Unten rechts gibt es jetzt einen festen ✨-Knopf. Beim Anklicken öffnet sich ein kleines Hilfe-Fenster, das direkt erklärt, was man auf der **aktuellen Seite** tun kann – und in dem man weitere Fragen zur Seite stellen kann. (Sichtbar für Admins, wenn der KI-Assistent eingerichtet ist.)
+- **Schnelleres Modell für einfache Aufgaben.** Für leichte Aufgaben (die Planungs-Phase des KI-Assistenten und die neue Hilfe) nutzt der KI-Dienst jetzt automatisch ein schnelleres, günstigeres Modell. Es ist in der **KI-Verwaltung** unter „Schnelles Modell" einstellbar (leer = immer das Hauptmodell).
+
 ## 1.50.0 – 2026-07-19
 
 - **KI kann Versandarten anlegen und ändern.** Der KI-Assistent versteht jetzt Versandkosten: er kann Versandarten anlegen/aktualisieren – pauschal, **gewichtsabhängig** (Staffeln „bis X kg → Preis") und auf bestimmte **Länder** begrenzt. Beispiel-Anweisung: „Lege eine Versandart an: bis 5 kg 20 €, bis 20 kg 50 €, nur nach Deutschland und Österreich."

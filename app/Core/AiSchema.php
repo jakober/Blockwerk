@@ -165,6 +165,55 @@ PROMPT
             . 'rufe ausschließlich das Werkzeug propose_plan mit den Schritten auf.';
     }
 
+    /** Kurzbeschreibung je Backend-Bereich (nach Navigations-Schlüssel). */
+    private static function helpAreas(): array
+    {
+        return [
+            'dashboard' => 'Startseite des Backends mit Schnellzugriffen und Überblick.',
+            'ai' => 'KI-Assistent: per Chat ganze Seiten, Texte, Bilder und Designs erstellen und ändern lassen. Er erstellt zuerst einen Plan und setzt ihn Schritt für Schritt um.',
+            'pages' => 'Seitenverwaltung: Seiten anlegen, per Drag & Drop sortieren/verschachteln, in den Editor gehen (Inhalt), Eigenschaften (Titel, Slug, Menü, Layout) bearbeiten oder in den Papierkorb legen.',
+            'news' => 'News-Beiträge verwalten (Titel, Kurzbeschreibung, Text, Beitragsbild). Detailseiten erscheinen automatisch unter /news/…',
+            'events' => 'Veranstaltungen verwalten (mit Beginn/Ende und Ort). Detailseiten unter /events/…',
+            'forms' => 'Formulare und deren Einsendungen verwalten.',
+            'media' => 'Mediathek: Bilder und PDFs hochladen, in Ordnern organisieren, Alt-Text/Titel pflegen. Wird überall dort genutzt, wo Bilder gebraucht werden.',
+            'globals' => 'Globale Blöcke: wiederverwendbare Inhaltsbereiche, die auf mehreren Seiten eingebettet werden – eine Änderung wirkt überall.',
+            'themes' => 'Designs: fertige Gesamt-Looks (Farben, Formen, Schrift-Stil) auswählen und aktivieren; eigene/KI-Designs lassen sich löschen.',
+            'menu' => 'Menü-Designer: das Hauptmenü zusammenstellen und gestalten.',
+            'layouts' => 'Layouts: Kopf-/Fußzeile und Grundgerüst der Website. Farben und Schriften je Layout einstellen; visuelle Layouts im Baukasten bearbeiten.',
+            'templates' => 'Templates: wiederverwendbare HTML-Bausteine mit Schlüssel für {{template:schlüssel}}.',
+            'fonts' => 'Schriften: Google-Schriften herunterladen und lokal (DSGVO-konform) speichern, danach in Layouts wählbar.',
+            'users' => 'Benutzerverwaltung: Backend-Konten anlegen und Passwörter/Rollen ändern.',
+            'update' => 'Updates: neue Version einspielen und komplette Sicherung wiederherstellen.',
+            'settings' => 'Einstellungen: Website-Name, KI-Assistent (Lizenz), Shop aktivieren u. v. m.',
+            'shop-products' => 'Shop-Produkte: Produkte mit Preis, Bildern, Beschreibung, Lager, Staffelpreisen, Varianten und Gewicht anlegen/bearbeiten.',
+            'shop-categories' => 'Shop-Kategorien: Kategorien und Unterkategorien für den Shop pflegen.',
+            'shop-orders' => 'Bestellungen: eingegangene Bestellungen einsehen und den Status ändern.',
+            'shop-settings' => 'Shop-Einstellungen: Hauptseite, Währung, Zahlungsarten (Rechnung/Vorkasse/PayPal) und Versandarten (auch gewichts- und länderabhängig).',
+            'ai-admin' => 'KI-Verwaltung (nur Anbieter): API-Schlüssel/Preise des KI-Dienstes, Kunden-Lizenzen und Installations-Übersicht.',
+        ];
+    }
+
+    /** System-Prompt der kontextbezogenen Backend-Hilfe (erklärt, führt nichts aus). */
+    public static function helpPrompt(string $pageKey, string $pageTitle): string
+    {
+        $areas = self::helpAreas();
+        $overview = '';
+        foreach ($areas as $desc) {
+            $overview .= '- ' . $desc . "\n";
+        }
+        $current = $areas[$pageKey] ?? '';
+        $prompt = 'Du bist die eingebaute Hilfe im Backend von „Blockwerk Orange" (ein CMS mit optionalem Shop). '
+            . 'Erkläre dem Nutzer freundlich, knapp und praxisnah auf Deutsch, was er auf der AKTUELLEN Seite tun kann, '
+            . 'und beantworte seine Fragen dazu. Nutze kurze Absätze oder Stichpunkte. Du erklärst nur – du führst nichts aus '
+            . '(zum tatsächlichen Erstellen gibt es den KI-Assistenten). Geht eine Frage über das Backend hinaus, weise freundlich darauf hin.'
+            . "\n\nAktuelle Seite: „" . ($pageTitle !== '' ? $pageTitle : $pageKey) . '".';
+        if ($current !== '') {
+            $prompt .= "\nDiese Seite: " . $current;
+        }
+        $prompt .= "\n\nÜberblick über die Bereiche des Backends:\n" . $overview;
+        return $prompt;
+    }
+
     /** Das einzige Werkzeug der Planungs-Phase. */
     public static function planTool(): array
     {

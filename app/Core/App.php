@@ -178,6 +178,7 @@ class App
 
         $router->add('GET', '/admin/ai', [\Controllers\Admin\AiController::class, 'index']);
         $router->add('POST', '/admin/ai/plan', [\Controllers\Admin\AiController::class, 'plan']);
+        $router->add('POST', '/admin/ai/help', [\Controllers\Admin\AiController::class, 'help']);
         $router->add('POST', '/admin/ai/chat', [\Controllers\Admin\AiController::class, 'chat']);
         $router->add('POST', '/admin/ai/clear', [\Controllers\Admin\AiController::class, 'clear']);
         $router->add('GET', '/admin/ai-admin', [\Controllers\Admin\AiAdminController::class, 'index']);

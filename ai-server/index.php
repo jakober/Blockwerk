@@ -298,11 +298,15 @@ if ($method === 'POST' && str_ends_with($path, '/v1/chat')) {
         fail(400, 'Ungültiger Gesprächsverlauf.');
     }
 
+    // Für einfache Aufgaben (Planung, Hilfe) das schnellere Modell nutzen, wenn gesetzt.
+    $useFast = !empty($body['fast']) && !empty($config['fast_model']);
+    $model = $useFast ? (string) $config['fast_model'] : (string) ($config['model'] ?? 'claude-sonnet-5');
+
     if ($mock) {
         $response = mockChat($messages);
     } else {
         $payload = [
-            'model' => (string) ($config['model'] ?? 'claude-sonnet-5'),
+            'model' => $model,
             'max_tokens' => min(16000, max(1000, (int) ($body['max_tokens'] ?? 8000))),
             'system' => (string) ($body['system'] ?? ''),
             // Leere Objekte im Verlauf (z. B. tool_use.input eines Werkzeugs

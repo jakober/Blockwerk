@@ -85,6 +85,7 @@ class AiAdminController extends AdminController
         $config = [
             'anthropic_key' => $keep('anthropic_key', (string) ($old['anthropic_key'] ?? '')),
             'model' => trim($_POST['model'] ?? '') ?: (string) ($old['model'] ?? 'claude-sonnet-5'),
+            'fast_model' => trim($_POST['fast_model'] ?? ''),
             'openai_key' => $keep('openai_key', (string) ($old['openai_key'] ?? '')),
             'image_model' => trim($_POST['image_model'] ?? '') ?: (string) ($old['image_model'] ?? 'gpt-image-1'),
             'image_token_price' => max(0, (int) ($_POST['image_token_price'] ?? ($old['image_token_price'] ?? 25000))),

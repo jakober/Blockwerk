@@ -9,6 +9,9 @@ return [
     'anthropic_key' => '',
     // Claude-Modell für den Assistenten.
     'model' => 'claude-sonnet-5',
+    // Schnelleres/günstigeres Modell für einfache Aufgaben (Planung, Hilfe).
+    // Leer lassen, um immer 'model' zu verwenden.
+    'fast_model' => 'claude-haiku-4-5-20251001',
 
     // OpenAI-API-Key (https://platform.openai.com) für die Bildgenerierung.
     'openai_key' => '',

@@ -44,14 +44,19 @@ class Ai
      *
      * @throws \RuntimeException bei Verbindungs-/Dienstfehlern
      */
-    public static function chat(array $messages, array $tools, string $system): array
+    public static function chat(array $messages, array $tools, string $system, bool $fast = false): array
     {
-        return self::request('POST', '/v1/chat', [
+        $body = [
             'messages' => $messages,
             'tools' => $tools,
             'system' => $system,
             'max_tokens' => 8000,
-        ], 240);
+        ];
+        if ($fast) {
+            // Signal an den Dienst, für einfache Aufgaben das schnellere Modell zu nutzen.
+            $body['fast'] = true;
+        }
+        return self::request('POST', '/v1/chat', $body, 240);
     }
 
     /** Bildgenerierung – liefert ['image_b64' => …, 'balance' => …]. */

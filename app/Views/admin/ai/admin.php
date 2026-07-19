@@ -35,6 +35,10 @@ $mask = static fn (string $value): string => $value === '' ? '' : '••••'
                 <input type="text" id="model" name="model" value="<?= e($config['model'] ?? 'claude-sonnet-5') ?>">
             </div>
             <div class="form-group grow">
+                <label for="fast_model">Schnelles Modell (einfache Aufgaben)</label>
+                <input type="text" id="fast_model" name="fast_model" value="<?= e($config['fast_model'] ?? 'claude-haiku-4-5-20251001') ?>" placeholder="leer = immer Claude-Modell">
+            </div>
+            <div class="form-group grow">
                 <label for="image_model">Bild-Modell</label>
                 <input type="text" id="image_model" name="image_model" value="<?= e($config['image_model'] ?? 'gpt-image-1') ?>">
             </div>

@@ -1249,6 +1249,7 @@ body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
 /* ===== KI-Assistent ===== */
 .ai-wrap { max-width: 860px; }
 .ai-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.ai-head-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ai-badge {
     display: inline-flex; align-items: center; justify-content: center;
     width: 34px; height: 34px; border-radius: 10px;

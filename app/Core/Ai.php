@@ -26,6 +26,13 @@ class Ai
         return trim(Setting::get('ai_license_key', ''));
     }
 
+    /** Domain dieser Installation – meldet dem Anbieter-Dienst, wo das CMS läuft. */
+    public static function domain(): string
+    {
+        $host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? '')));
+        return substr($host, 0, 255);
+    }
+
     public static function configured(): bool
     {
         return self::serviceUrl() !== '' && self::licenseKey() !== '';
@@ -73,9 +80,10 @@ class Ai
             CURLOPT_FOLLOWLOCATION => true,
         ];
         if ($method === 'GET') {
-            $url .= '?license_key=' . rawurlencode(self::licenseKey());
+            $url .= '?license_key=' . rawurlencode(self::licenseKey()) . '&domain=' . rawurlencode(self::domain());
         } else {
             $body['license_key'] = self::licenseKey();
+            $body['domain'] = self::domain();
             $options[CURLOPT_POST] = true;
             $options[CURLOPT_POSTFIELDS] = json_encode($body, JSON_UNESCAPED_UNICODE) ?: '';
             $options[CURLOPT_HTTPHEADER] = ['Content-Type: application/json'];

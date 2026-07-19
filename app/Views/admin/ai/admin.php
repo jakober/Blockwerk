@@ -79,12 +79,22 @@ $mask = static fn (string $value): string => $value === '' ? '' : '••••'
             <p class="muted">Noch keine Lizenzen angelegt.</p>
         <?php else: ?>
             <table class="table">
-                <thead><tr><th>Kunde</th><th>Schlüssel</th><th>Guthaben</th><th>Verbraucht</th><th>Status</th><th class="actions-col">Aktionen</th></tr></thead>
+                <thead><tr><th>Kunde</th><th>Schlüssel</th><th>System (Domain)</th><th>Guthaben</th><th>Verbraucht</th><th>Status</th><th class="actions-col">Aktionen</th></tr></thead>
                 <tbody>
                 <?php foreach ($licenses as $lic): ?>
                     <tr>
                         <td><strong><?= e($lic['name']) ?></strong><?= $lic['license_key'] === $ownKey ? ' <span class="badge badge-green">diese Installation</span>' : '' ?></td>
                         <td><code><?= e($lic['license_key']) ?></code></td>
+                        <td>
+                            <?php if (!empty($lic['last_domain'])): ?>
+                                <a href="https://<?= e($lic['last_domain']) ?>" target="_blank" rel="noopener"><?= e($lic['last_domain']) ?></a>
+                                <?php if (!empty($lic['last_seen'])): ?>
+                                    <br><span class="muted small">zuletzt aktiv: <?= e(date('d.m.Y H:i', (int) strtotime((string) $lic['last_seen']))) ?> UTC</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="muted small">noch nicht gesehen</span>
+                            <?php endif; ?>
+                        </td>
                         <td><?= number_format(max(0, $lic['tokens_total'] - $lic['tokens_used']), 0, ',', '.') ?></td>
                         <td class="muted"><?= number_format((int) $lic['tokens_used'], 0, ',', '.') ?></td>
                         <td><?= $lic['active'] ? '<span class="badge badge-green">aktiv</span>' : '<span class="badge">gesperrt</span>' ?></td>

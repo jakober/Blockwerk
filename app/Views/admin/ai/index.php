@@ -13,11 +13,19 @@
         <div><span class="ai-badge">✨</span> <strong>KI-Assistent</strong>
             <span class="muted small">Beschreibe, was erstellt werden soll – Seiten, Texte und Bilder entstehen direkt im CMS.</span>
         </div>
-        <div class="ai-balance" id="ai-balance" title="Verbleibendes Token-Guthaben">
-            <?php if ($balance !== null): ?>
-                Guthaben: <strong><?= number_format((int) $balance, 0, ',', '.') ?></strong> Tokens
-            <?php elseif ($balanceError !== null): ?>
-                <span class="ai-balance-error"><?= e($balanceError) ?></span>
+        <div class="ai-head-right">
+            <div class="ai-balance" id="ai-balance" title="Verbleibendes Token-Guthaben">
+                <?php if ($balance !== null): ?>
+                    Guthaben: <strong><?= number_format((int) $balance, 0, ',', '.') ?></strong> Tokens
+                <?php elseif ($balanceError !== null): ?>
+                    <span class="ai-balance-error"><?= e($balanceError) ?></span>
+                <?php endif; ?>
+            </div>
+            <?php if (!empty($history)): ?>
+            <form method="post" action="<?= e(url('/admin/ai/clear')) ?>" class="inline" data-confirm="Gesprächsverlauf wirklich löschen? Die KI vergisst dann den bisherigen Kontext." data-confirm-ok="Löschen" data-confirm-danger>
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-small btn-ghost" title="Verlauf löschen – KI beginnt von vorne">🗑 Neues Gespräch</button>
+            </form>
             <?php endif; ?>
         </div>
     </div>
@@ -30,6 +38,11 @@
                 ich lege die Seite komplett an, inklusive Texten und generierten Bildern. Ich kann auch eine
                 Webseite als Vorlage ansehen und Bilder herunterladen.</div>
             </div>
+            <?php foreach (($history ?? []) as $m): ?>
+                <div class="ai-msg is-<?= $m['role'] === 'assistant' ? 'assistant' : 'user' ?>">
+                    <div class="ai-msg-bubble"><?= e($m['content']) ?></div>
+                </div>
+            <?php endforeach; ?>
         </div>
         <p class="ai-copyright-note">⚠️ Wenn ich fremde Webseiten als Vorlage nutze oder Bilder herunterlade, können diese <strong>urheberrechtlich geschützt</strong> sein. Ich formuliere Texte selbst um – die Verantwortung für die Verwendung fremder Inhalte und Bilder liegt jedoch bei dir.</p>
         <div class="ai-status" id="ai-status" hidden>
@@ -54,7 +67,8 @@
     const balanceEl = document.getElementById('ai-balance');
     const csrf = <?= json_encode(csrf_token()) ?>;
     const chatUrl = <?= json_encode(url('/admin/ai/chat')) ?>;
-    const history = [];
+    // Gespeicherten Verlauf laden, damit die KI sich an frühere Anweisungen erinnert.
+    const history = <?= json_encode(array_map(static fn ($m) => ['role' => $m['role'] === 'assistant' ? 'assistant' : 'user', 'text' => $m['content']], $history ?? []), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
     let busy = false;
 
     const statusLines = [
@@ -162,6 +176,9 @@
         messagesEl.appendChild(wrap);
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
+
+    // Beim Laden ans Ende des (ggf. gespeicherten) Verlaufs springen.
+    messagesEl.scrollTop = messagesEl.scrollHeight;
 })();
 </script>
 <?php endif; ?>

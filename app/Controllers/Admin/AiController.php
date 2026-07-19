@@ -41,7 +41,28 @@ class AiController extends AdminController
             'balance' => $balance,
             'balanceError' => $balanceError,
             'buyUrl' => \Models\Setting::get('ai_buy_url', ''),
+            'history' => \Models\AiMessage::recent((int) ($_SESSION['user_id'] ?? 0)),
         ]);
+    }
+
+    /** POST /admin/ai/clear – gespeicherten Gesprächsverlauf löschen. */
+    public function clear(): void
+    {
+        \Models\AiMessage::clear((int) ($_SESSION['user_id'] ?? 0));
+        flash('success', 'Gesprächsverlauf gelöscht.');
+        redirect('/admin/ai');
+    }
+
+    /** Speichert einen Frage-/Antwort-Turn im Verlauf des Nutzers. */
+    private function saveTurn(int $userId, string $userText, string $assistantText): void
+    {
+        if ($userId <= 0 || trim($userText) === '') {
+            return;
+        }
+        \Models\AiMessage::add($userId, 'user', $userText);
+        if (trim($assistantText) !== '') {
+            \Models\AiMessage::add($userId, 'assistant', $assistantText);
+        }
     }
 
     /** POST /admin/ai/chat – führt einen kompletten Assistenten-Durchlauf aus. */
@@ -67,6 +88,9 @@ class AiController extends AdminController
             return;
         }
 
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $newUserText = (string) (end($messages)['content'] ?? '');
+
         $actions = [];
         $balance = null;
 
@@ -87,9 +111,11 @@ class AiController extends AdminController
                             $text .= $part['text'];
                         }
                     }
+                    $reply = trim($text) !== '' ? trim($text) : 'Erledigt.';
+                    $this->saveTurn($userId, $newUserText, $reply);
                     echo json_encode([
                         'ok' => true,
-                        'text' => trim($text) !== '' ? trim($text) : 'Erledigt.',
+                        'text' => $reply,
                         'actions' => $actions,
                         'balance' => $balance,
                     ], JSON_UNESCAPED_UNICODE);
@@ -109,9 +135,11 @@ class AiController extends AdminController
                 $messages[] = ['role' => 'user', 'content' => $results];
             }
 
+            $reply = 'Ich habe die Aufgabe in mehreren Schritten bearbeitet (siehe die Aktionen oben) und bin dabei an die Schrittgrenze gestoßen. Falls noch etwas fehlt, fasse den restlichen Wunsch bitte kurz in einer Folgeanweisung zusammen.';
+            $this->saveTurn($userId, $newUserText, $reply);
             echo json_encode([
                 'ok' => true,
-                'text' => 'Ich habe die Aufgabe in mehreren Schritten bearbeitet (siehe die Aktionen oben) und bin dabei an die Schrittgrenze gestoßen. Falls noch etwas fehlt, fasse den restlichen Wunsch bitte kurz in einer Folgeanweisung zusammen.',
+                'text' => $reply,
                 'actions' => $actions,
                 'balance' => $balance,
             ], JSON_UNESCAPED_UNICODE);

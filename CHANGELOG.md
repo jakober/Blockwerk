@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.45.0 – 2026-07-19
+
+- **KI-Assistent merkt sich das Gespräch.** Der Chat-Verlauf wird jetzt pro Backend-Nutzer serverseitig gespeichert: Die KI erinnert sich an frühere Anweisungen, und die Nachrichten sind auch nach dem Neuladen der Seite noch da. Über „🗑 Neues Gespräch" lässt sich der Verlauf löschen (die KI beginnt dann ohne alten Kontext).
+- **Installations-Übersicht in der KI-Verwaltung.** Auf der Anbieter-Domain zeigt die KI-Verwaltung jetzt pro Lizenz an, auf **welchem System (Domain)** das CMS läuft und **wann es zuletzt aktiv** war. Dazu meldet jede Installation ihre Domain beim Aufruf des KI-Dienstes mit (nur an den Anbieter-Dienst).
+
 ## 1.44.2 – 2026-07-19
 
 - **Seiten per Drag & Drop zuverlässig umsortieren.** Bisher wurde die Einfüge-Linie zwar angezeigt, aber beim Loslassen passierte oft nichts – weil das „Ablegen" genau über der Linie technisch nicht ausgelöst wurde. Jetzt lässt sich überall im Baum sicher ablegen (auch direkt auf der Linie).

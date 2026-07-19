@@ -14,8 +14,18 @@ function aiDb(): PDO
             tokens_total INTEGER NOT NULL DEFAULT 0,
             tokens_used INTEGER NOT NULL DEFAULT 0,
             active INTEGER NOT NULL DEFAULT 1,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_domain TEXT,
+            last_seen TEXT
         )');
+        // Migration für bestehende Dienste: fehlende Spalten ergänzen.
+        $cols = $pdo->query('PRAGMA table_info(licenses)')->fetchAll(PDO::FETCH_COLUMN, 1);
+        if (!in_array('last_domain', $cols, true)) {
+            $pdo->exec('ALTER TABLE licenses ADD COLUMN last_domain TEXT');
+        }
+        if (!in_array('last_seen', $cols, true)) {
+            $pdo->exec('ALTER TABLE licenses ADD COLUMN last_seen TEXT');
+        }
         $pdo->exec('CREATE TABLE IF NOT EXISTS requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             license_key TEXT NOT NULL,

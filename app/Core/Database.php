@@ -43,6 +43,18 @@ class Database
                 value TEXT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 
+            // Gespeicherter Verlauf des KI-Assistenten (pro Nutzer), damit die
+            // KI sich an frühere Anweisungen erinnert und der Chat nach dem
+            // Neuladen sichtbar bleibt.
+            'CREATE TABLE IF NOT EXISTS ai_messages (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT UNSIGNED NOT NULL,
+                role VARCHAR(16) NOT NULL,
+                content MEDIUMTEXT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_ai_messages_user (user_id, id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
             'CREATE TABLE IF NOT EXISTS layouts (
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,

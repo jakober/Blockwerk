@@ -59,6 +59,17 @@ function balanceOf(array $license): int
     return max(0, (int) $license['tokens_total'] - (int) $license['tokens_used']);
 }
 
+/** Merkt sich Domain + Zeitpunkt der letzten Nutzung einer Lizenz (Installations-Übersicht). */
+function touchInstallation(string $key, string $domain): void
+{
+    $domain = substr(trim($domain), 0, 255);
+    if ($domain === '') {
+        return;
+    }
+    db()->prepare("UPDATE licenses SET last_domain = ?, last_seen = datetime('now') WHERE license_key = ?")
+        ->execute([$domain, $key]);
+}
+
 function charge(string $key, string $type, int $tokens): int
 {
     $pdo = db();
@@ -268,6 +279,7 @@ $mock = !empty($config['mock']);
 
 if ($method === 'GET' && str_ends_with($path, '/v1/balance')) {
     $lic = license((string) ($_GET['license_key'] ?? ''));
+    touchInstallation($lic['license_key'], (string) ($_GET['domain'] ?? ''));
     echo json_encode(['ok' => true, 'balance' => balanceOf($lic), 'name' => $lic['name']], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -275,6 +287,7 @@ if ($method === 'GET' && str_ends_with($path, '/v1/balance')) {
 if ($method === 'POST' && str_ends_with($path, '/v1/chat')) {
     $body = readJsonBody();
     $lic = license((string) ($body['license_key'] ?? ''));
+    touchInstallation($lic['license_key'], (string) ($body['domain'] ?? ''));
     rateLimit($lic['license_key'], $config);
     if (balanceOf($lic) <= 0) {
         fail(402, 'Kein Token-Guthaben mehr. Bitte Guthaben aufladen.');
@@ -316,6 +329,7 @@ if ($method === 'POST' && str_ends_with($path, '/v1/chat')) {
 if ($method === 'POST' && str_ends_with($path, '/v1/image')) {
     $body = readJsonBody(200000);
     $lic = license((string) ($body['license_key'] ?? ''));
+    touchInstallation($lic['license_key'], (string) ($body['domain'] ?? ''));
     rateLimit($lic['license_key'], $config);
     $price = (int) ($config['image_token_price'] ?? 25000);
     if (balanceOf($lic) < $price) {

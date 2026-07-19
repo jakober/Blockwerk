@@ -47,6 +47,9 @@ server {
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        # KI-Anfragen (Agent-Loop + Bildgenerierung) dauern bis ~5 Min – nginx
+        # sonst nach 60s Standard-Timeout "Verbindung fehlgeschlagen".
+        fastcgi_read_timeout 300s;
     }
 
     # Sensible Verzeichnisse/Dateien abschotten (liegen ohnehin außerhalb von public/,

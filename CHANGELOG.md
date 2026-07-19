@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.42.4 – 2026-07-19
+
+- **nginx: Timeout für lange KI-Anfragen dokumentiert.** Bei Installationen hinter nginx brachen längere KI-Aktionen (Agent-Loop mit mehreren Runden + Bildgenerierung) mit „Verbindung fehlgeschlagen" ab, weil nginx PHP-Anfragen standardmäßig nach 60 s abschneidet (Apache erlaubt 300 s). Die mitgelieferte `nginx.conf.example` und die `ai-server`-nginx-Vorlage enthalten jetzt `fastcgi_read_timeout 300s;` im PHP-Block – passend zum internen `set_time_limit(300)` des KI-Assistenten.
+
 ## 1.42.3 – 2026-07-19
 
 - **Hinweis für Plesk/cPanel ergänzt:** `nginx.conf.example` und README erklären jetzt, dass bei Verwaltungspanels die nginx-Konfiguration nicht von Hand angelegt werden darf (das Panel erzeugt die vhosts selbst und ignoriert manuelle Blöcke). Empfohlener Weg: in den PHP-Einstellungen der Domain „PHP ausführen als: FPM von Apache" wählen – dann wirkt die mitgelieferte `.htaccess`; bei reinem nginx den Dokumentenstamm auf `public/` setzen und eine `try_files`-Anweisung ergänzen.

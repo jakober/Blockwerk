@@ -28,6 +28,7 @@ Paket, ist dort aber ohne `config.php` funktionslos.
          location ~ ^/ai-server/.+\.php$ {
              include snippets/fastcgi-php.conf;
              fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+             fastcgi_read_timeout 300s;   # KI-Anfragen dauern lange
          }
      }
      ```

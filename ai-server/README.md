@@ -10,6 +10,27 @@ Paket, ist dort aber ohne `config.php` funktionslos.
 
 1. Verzeichnis auf einen PHP-8-Webspace legen (mit `pdo_sqlite` und `curl`),
    idealerweise als eigene (Sub-)Domain, z. B. `https://ki.deine-domain.de/`.
+   - **Apache:** Die mitgelieferte `.htaccess` leitet `/v1/*` auf `index.php` und
+     schützt `config.php`/`data.sqlite` – nichts weiter nötig.
+   - **nginx als Unterpfad** (kein Subdomain, z. B. `https://deine-domain.de/ai-server`):
+     eigenen `location`-Block ergänzen, der auf das Verzeichnis zeigt und PHP an PHP-FPM
+     gibt (`.htaccess` wirkt bei nginx nicht):
+
+     ```nginx
+     location ^~ /ai-server/ {
+         alias /pfad/zu/ai-server/;
+         location ~ ^/ai-server/(data\.sqlite|.*config.*\.php)$ { deny all; }
+         try_files $uri /ai-server/index.php$is_args$args;
+         location ~ ^/ai-server/.+\.php$ {
+             include fastcgi_params;
+             fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+             fastcgi_param SCRIPT_FILENAME $request_filename;
+         }
+     }
+     ```
+
+     Der Dienst erkennt seine Endpunkte über das Ende des Pfads
+     (`str_ends_with($path, '/v1/chat')`), daher ist jeder Unterpfad möglich.
 2. `config.example.php` nach `config.php` kopieren und ausfüllen:
    Anthropic-Key (Chat), OpenAI-Key (Bilder), Admin-Passwort.
 3. `admin.php` im Browser öffnen → Lizenz anlegen, Guthaben aufladen.

@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.45.1 – 2026-07-19
+
+- **Fehler 500 im KI-Assistenten behoben.** Auf Installationen, bei denen die neue Verlaufs-Tabelle noch nicht angelegt war, warf der KI-Assistent einen Serverfehler (500). Der Verlaufs-Speicher legt seine Tabelle jetzt bei Bedarf selbst an und arbeitet grundsätzlich absturzsicher – im schlimmsten Fall fehlt kurz der gespeicherte Verlauf, aber der KI-Assistent lädt normal. Auch die Installations-Übersicht in der KI-Verwaltung ist gegen Datenbankfehler abgesichert.
+
 ## 1.45.0 – 2026-07-19
 
 - **KI-Assistent merkt sich das Gespräch.** Der Chat-Verlauf wird jetzt pro Backend-Nutzer serverseitig gespeichert: Die KI erinnert sich an frühere Anweisungen, und die Nachrichten sind auch nach dem Neuladen der Seite noch da. Über „🗑 Neues Gespräch" lässt sich der Verlauf löschen (die KI beginnt dann ohne alten Kontext).

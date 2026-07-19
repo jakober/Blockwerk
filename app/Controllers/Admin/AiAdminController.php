@@ -46,8 +46,12 @@ class AiAdminController extends AdminController
         if (!$this->serviceAvailable() || !extension_loaded('pdo_sqlite')) {
             return [];
         }
-        require_once $this->serverDir() . '/index-lib.php';
-        return aiDb()->query('SELECT * FROM licenses ORDER BY created_at DESC')->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            require_once $this->serverDir() . '/index-lib.php';
+            return aiDb()->query('SELECT * FROM licenses ORDER BY created_at DESC')->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     public function index(): void

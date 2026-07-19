@@ -80,12 +80,13 @@ class ShopProduct
     public static function create(array $d): int
     {
         $pdo = Database::pdo();
-        $pdo->prepare('INSERT INTO shop_products (category_id, name, slug, sku, price, compare_price, description, short_desc, image, gallery, stock, weight, active, featured, position)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        $pdo->prepare('INSERT INTO shop_products (category_id, name, slug, sku, price, compare_price, description, short_desc, image, gallery, tier_prices, options, cross_sell, accessories, stock, weight, active, featured, position)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([
                 $d['category_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name']), $d['sku'] ?? null,
                 (int) $d['price'], $d['compare_price'] !== '' && $d['compare_price'] !== null ? (int) $d['compare_price'] : null,
                 $d['description'] ?? null, $d['short_desc'] ?? null, $d['image'] ?? null, $d['gallery'] ?? null,
+                $d['tier_prices'] ?? null, $d['options'] ?? null, $d['cross_sell'] ?? null, $d['accessories'] ?? null,
                 $d['stock'] !== '' && $d['stock'] !== null ? (int) $d['stock'] : null,
                 $d['weight'] !== '' && $d['weight'] !== null ? (int) $d['weight'] : null,
                 (int) ($d['active'] ?? 1), (int) ($d['featured'] ?? 0), (int) ($d['position'] ?? 0),
@@ -95,11 +96,12 @@ class ShopProduct
 
     public static function update(int $id, array $d): void
     {
-        Database::pdo()->prepare('UPDATE shop_products SET category_id = ?, name = ?, slug = ?, sku = ?, price = ?, compare_price = ?, description = ?, short_desc = ?, image = ?, gallery = ?, stock = ?, weight = ?, active = ?, featured = ?, position = ? WHERE id = ?')
+        Database::pdo()->prepare('UPDATE shop_products SET category_id = ?, name = ?, slug = ?, sku = ?, price = ?, compare_price = ?, description = ?, short_desc = ?, image = ?, gallery = ?, tier_prices = ?, options = ?, cross_sell = ?, accessories = ?, stock = ?, weight = ?, active = ?, featured = ?, position = ? WHERE id = ?')
             ->execute([
                 $d['category_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name'], $id), $d['sku'] ?? null,
                 (int) $d['price'], $d['compare_price'] !== '' && $d['compare_price'] !== null ? (int) $d['compare_price'] : null,
                 $d['description'] ?? null, $d['short_desc'] ?? null, $d['image'] ?? null, $d['gallery'] ?? null,
+                $d['tier_prices'] ?? null, $d['options'] ?? null, $d['cross_sell'] ?? null, $d['accessories'] ?? null,
                 $d['stock'] !== '' && $d['stock'] !== null ? (int) $d['stock'] : null,
                 $d['weight'] !== '' && $d['weight'] !== null ? (int) $d['weight'] : null,
                 (int) ($d['active'] ?? 1), (int) ($d['featured'] ?? 0), (int) ($d['position'] ?? 0), $id,
@@ -109,6 +111,115 @@ class ShopProduct
     public static function delete(int $id): void
     {
         Database::pdo()->prepare('DELETE FROM shop_products WHERE id = ?')->execute([$id]);
+    }
+
+    /* ---------- Staffelpreise, Varianten, Cross-Selling ---------- */
+
+    /** @return array<int,array{min:int,price:int}> aufsteigend nach Menge */
+    public static function tiers(array $product): array
+    {
+        $raw = json_decode((string) ($product['tier_prices'] ?? ''), true);
+        if (!is_array($raw)) {
+            return [];
+        }
+        $tiers = [];
+        foreach ($raw as $t) {
+            $min = (int) ($t['min'] ?? 0);
+            $price = (int) ($t['price'] ?? 0);
+            if ($min > 1 && $price > 0) {
+                $tiers[] = ['min' => $min, 'price' => $price];
+            }
+        }
+        usort($tiers, static fn ($a, $b) => $a['min'] <=> $b['min']);
+        return $tiers;
+    }
+
+    /** @return array<int,array{name:string,choices:array<int,array{label:string,diff:int}>}> */
+    public static function options(array $product): array
+    {
+        $raw = json_decode((string) ($product['options'] ?? ''), true);
+        if (!is_array($raw)) {
+            return [];
+        }
+        $groups = [];
+        foreach ($raw as $g) {
+            $name = trim((string) ($g['name'] ?? ''));
+            $choices = [];
+            foreach ((array) ($g['choices'] ?? []) as $c) {
+                $label = trim((string) ($c['label'] ?? ''));
+                if ($label !== '') {
+                    $choices[] = ['label' => $label, 'diff' => (int) ($c['diff'] ?? 0)];
+                }
+            }
+            if ($name !== '' && $choices !== []) {
+                $groups[] = ['name' => $name, 'choices' => $choices];
+            }
+        }
+        return $groups;
+    }
+
+    /** Grundpreis je Stück abhängig von der Menge (Staffelpreis). */
+    public static function unitBasePrice(array $product, int $qty): int
+    {
+        $price = (int) $product['price'];
+        foreach (self::tiers($product) as $tier) {
+            if ($qty >= $tier['min']) {
+                $price = $tier['price'];
+            }
+        }
+        return $price;
+    }
+
+    /**
+     * Aufpreis der gewählten Optionen und lesbare Beschriftung.
+     * @param array<string,string> $selected  [Gruppenname => gewählte Beschriftung]
+     * @return array{diff:int,label:string,clean:array<string,string>}
+     */
+    public static function resolveOptions(array $product, array $selected): array
+    {
+        $diff = 0;
+        $parts = [];
+        $clean = [];
+        foreach (self::options($product) as $group) {
+            $chosen = (string) ($selected[$group['name']] ?? '');
+            $match = null;
+            foreach ($group['choices'] as $choice) {
+                if ($choice['label'] === $chosen) {
+                    $match = $choice;
+                    break;
+                }
+            }
+            if ($match === null) {
+                $match = $group['choices'][0]; // Fallback: erste Auswahl
+            }
+            $diff += $match['diff'];
+            $clean[$group['name']] = $match['label'];
+            $parts[] = $group['name'] . ': ' . $match['label'];
+        }
+        return ['diff' => $diff, 'label' => implode(', ', $parts), 'clean' => $clean];
+    }
+
+    /** Effektiver Stückpreis inkl. Staffel + Optionsaufpreis. */
+    public static function unitPrice(array $product, int $qty, array $selected = []): int
+    {
+        return self::unitBasePrice($product, $qty) + self::resolveOptions($product, $selected)['diff'];
+    }
+
+    /** @return array<int,array> verknüpfte Produkte (cross_sell oder accessories) */
+    public static function relatedProducts(array $product, string $field): array
+    {
+        $ids = json_decode((string) ($product[$field] ?? ''), true);
+        if (!is_array($ids)) {
+            return [];
+        }
+        $out = [];
+        foreach ($ids as $id) {
+            $rel = self::find((int) $id);
+            if ($rel !== null && (int) $rel['active'] === 1) {
+                $out[] = $rel;
+            }
+        }
+        return $out;
     }
 
     public static function decreaseStock(int $id, int $qty): void

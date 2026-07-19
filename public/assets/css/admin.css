@@ -641,6 +641,22 @@ body.is-editor .content { padding: 0; display: flex; flex-direction: column; }
 .font-levels[open] > summary { margin-bottom: 6px; }
 .font-levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 8px; }
 
+/* Shop-Produkt: Staffelpreise & Varianten */
+.shop-extra { margin: 6px 0 16px; border: 1px solid var(--border); border-radius: 9px; padding: 8px 14px; }
+.shop-extra > summary { font-weight: 600; cursor: pointer; padding: 6px 0; }
+.shop-tier-table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; max-width: 420px; }
+.shop-tier-table th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 6px; }
+.shop-tier-table td { padding: 3px 6px; }
+.shop-tier-table input { width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px; }
+.opt-group { border: 1px solid var(--border); border-radius: 9px; padding: 12px; margin-bottom: 10px; background: var(--bg); }
+.opt-group-head { display: flex; gap: 8px; margin-bottom: 8px; }
+.opt-group-head .opt-name { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; font-weight: 600; }
+.opt-choice { display: flex; gap: 8px; margin-bottom: 6px; }
+.opt-choice input { padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px; }
+.opt-choice .opt-label { flex: 1; }
+.opt-choice .opt-diff { width: 130px; }
+select[multiple] { padding: 6px; border: 1px solid var(--border); border-radius: 9px; }
+
 /* ===== WYSIWYG-Canvas: Die Seite sieht aus wie im Frontend ===== */
 body.is-editor .ed-canvas {
     max-width: 1140px;

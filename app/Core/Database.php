@@ -177,6 +177,10 @@ class Database
                 short_desc TEXT NULL,
                 image VARCHAR(255) NULL,
                 gallery TEXT NULL,
+                tier_prices TEXT NULL,
+                options TEXT NULL,
+                cross_sell TEXT NULL,
+                accessories TEXT NULL,
                 stock INT NULL,
                 weight INT NULL,
                 active TINYINT(1) NOT NULL DEFAULT 1,
@@ -266,6 +270,10 @@ class Database
         self::ensureColumn($pdo, 'media', 'folder_id', 'INT UNSIGNED NULL');
         self::ensureColumn($pdo, 'media', 'alt', 'VARCHAR(255) NULL');
         self::ensureColumn($pdo, 'media', 'title', 'VARCHAR(255) NULL');
+        self::ensureColumn($pdo, 'shop_products', 'tier_prices', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_products', 'options', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_products', 'cross_sell', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_products', 'accessories', 'TEXT NULL');
     }
 
     /**

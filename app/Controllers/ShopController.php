@@ -68,6 +68,10 @@ class ShopController
             'product' => $product,
             'category' => $cat,
             'gallery' => array_filter(array_map('trim', explode("\n", (string) ($product['gallery'] ?? '')))),
+            'tiers' => ShopProduct::tiers($product),
+            'optionGroups' => ShopProduct::options($product),
+            'crossSell' => array_filter(ShopProduct::relatedProducts($product, 'cross_sell'), fn ($r) => (int) $r['id'] !== (int) $product['id']),
+            'accessories' => array_filter(ShopProduct::relatedProducts($product, 'accessories'), fn ($r) => (int) $r['id'] !== (int) $product['id']),
         ]);
     }
 
@@ -85,9 +89,10 @@ class ShopController
     {
         $id = (int) ($_POST['product_id'] ?? 0);
         $qty = max(1, (int) ($_POST['qty'] ?? 1));
+        $opts = is_array($_POST['opt'] ?? null) ? array_map('strval', $_POST['opt']) : [];
         $product = ShopProduct::find($id);
         if ($product !== null && (int) $product['active'] === 1) {
-            Cart::add($id, $qty);
+            Cart::add($id, $qty, $opts);
             flash('success', '„' . $product['name'] . '" wurde in den Warenkorb gelegt.');
         }
         redirect($this->path('warenkorb'));
@@ -95,8 +100,12 @@ class ShopController
 
     public function cartUpdate(): void
     {
-        foreach ((array) ($_POST['qty'] ?? []) as $id => $qty) {
-            Cart::set((int) $id, (int) $qty);
+        // Parallele Arrays ckey[]/qty[] – der Warenkorb-Schlüssel kann
+        // Sonderzeichen enthalten und eignet sich nicht als Feldname.
+        $keys = (array) ($_POST['ckey'] ?? []);
+        $qtys = (array) ($_POST['qty'] ?? []);
+        foreach ($keys as $i => $key) {
+            Cart::set((string) $key, (int) ($qtys[$i] ?? 0));
         }
         flash('success', 'Warenkorb aktualisiert.');
         redirect($this->path('warenkorb'));
@@ -104,7 +113,7 @@ class ShopController
 
     public function cartRemove(): void
     {
-        Cart::remove((int) ($_POST['product_id'] ?? 0));
+        Cart::remove((string) ($_POST['product_key'] ?? ''));
         redirect($this->path('warenkorb'));
     }
 
@@ -247,9 +256,9 @@ class ShopController
             $subtotal += $it['line'];
             $orderItems[] = [
                 'product_id' => (int) $it['product']['id'],
-                'name' => $it['product']['name'],
+                'name' => $it['product']['name'] . ($it['optionLabel'] !== '' ? ' (' . $it['optionLabel'] . ')' : ''),
                 'sku' => $it['product']['sku'] ?? null,
-                'price' => (int) $it['product']['price'],
+                'price' => (int) $it['unit'],
                 'qty' => $it['qty'],
             ];
         }

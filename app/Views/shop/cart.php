@@ -10,23 +10,28 @@
         <form method="post" action="<?= e(\Core\Shop::url('warenkorb/update')) ?>">
             <?= csrf_field() ?>
             <table class="shop-cart-table">
-                <thead><tr><th>Artikel</th><th>Preis</th><th>Menge</th><th>Summe</th><th></th></tr></thead>
+                <thead><tr><th>Artikel</th><th>Einzelpreis</th><th>Menge</th><th>Summe</th></tr></thead>
                 <tbody>
                     <?php foreach ($items as $it): $p = $it['product']; ?>
                         <tr>
                             <td class="shop-cart-prod">
                                 <?php if (!empty($p['image'])): ?><img src="<?= e($p['image']) ?>" alt=""><?php endif; ?>
-                                <a href="<?= e(\Core\Shop::url('produkt/' . $p['slug'])) ?>"><?= e($p['name']) ?></a>
+                                <span>
+                                    <a href="<?= e(\Core\Shop::url('produkt/' . $p['slug'])) ?>"><?= e($p['name']) ?></a>
+                                    <?php if ($it['optionLabel'] !== ''): ?><br><span class="muted small"><?= e($it['optionLabel']) ?></span><?php endif; ?>
+                                </span>
                             </td>
-                            <td><?= e($fmt($p['price'])) ?></td>
-                            <td><input type="number" name="qty[<?= (int) $p['id'] ?>]" value="<?= (int) $it['qty'] ?>" min="0" class="shop-qty"></td>
-                            <td><?= e($fmt($it['line'])) ?></td>
+                            <td><?= e($fmt($it['unit'])) ?></td>
                             <td>
+                                <input type="hidden" name="ckey[]" value="<?= e($it['key']) ?>">
+                                <input type="number" name="qty[]" value="<?= (int) $it['qty'] ?>" min="0" class="shop-qty">
+                            </td>
+                            <td><?= e($fmt($it['line'])) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="3" style="text-align:right"><strong>Zwischensumme</strong></td><td colspan="2"><strong><?= e($fmt($subtotal)) ?></strong></td></tr>
+                    <tr><td colspan="3" style="text-align:right"><strong>Zwischensumme</strong></td><td><strong><?= e($fmt($subtotal)) ?></strong></td></tr>
                 </tfoot>
             </table>
             <p class="muted small">Versandkosten werden im nächsten Schritt berechnet.</p>
@@ -40,8 +45,8 @@
             <?php foreach ($items as $it): $p = $it['product']; ?>
                 <form method="post" action="<?= e(\Core\Shop::url('warenkorb/remove')) ?>" class="inline">
                     <?= csrf_field() ?>
-                    <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
-                    <button type="submit" class="shop-remove-link">✕ <?= e($p['name']) ?> entfernen</button>
+                    <input type="hidden" name="product_key" value="<?= e($it['key']) ?>">
+                    <button type="submit" class="shop-remove-link">✕ <?= e($p['name']) ?><?= $it['optionLabel'] !== '' ? ' (' . e($it['optionLabel']) . ')' : '' ?> entfernen</button>
                 </form>
             <?php endforeach; ?>
         </div>

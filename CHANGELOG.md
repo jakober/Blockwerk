@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.39.0 – 2026-07-19
+
+- **Produkte: Staffelpreise, Varianten und Cross-Selling.** Das Produktformular hat drei neue Bereiche:
+  - **Staffelpreise (Mengenrabatt):** Ab einer wählbaren Menge gilt ein günstigerer Stückpreis (z. B. „ab 5 Stück: 15,90 €"). Auf der Produktseite erscheint eine Rabatt-Tabelle; im Warenkorb wird der passende Preis automatisch berechnet.
+  - **Eigenschaften/Varianten:** Frei definierbare Eigenschaften wie „Größe" mit Ausprägungen (M, L, XL …), jeweils optional mit **Aufpreis** (auch negativ). Der Kunde wählt sie auf der Produktseite; der Preis aktualisiert sich live. Dieselbe Variante ist im Warenkorb eine eigene Position (z. B. „T-Shirt (Größe: XL)").
+  - **Cross-Selling &amp; Zubehör:** In den Produkteinstellungen lassen sich weitere Produkte als „Passt dazu" (Cross-Selling) und als „Zubehör" auswählen – sie werden auf der Produktseite angezeigt.
+  - Preise werden intern in Cent geführt; die neuen Angaben liegen als JSON am Produkt und wandern korrekt in Warenkorb, Kasse und Bestellung (inkl. Varianten-Bezeichnung in der Bestellposition).
+
 ## 1.38.0 – 2026-07-19
 
 - **Shop standardmäßig aus – zentral aktivierbar:** Der Shop ist jetzt klar opt-in. Der **Ein/Aus-Schalter liegt in den allgemeinen Einstellungen** (Einstellungen → „🛒 Shop"). Erst wenn er aktiviert ist, erscheinen:

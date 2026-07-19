@@ -867,3 +867,14 @@ h1.cms-heading { font-size: 2.3em; }
     .shop-summary { position: static; }
     .shop-form-row { flex-direction: column; gap: 0; }
 }
+
+/* Shop: Staffelpreise, Varianten, verwandte Produkte */
+.shop-tiers { border-collapse: collapse; margin: 12px 0; font-size: .92em; }
+.shop-tiers caption { text-align: left; font-weight: 700; padding-bottom: 4px; }
+.shop-tiers th, .shop-tiers td { border: 1px solid color-mix(in srgb, var(--cms-text) 15%, transparent); padding: 5px 12px; text-align: center; }
+.shop-tiers th { background: color-mix(in srgb, var(--cms-text) 6%, transparent); font-weight: 600; }
+.shop-opt { display: block; margin: 10px 0; font-weight: 600; }
+.shop-opt span { display: block; margin-bottom: 4px; }
+.shop-opt-select { width: 100%; max-width: 320px; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--cms-text) 22%, transparent); border-radius: 9px; font-size: 1em; }
+.shop-buy-row { display: flex; gap: 10px; align-items: center; margin-top: 14px; }
+.shop-related { margin-top: 40px; }

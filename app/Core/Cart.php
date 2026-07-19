@@ -6,14 +6,16 @@ namespace Core;
 use Models\ShopProduct;
 
 /**
- * Sitzungsbasierter Warenkorb: speichert nur Produkt-IDs und Mengen in der
- * Session; Namen/Preise werden beim Auslesen frisch aus der Datenbank geholt
- * (so bleiben Preisänderungen korrekt).
+ * Sitzungsbasierter Warenkorb. Ein Eintrag ist durch Produkt-ID UND gewählte
+ * Optionen (z. B. Größe) eindeutig – dasselbe Produkt in zwei Größen sind zwei
+ * Positionen. Gespeichert wird nur das Nötigste; Preise werden beim Auslesen
+ * frisch berechnet (inkl. Staffelpreis und Optionsaufpreis).
  */
 class Cart
 {
     private const KEY = 'shop_cart';
 
+    /** @return array<string,array{id:int,qty:int,opts:array}> */
     private static function &store(): array
     {
         if (!isset($_SESSION[self::KEY]) || !is_array($_SESSION[self::KEY])) {
@@ -22,29 +24,50 @@ class Cart
         return $_SESSION[self::KEY];
     }
 
-    public static function add(int $productId, int $qty = 1): void
+    /** Eindeutiger Schlüssel aus Produkt-ID + (sortierten) Optionen. */
+    private static function keyFor(int $productId, array $opts): string
     {
-        if ($productId <= 0 || $qty === 0) {
+        ksort($opts);
+        $parts = [];
+        foreach ($opts as $group => $choice) {
+            $parts[] = $group . '=' . $choice;
+        }
+        return $productId . ($parts !== [] ? '|' . implode('|', $parts) : '');
+    }
+
+    public static function add(int $productId, int $qty = 1, array $opts = []): void
+    {
+        $product = ShopProduct::find($productId);
+        if ($product === null || (int) $product['active'] !== 1 || $qty === 0) {
             return;
         }
+        $clean = ShopProduct::resolveOptions($product, $opts)['clean'];
+        $key = self::keyFor($productId, $clean);
         $cart = &self::store();
-        $cart[$productId] = max(1, ($cart[$productId] ?? 0) + $qty);
-    }
-
-    public static function set(int $productId, int $qty): void
-    {
-        $cart = &self::store();
-        if ($qty <= 0) {
-            unset($cart[$productId]);
+        if (isset($cart[$key])) {
+            $cart[$key]['qty'] = max(1, (int) $cart[$key]['qty'] + $qty);
         } else {
-            $cart[$productId] = $qty;
+            $cart[$key] = ['id' => $productId, 'qty' => max(1, $qty), 'opts' => $clean];
         }
     }
 
-    public static function remove(int $productId): void
+    public static function set(string $key, int $qty): void
     {
         $cart = &self::store();
-        unset($cart[$productId]);
+        if (!isset($cart[$key])) {
+            return;
+        }
+        if ($qty <= 0) {
+            unset($cart[$key]);
+        } else {
+            $cart[$key]['qty'] = $qty;
+        }
+    }
+
+    public static function remove(string $key): void
+    {
+        $cart = &self::store();
+        unset($cart[$key]);
     }
 
     public static function clear(): void
@@ -52,41 +75,47 @@ class Cart
         $_SESSION[self::KEY] = [];
     }
 
-    /** Anzahl Artikel (Summe der Mengen). */
     public static function count(): int
     {
-        return array_sum(self::store());
+        $sum = 0;
+        foreach (self::store() as $entry) {
+            $sum += (int) ($entry['qty'] ?? 0);
+        }
+        return $sum;
     }
 
     public static function isEmpty(): bool
     {
-        return self::store() === [];
+        return self::items() === [];
     }
 
     /**
-     * Warenkorb-Positionen mit frischen Produktdaten.
-     * @return array<int, array{product:array, qty:int, line:int}>
+     * Warenkorb-Positionen mit frischen Produktdaten und berechneten Preisen.
+     * @return array<int,array{key:string,product:array,qty:int,opts:array,optionLabel:string,unit:int,line:int}>
      */
     public static function items(): array
     {
         $out = [];
-        $cart = self::store();
-        $changed = false;
-        foreach ($cart as $productId => $qty) {
-            $product = ShopProduct::find((int) $productId);
+        foreach (self::store() as $key => $entry) {
+            $product = ShopProduct::find((int) ($entry['id'] ?? 0));
             if ($product === null || (int) $product['active'] !== 1) {
-                unset($_SESSION[self::KEY][$productId]); // nicht mehr verfügbar
-                $changed = true;
+                unset($_SESSION[self::KEY][$key]); // nicht mehr verfügbar
                 continue;
             }
-            $qty = max(1, (int) $qty);
+            $qty = max(1, (int) ($entry['qty'] ?? 1));
+            $opts = is_array($entry['opts'] ?? null) ? $entry['opts'] : [];
+            $resolved = ShopProduct::resolveOptions($product, $opts);
+            $unit = ShopProduct::unitBasePrice($product, $qty) + $resolved['diff'];
             $out[] = [
+                'key' => (string) $key,
                 'product' => $product,
                 'qty' => $qty,
-                'line' => (int) $product['price'] * $qty,
+                'opts' => $resolved['clean'],
+                'optionLabel' => $resolved['label'],
+                'unit' => $unit,
+                'line' => $unit * $qty,
             ];
         }
-        unset($changed);
         return $out;
     }
 

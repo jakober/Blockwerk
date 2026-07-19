@@ -16,13 +16,16 @@ $hasCompare = ($p['compare_price'] ?? null) !== null && (int) $p['compare_price'
         <?php if ($hasCompare): ?><span class="shop-price-old"><?= e($fmt($p['compare_price'])) ?></span><?php endif; ?>
         <span class="shop-price"><?= e($fmt($p['price'])) ?></span>
     </div>
-    <form method="post" action="<?= e(\Core\Shop::url('warenkorb/add')) ?>" class="shop-card-form">
-        <?= csrf_field() ?>
-        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
-        <?php if ($p['stock'] !== null && (int) $p['stock'] <= 0): ?>
-            <button type="button" class="cms-button shop-add" disabled>Ausverkauft</button>
-        <?php else: ?>
+    <?php $hasOptions = \Models\ShopProduct::options($p) !== []; ?>
+    <?php if ($p['stock'] !== null && (int) $p['stock'] <= 0): ?>
+        <div class="shop-card-form"><button type="button" class="cms-button shop-add" disabled>Ausverkauft</button></div>
+    <?php elseif ($hasOptions): ?>
+        <div class="shop-card-form"><a class="cms-button shop-add" href="<?= e(\Core\Shop::url('produkt/' . $p['slug'])) ?>">Auswählen</a></div>
+    <?php else: ?>
+        <form method="post" action="<?= e(\Core\Shop::url('warenkorb/add')) ?>" class="shop-card-form">
+            <?= csrf_field() ?>
+            <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
             <button type="submit" class="cms-button shop-add">In den Warenkorb</button>
-        <?php endif; ?>
-    </form>
+        </form>
+    <?php endif; ?>
 </div>

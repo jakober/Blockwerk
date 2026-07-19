@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.44.0 – 2026-07-19
+
+- **KI kann das Logo jetzt selbst setzen.** Neues Werkzeug **`set_logo`**: der KI-Assistent legt ein Bild als Website-Logo im Kopf (l-brand-Block des Layouts) fest – gezielt, ohne das komplette Layout neu zu bauen. Optional lässt sich zugleich der Website-Name neben dem Logo ein-/ausblenden. Damit funktioniert „Nimm das als Logo und passe die Farben an" in einem Rutsch (zusammen mit `set_layout_design`).
+
 ## 1.43.1 – 2026-07-19
 
 - **KI-Assistent: mehr Arbeitsschritte pro Anfrage.** Die Obergrenze wurde von 8 auf 16 Runden angehoben – mehrteilige Aufgaben (z. B. „Logo hinterlegen und die Farben passend ändern") laufen jetzt durch, statt vorzeitig mit „Zu viele Arbeitsschritte" abzubrechen.

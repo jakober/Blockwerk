@@ -111,7 +111,7 @@ Jeder Block: {"type": "...", "data": {...}}. Optional data._style = {"mt","mb","
 ## Layouts (Kopf-/Fußzeile, gilt auf ALLEN Seiten)
 
 Visuell gebaute Layouts haben ein Builder-JSON mit exakt derselben Struktur wie Seiten-Content ({"rows":[...]}), zusätzlich mit Layout-Blöcken:
-- l-brand: {logo, show_name} – Logo & Website-Name
+- l-brand: {logo, show_name} – Logo & Website-Name. Das Logo setzt du am einfachsten mit set_logo (kein komplettes Layout-JSON nötig).
 - l-menu: Hauptmenü (Daten unverändert lassen – wird über den Menü-Designer gepflegt)
 - l-content: {} – Platzhalter für den Seiteninhalt, MUSS genau EINMAL vorkommen
 - l-languages: {} – Sprachumschalter
@@ -351,6 +351,19 @@ PROMPT
                         ],
                     ],
                     'required' => ['layout_id', 'builder'],
+                ],
+            ],
+            [
+                'name' => 'set_logo',
+                'description' => 'Setzt das Logo im Kopf der Website (l-brand-Block des Layouts) auf eine Bild-URL – ohne das ganze Layout neu zu bauen. Wirkt auf allen Seiten mit diesem Layout.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'image_url' => ['type' => 'string', 'description' => 'URL des Logo-Bildes (z. B. aus download_image, generate_image oder list_media).'],
+                        'show_name' => ['type' => 'boolean', 'description' => 'Optional: ob der Website-Name zusätzlich neben dem Logo erscheint (Standard: unverändert). Bei einem Logo mit Schriftzug meist false.'],
+                        'layout_id' => ['type' => 'integer', 'description' => 'Optional – Standard ist das Standard-Layout.'],
+                    ],
+                    'required' => ['image_url'],
                 ],
             ],
             [

@@ -468,6 +468,50 @@ class AiController extends AdminController
                     ];
                     return 'Layout-Design (id=' . $layout['id'] . ') gesetzt: ' . implode(', ', $changed) . '. Wirkt sofort auf allen Seiten mit diesem Layout.';
 
+                case 'set_logo':
+                    $imageUrl = trim((string) ($input['image_url'] ?? ''));
+                    if ($imageUrl === '') {
+                        return 'FEHLER: image_url fehlt (Logo-Bild-URL).';
+                    }
+                    $lid = (int) ($input['layout_id'] ?? 0);
+                    $layout = $lid > 0 ? \Models\Layout::find($lid) : \Models\Layout::default();
+                    if ($layout === null) {
+                        return 'FEHLER: Layout nicht gefunden.';
+                    }
+                    $builder = json_decode((string) ($layout['builder'] ?? ''), true);
+                    if (!is_array($builder) || !is_array($builder['rows'] ?? null)) {
+                        return 'FEHLER: Dieses Layout ist klassisch (HTML) – das Logo bitte direkt im Layout-HTML setzen.';
+                    }
+                    $found = false;
+                    foreach ($builder['rows'] as $ri => $row) {
+                        foreach ($row['columns'] ?? [] as $ci => $column) {
+                            foreach ($column['blocks'] ?? [] as $bi => $block) {
+                                if (($block['type'] ?? '') === 'l-brand') {
+                                    $data = is_array($block['data'] ?? null) ? $block['data'] : [];
+                                    $data['logo'] = $imageUrl;
+                                    if (array_key_exists('show_name', $input)) {
+                                        $data['show_name'] = !empty($input['show_name']) ? 1 : 0;
+                                    }
+                                    $builder['rows'][$ri]['columns'][$ci]['blocks'][$bi]['data'] = $data;
+                                    $found = true;
+                                }
+                            }
+                        }
+                    }
+                    if (!$found) {
+                        return 'FEHLER: Dieses Layout hat keinen Logo-/Marken-Block (l-brand).';
+                    }
+                    $builder = BlockRegistry::sanitizeTree($builder);
+                    \Models\Layout::saveBuilder((int) $layout['id'], json_encode($builder, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null);
+                    Cache::clear();
+                    $actions[] = [
+                        'type' => 'page',
+                        'label' => 'Logo im Layout „' . $layout['name'] . '“ gesetzt',
+                        'editorUrl' => url('/admin/layouts/' . $layout['id'] . '/builder'),
+                        'viewUrl' => url('/'),
+                    ];
+                    return 'Logo gesetzt (Layout id=' . $layout['id'] . '). Erscheint sofort im Kopf aller Seiten mit diesem Layout.';
+
                 case 'list_shop_categories':
                     $lines = [];
                     foreach (\Models\ShopCategory::tree() as $c) {

@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.56.1 – 2026-07-19
+
+- **Fehler 500 beim Bestellen mit Kundenkonto behoben.** Auf Installationen, bei denen die Datenbank-Ergänzung für Kundenkonten (neue Tabelle / Spalte) beim Update nicht vollständig durchlief, brach das Abschließen einer Bestellung mit „Konto anlegen" mit einem Serverfehler ab. Der Shop ergänzt die fehlenden Datenbank-Teile jetzt bei Bedarf automatisch (Selbstheilung) und die Konto-Anlage sowie der E-Mail-Versand können eine Bestellung nie mehr blockieren – im Zweifel wird die Bestellung als Gast gespeichert.
+
 ## 1.56.0 – 2026-07-19
 
 - **Kundenkonten im Shop.** Kunden können sich jetzt ein Konto anlegen und im Shop einloggen:

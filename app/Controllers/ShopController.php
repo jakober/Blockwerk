@@ -481,14 +481,20 @@ class ShopController
             flash('error', 'Für das Kundenkonto bitte ein Passwort mit mindestens 6 Zeichen wählen. Die Bestellung wurde als Gast gespeichert.');
             return null;
         }
-        if (Customer::emailExists($email)) {
-            flash('error', 'Es besteht bereits ein Konto mit dieser E-Mail – bitte melde dich an, um die Bestellung deinem Konto zuzuordnen.');
+        try {
+            if (Customer::emailExists($email)) {
+                flash('error', 'Es besteht bereits ein Konto mit dieser E-Mail – bitte melde dich an, um die Bestellung deinem Konto zuzuordnen.');
+                return null;
+            }
+            $id = Customer::create($email, $password, $form['first_name'], $form['last_name']);
+            CustomerAuth::login(Customer::find($id));
+            flash('success', 'Kundenkonto angelegt – du bist jetzt angemeldet.');
+            return $id;
+        } catch (\Throwable) {
+            // Konto-Anlage darf die Bestellung nie verhindern.
+            flash('error', 'Das Kundenkonto konnte nicht angelegt werden – deine Bestellung wurde als Gast gespeichert.');
             return null;
         }
-        $id = Customer::create($email, $password, $form['first_name'], $form['last_name']);
-        CustomerAuth::login(Customer::find($id));
-        flash('success', 'Kundenkonto angelegt – du bist jetzt angemeldet.');
-        return $id;
     }
 
     private function afterOrder(int $orderId, array $items): void
@@ -511,7 +517,11 @@ class ShopController
             $body = "Vielen Dank für deine Bestellung " . $order['number'] . " bei " . $siteName . ".\n\n"
                 . "Den Status deiner Bestellung kannst du hier jederzeit einsehen:\n" . $link . "\n\n"
                 . "Herzliche Grüße\n" . $siteName;
-            Mailer::send($order['email'], 'Deine Bestellung ' . $order['number'], $body);
+            try {
+                Mailer::send($order['email'], 'Deine Bestellung ' . $order['number'], $body);
+            } catch (\Throwable) {
+                // Mailversand darf den Bestellabschluss nie stören.
+            }
         }
     }
 

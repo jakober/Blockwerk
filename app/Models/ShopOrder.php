@@ -33,11 +33,44 @@ class ShopOrder
     /** Bestellungen eines Kunden – per customer_id ODER (frühere Gastbestellungen) per E-Mail. */
     public static function forCustomer(int $customerId, string $email): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT * FROM shop_orders WHERE customer_id = ? OR LOWER(email) = ? ORDER BY created_at DESC'
-        );
-        $stmt->execute([$customerId, mb_strtolower(trim($email))]);
-        return $stmt->fetchAll();
+        $mail = mb_strtolower(trim($email));
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM shop_orders WHERE customer_id = ? OR LOWER(email) = ? ORDER BY created_at DESC'
+            );
+            $stmt->execute([$customerId, $mail]);
+            return $stmt->fetchAll();
+        } catch (\Throwable) {
+            // Falls die Spalte customer_id (noch) fehlt: nur nach E-Mail.
+            $stmt = Database::pdo()->prepare('SELECT * FROM shop_orders WHERE LOWER(email) = ? ORDER BY created_at DESC');
+            $stmt->execute([$mail]);
+            return $stmt->fetchAll();
+        }
+    }
+
+    /**
+     * Stellt die Spalte shop_orders.customer_id sicher (Selbstheilung, falls die
+     * Update-Migration nicht durchlief). Cacht das Ergebnis pro Request.
+     */
+    private static function ensureCustomerColumn(): bool
+    {
+        static $ok = null;
+        if ($ok !== null) {
+            return $ok;
+        }
+        $pdo = Database::pdo();
+        try {
+            $st = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shop_orders' AND COLUMN_NAME = 'customer_id'");
+            $st->execute();
+            if ((int) $st->fetchColumn() === 0) {
+                $pdo->exec('ALTER TABLE shop_orders ADD COLUMN customer_id INT UNSIGNED NULL');
+            }
+            $ok = true;
+        } catch (\Throwable) {
+            $ok = false;
+        }
+        return $ok;
     }
 
     public static function all(?string $status = null): array
@@ -84,22 +117,31 @@ class ShopOrder
     public static function create(array $order, array $items): int
     {
         $pdo = Database::pdo();
+        // WICHTIG vor beginTransaction: ein evtl. nötiges ALTER TABLE (Selbstheilung
+        // der customer_id-Spalte) löst in MySQL/MariaDB einen impliziten COMMIT aus –
+        // innerhalb einer Transaktion würde das commit() später fehlschlagen.
+        $hasCustomer = self::ensureCustomerColumn();
         $pdo->beginTransaction();
         $number = self::nextNumber($pdo);
-        $pdo->prepare('INSERT INTO shop_orders
-            (number, token, status, email, first_name, last_name, company, street, zip, city, country, phone, note,
-             subtotal, shipping_cost, total, currency, shipping_method, payment_method, payment_status, paypal_order_id, customer_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-            ->execute([
-                $number, $order['token'], $order['status'] ?? 'new', $order['email'],
-                $order['first_name'] ?? null, $order['last_name'] ?? null, $order['company'] ?? null,
-                $order['street'] ?? null, $order['zip'] ?? null, $order['city'] ?? null, $order['country'] ?? null,
-                $order['phone'] ?? null, $order['note'] ?? null,
-                (int) $order['subtotal'], (int) $order['shipping_cost'], (int) $order['total'],
-                $order['currency'] ?? 'EUR', $order['shipping_method'] ?? null, $order['payment_method'] ?? null,
-                $order['payment_status'] ?? 'pending', $order['paypal_order_id'] ?? null,
-                !empty($order['customer_id']) ? (int) $order['customer_id'] : null,
-            ]);
+        $cols = ['number', 'token', 'status', 'email', 'first_name', 'last_name', 'company', 'street', 'zip', 'city',
+            'country', 'phone', 'note', 'subtotal', 'shipping_cost', 'total', 'currency', 'shipping_method',
+            'payment_method', 'payment_status', 'paypal_order_id'];
+        $vals = [
+            $number, $order['token'], $order['status'] ?? 'new', $order['email'],
+            $order['first_name'] ?? null, $order['last_name'] ?? null, $order['company'] ?? null,
+            $order['street'] ?? null, $order['zip'] ?? null, $order['city'] ?? null, $order['country'] ?? null,
+            $order['phone'] ?? null, $order['note'] ?? null,
+            (int) $order['subtotal'], (int) $order['shipping_cost'], (int) $order['total'],
+            $order['currency'] ?? 'EUR', $order['shipping_method'] ?? null, $order['payment_method'] ?? null,
+            $order['payment_status'] ?? 'pending', $order['paypal_order_id'] ?? null,
+        ];
+        // customer_id nur mitschreiben, wenn die Spalte existiert (Selbstheilung).
+        if ($hasCustomer) {
+            $cols[] = 'customer_id';
+            $vals[] = !empty($order['customer_id']) ? (int) $order['customer_id'] : null;
+        }
+        $pdo->prepare('INSERT INTO shop_orders (' . implode(', ', $cols) . ') VALUES ('
+            . implode(', ', array_fill(0, count($cols), '?')) . ')')->execute($vals);
         $orderId = (int) $pdo->lastInsertId();
         $stmt = $pdo->prepare('INSERT INTO shop_order_items (order_id, product_id, name, sku, price, qty) VALUES (?, ?, ?, ?, ?, ?)');
         foreach ($items as $it) {

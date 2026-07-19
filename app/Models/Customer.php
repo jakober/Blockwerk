@@ -11,8 +11,35 @@ use Core\Database;
  */
 class Customer
 {
+    /**
+     * Stellt die Tabelle shop_customers sicher (Selbstheilung, falls die
+     * Update-Migration nicht durchlief) – einmal pro Request.
+     */
+    private static function ensureTable(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            Database::pdo()->exec('CREATE TABLE IF NOT EXISTS shop_customers (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(190) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                first_name VARCHAR(120) NULL,
+                last_name VARCHAR(120) NULL,
+                reset_token VARCHAR(64) NULL,
+                reset_expires DATETIME NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        } catch (\Throwable) {
+        }
+    }
+
     public static function find(int $id): ?array
     {
+        self::ensureTable();
         $stmt = Database::pdo()->prepare('SELECT * FROM shop_customers WHERE id = ?');
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
@@ -20,6 +47,7 @@ class Customer
 
     public static function findByEmail(string $email): ?array
     {
+        self::ensureTable();
         $stmt = Database::pdo()->prepare('SELECT * FROM shop_customers WHERE email = ?');
         $stmt->execute([mb_strtolower(trim($email))]);
         return $stmt->fetch() ?: null;
@@ -33,6 +61,7 @@ class Customer
     /** Legt ein Konto an und liefert die neue ID. */
     public static function create(string $email, string $password, string $firstName = '', string $lastName = ''): int
     {
+        self::ensureTable();
         $pdo = Database::pdo();
         $pdo->prepare('INSERT INTO shop_customers (email, password_hash, first_name, last_name) VALUES (?, ?, ?, ?)')
             ->execute([

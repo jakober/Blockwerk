@@ -211,10 +211,114 @@ class MediaController extends AdminController
         exit;
     }
 
+    /**
+     * Liefert als JSON, wo dieses Medium noch eingebunden ist – wird vom
+     * Löschen-Dialog abgefragt, damit man nicht versehentlich ein Bild löscht,
+     * das noch auf der Website verwendet wird.
+     */
+    public function usage(string $id): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        $item = Media::find((int) $id);
+        if ($item === null) {
+            http_response_code(404);
+            echo json_encode(['uses' => [], 'count' => 0]);
+            return;
+        }
+        $uses = self::findUsages((string) $item['path']);
+        echo json_encode(['uses' => $uses, 'count' => count($uses)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Sucht den Dateipfad (z. B. "uploads/bild-a1b2c3.jpg") als Teilstring in
+     * allen Inhalten, in denen Bild-URLs gespeichert werden, und gibt lesbare
+     * Fundstellen zurück (z. B. "Seite: Startseite", "Layout: Standard").
+     * Jede Abfrage ist defensiv gekapselt, damit eine fehlende Tabelle/Spalte
+     * die Prüfung nicht abbricht.
+     */
+    private static function findUsages(string $path): array
+    {
+        $pdo = \Core\Database::pdo();
+        $needle = '%' . $path . '%';
+        $uses = [];
+
+        // Seiten & globale Blöcke (beide in der pages-Tabelle).
+        try {
+            $st = $pdo->prepare('SELECT title, is_global FROM pages WHERE content LIKE ? AND deleted_at IS NULL ORDER BY title');
+            $st->execute([$needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = ((int) ($r['is_global'] ?? 0) === 1 ? 'Globaler Block: ' : 'Seite: ') . $r['title'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // News & Events.
+        try {
+            $st = $pdo->prepare('SELECT title, type FROM posts WHERE image LIKE ? OR body LIKE ? ORDER BY title');
+            $st->execute([$needle, $needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = (($r['type'] ?? '') === 'event' ? 'Event: ' : 'News: ') . $r['title'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // Layouts – deckt auch das Logo (l-brand-Block im builder) ab.
+        try {
+            foreach ($pdo->query('SELECT * FROM layouts')->fetchAll() as $r) {
+                $hay = (string) ($r['html'] ?? '') . (string) ($r['design'] ?? '') . (string) ($r['builder'] ?? '');
+                if (str_contains($hay, $path)) {
+                    $uses[] = 'Layout: ' . $r['name'];
+                }
+            }
+        } catch (\Throwable) {
+        }
+
+        // Templates.
+        try {
+            $st = $pdo->prepare('SELECT name FROM templates WHERE html LIKE ? ORDER BY name');
+            $st->execute([$needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = 'Template: ' . $r['name'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // Shop-Produkte (Hauptbild, Galerie, Beschreibung).
+        try {
+            $st = $pdo->prepare('SELECT name FROM shop_products WHERE image LIKE ? OR gallery LIKE ? OR description LIKE ? ORDER BY name');
+            $st->execute([$needle, $needle, $needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = 'Produkt: ' . $r['name'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // Shop-Kategorien.
+        try {
+            $st = $pdo->prepare('SELECT name FROM shop_categories WHERE image LIKE ? ORDER BY name');
+            $st->execute([$needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = 'Kategorie: ' . $r['name'];
+            }
+        } catch (\Throwable) {
+        }
+
+        return $uses;
+    }
+
     public function delete(string $id): void
     {
         $item = Media::find((int) $id);
         if ($item !== null) {
+            // Schutz: Ist das Bild noch eingebunden, nur nach ausdrücklicher
+            // Bestätigung löschen (der Dialog schickt confirm=1 mit).
+            $uses = self::findUsages((string) $item['path']);
+            if ($uses !== [] && ($_POST['confirm'] ?? '') !== '1') {
+                $shown = array_slice($uses, 0, 8);
+                flash('error', 'Nicht gelöscht: „' . $item['filename'] . '“ wird noch verwendet in ' . implode(', ', $shown) . (count($uses) > 8 ? ' …' : '') . '.');
+                redirect('/admin/media');
+            }
             $file = BASE_PATH . '/public/' . $item['path'];
             if (is_file($file)) {
                 unlink($file);

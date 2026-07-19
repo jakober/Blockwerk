@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.54.0 – 2026-07-19
+
+- **Schutz beim Löschen verwendeter Bilder.** Beim Löschen in der Mediathek prüft das CMS jetzt, ob das Bild noch irgendwo eingebunden ist – in **Seiten, globalen Blöcken, News/Events, Layouts (inkl. Logo), Templates sowie Shop-Produkten und -Kategorien**. Ist das der Fall, listet der Bestätigungsdialog die Fundstellen auf („Seite: Startseite", „Layout: Standard", …) und fragt ausdrücklich nach, bevor gelöscht wird. Zusätzlich verhindert der Server das versehentliche Löschen ohne Bestätigung. (Hinweis zur Beruhigung: **Umbenennen und in Ordner verschieben** ändern nur den Anzeigenamen bzw. die Ordnerzuordnung – sie berühren die Datei nie und können eingebundene Bilder daher nicht brechen. Nur Löschen entfernt die Datei wirklich.)
+
 ## 1.53.12 – 2026-07-19
 
 - **Testrelease** zur endgültigen Bestätigung der automatischen Update-Anzeige (ab 1.53.11): sollte innerhalb von ~2 Minuten von selbst im Dashboard erscheinen – ohne „Nach Updates suchen" und ohne Neuladen-Tricks. (Keine funktionalen Änderungen.)

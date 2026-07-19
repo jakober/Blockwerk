@@ -70,7 +70,7 @@
                 <div class="media-actions">
                     <button type="button" class="btn btn-small" data-edit>✎</button>
                     <button type="button" class="btn btn-small" data-copy="<?= e($fileUrl) ?>">URL</button>
-                    <form method="post" action="<?= e(url('/admin/media/' . $item['id'] . '/delete')) ?>" class="inline" data-confirm="Datei „<?= e($item['filename']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">
+                    <form method="post" action="<?= e(url('/admin/media/' . $item['id'] . '/delete')) ?>" class="inline media-delete">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-small btn-danger">✕</button>
                     </form>
@@ -202,6 +202,43 @@
         }).catch(() => window.AdminDialog.alert('Verbindung fehlgeschlagen.'));
     });
 
+    /* ---------- Löschen mit Verwendungs-Warnung ---------- */
+    grid.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (!(form instanceof HTMLFormElement) || !form.classList.contains('media-delete')) return;
+        if (form.dataset.delOk === '1') { form.dataset.delOk = ''; return; }
+        e.preventDefault();
+        const item = form.closest('.media-item');
+        const id = item && item.dataset.id;
+        const name = (item && item.dataset.name) || 'Datei';
+        if (!id) return;
+        fetch(base + '/admin/media/' + id + '/usage?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : { uses: [], count: 0 }))
+            .catch(() => ({ uses: [], count: 0 }))
+            .then((d) => {
+                let msg, okLabel;
+                if (d && d.count > 0) {
+                    let list = (d.uses || []).slice(0, 12).map((u) => '• ' + u).join('\n');
+                    if (d.count > 12) list += '\n• … (' + (d.count - 12) + ' weitere)';
+                    msg = 'Dieses Bild wird noch verwendet in:\n' + list + '\n\nWenn du es löschst, erscheint dort ein kaputtes Bild. Trotzdem löschen?';
+                    okLabel = 'Trotzdem löschen';
+                } else {
+                    msg = 'Datei „' + name + '“ wirklich löschen?';
+                    okLabel = 'Löschen';
+                }
+                window.AdminDialog.confirm(msg, { danger: true, confirmText: okLabel, title: 'Löschen' }).then((ok) => {
+                    if (!ok) return;
+                    if (!form.querySelector('input[name="confirm"]')) {
+                        const h = document.createElement('input');
+                        h.type = 'hidden'; h.name = 'confirm'; h.value = '1';
+                        form.appendChild(h);
+                    }
+                    form.dataset.delOk = '1';
+                    if (form.requestSubmit) form.requestSubmit(); else form.submit();
+                });
+            });
+    });
+
     /* ---------- Upload (Drag & Drop) ---------- */
     const zone = document.getElementById('dropzone');
     const input = document.getElementById('dz-input');
@@ -301,7 +338,7 @@
             '<div class="media-actions">' +
                 '<button type="button" class="btn btn-small" data-edit>✎</button>' +
                 '<button type="button" class="btn btn-small" data-copy="">URL</button>' +
-                '<form method="post" class="inline">' +
+                '<form method="post" class="inline media-delete">' +
                     '<input type="hidden" name="_csrf" value="">' +
                     '<button type="submit" class="btn btn-small btn-danger">✕</button>' +
                 '</form>' +

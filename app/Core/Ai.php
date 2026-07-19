@@ -13,7 +13,7 @@ use Models\Setting;
 class Ai
 {
     /** Standard-Dienst des Anbieters – Kunden brauchen nur den Lizenzschlüssel. */
-    public const DEFAULT_SERVICE_URL = 'https://blockwerk.bairle.de/ai-server';
+    public const DEFAULT_SERVICE_URL = 'https://blockwerk-orange.de/ai-server';
 
     public static function serviceUrl(): string
     {

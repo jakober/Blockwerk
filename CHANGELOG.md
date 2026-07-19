@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.42.1 – 2026-07-19
+
+- **Anbieter-/Super-Admin-Domain umgestellt:** Die zentrale Anbieter-Verwaltung (Super-Admin-Rechte für KI-Token, Lizenzen usw. unter **KI-Verwaltung** / `/admin/ai-admin`) sowie die Auslieferung des KI-Dienstes beim Update laufen jetzt über **blockwerk-orange.de**. Die bisherige Domain **blockwerk.bairle.de** wurde entfernt. Auch die Standard-Adresse des KI-Dienstes zeigt nun auf die neue Domain (weiterhin in den Einstellungen überschreibbar).
+
 ## 1.42.0 – 2026-07-19
 
 - **Designs unterscheiden sich jetzt in JEDEM Element.** Jedes Design hat eine eigene „Stilrichtung", die alle Inhaltselemente prägt – Überschriften, Text/Infoboxen, Buttons, Zitate, Akkordeon, News-/Event-Karten, Preise, Team, Trenner und Hero sehen pro Design komplett anders aus (nicht mehr nur Farbe/Rundung):

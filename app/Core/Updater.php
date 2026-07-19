@@ -22,7 +22,7 @@ class Updater
 
     // Der zentrale KI-Dienst (ai-server/) wird nur auf den Domains des
     // Anbieters mit ausgeliefert – Kunden-Installationen erhalten ihn nicht.
-    private const VENDOR_HOSTS = ['blockwerk.bairle.de'];
+    private const VENDOR_HOSTS = ['blockwerk-orange.de'];
 
     public static function isVendorHost(): bool
     {

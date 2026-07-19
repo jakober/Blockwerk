@@ -292,7 +292,12 @@ form.inline { display: inline; }
 .pt-status.is-err { color: var(--danger); }
 @media (max-width: 720px) {
     .pt-meta { display: none; }
-    .pt-actions .btn { margin-left: 2px; }
+    /* Titel/Slug in Zeile 1, Buttons darunter in voller Breite (kein Überlappen). */
+    .pt-row { flex-wrap: wrap; row-gap: 8px; }
+    .pt-main { flex: 1 1 100%; }
+    .pt-actions { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+    .pt-actions .btn { margin-left: 0; }
+    .pt-actions .inline { display: flex; }
 }
 
 .badge {

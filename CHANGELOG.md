@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.44.1 – 2026-07-19
+
+- **Seitenverwaltung mobil repariert.** Auf schmalen Bildschirmen überlappten in der Seitenliste die Aktions-Buttons (Inhalt/Eigenschaften/Löschen) den Seitentitel. Jetzt stehen Titel/Slug in der ersten Zeile und die Buttons darunter in voller Breite (mit Umbruch) – nichts überlappt mehr.
+
 ## 1.44.0 – 2026-07-19
 
 - **KI kann das Logo jetzt selbst setzen.** Neues Werkzeug **`set_logo`**: der KI-Assistent legt ein Bild als Website-Logo im Kopf (l-brand-Block des Layouts) fest – gezielt, ohne das komplette Layout neu zu bauen. Optional lässt sich zugleich der Website-Name neben dem Logo ein-/ausblenden. Damit funktioniert „Nimm das als Logo und passe die Farben an" in einem Rutsch (zusammen mit `set_layout_design`).

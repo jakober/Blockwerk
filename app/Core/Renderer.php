@@ -200,7 +200,18 @@ class Renderer
             $full = ($style['width'] ?? '') === 'full';
             $pt = min(400, max(0, (int) ($style['pt'] ?? 0)));
             $pb = min(400, max(0, (int) ($style['pb'] ?? 0)));
-            $padding = ($pt ? 'padding-top:' . $pt . 'px;' : '') . ($pb ? 'padding-bottom:' . $pb . 'px;' : '');
+            // Form (Schräge/Welle) braucht zusätzlichen Innenabstand, damit der
+            // Inhalt nicht in die angeschnittene Kante ragt.
+            $shapeTop = in_array($style['st'] ?? '', ['slant', 'wave'], true);
+            $shapeBot = in_array($style['sb'] ?? '', ['slant', 'wave'], true);
+            $edge = static function (string $prop, int $val, bool $shape): string {
+                if ($shape) {
+                    $baseLen = $val > 0 ? $val . 'px' : 'var(--cms-section-space,0px)';
+                    return $prop . ':calc(' . $baseLen . ' + var(--cms-shape-h) + 12px);';
+                }
+                return $val > 0 ? $prop . ':' . $val . 'px;' : '';
+            };
+            $padding = $edge('padding-top', $pt, $shapeTop) . $edge('padding-bottom', $pb, $shapeBot);
 
             // Eigener Stapel-Breakpoint: ab wie viel Pixeln die Spalten
             // untereinander rutschen. Leer = Standard (768), 0 = nie.
@@ -214,8 +225,20 @@ class Renderer
             }
 
             if ($bg !== '' || $full) {
-                $sectionStyle = ($bg !== '' ? 'background:' . $bg . ';' : '') . $padding;
-                $html .= '<div class="cms-section"' . ($sectionStyle !== '' ? ' style="' . $sectionStyle . '"' : '') . '>'
+                // Form oben/unten (Schräge/Welle) und eigene Eckenrundung der Sektion.
+                $shapeClass = '';
+                foreach (['st' => 'st', 'sb' => 'sb'] as $key => $pos) {
+                    $shape = $style[$key] ?? '';
+                    if ($shape === 'slant' || $shape === 'wave') {
+                        $shapeClass .= ' cms-sec-' . $pos . '-' . $shape;
+                    }
+                }
+                $secRadius = '';
+                if (isset($style['radius']) && $style['radius'] !== '') {
+                    $secRadius = '--sec-radius:' . min(200, max(0, (int) $style['radius'])) . 'px;';
+                }
+                $sectionStyle = ($bg !== '' ? 'background:' . $bg . ';' : '') . $padding . $secRadius;
+                $html .= '<div class="cms-section' . $shapeClass . '"' . ($sectionStyle !== '' ? ' style="' . $sectionStyle . '"' : '') . '>'
                     . '<div class="cms-row' . ($full ? ' cms-row-full' : '') . '"' . $bpAttr . '>' . $inner . '</div></div>';
             } else {
                 $html .= '<div class="cms-row"' . $bpAttr . ($padding !== '' ? ' style="' . $padding . '"' : '') . '>' . $inner . '</div>';

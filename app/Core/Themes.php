@@ -7,89 +7,92 @@ use Models\Layout;
 use Models\Setting;
 
 /**
- * Mitgelieferte Gesamt-Designs ("Themes"): komplette Pakete aus
- * Layout-HTML, Farbschema und Theme-CSS. Beim Aktivieren wird das
- * Standard-Layout (erstes Layout) überschrieben – alle Seiten, die es
- * nutzen, wechseln sofort die Optik. Inhalte bleiben unverändert; die
- * Inhaltsblöcke folgen über die CSS-Variablen automatisch den Farben.
+ * Gesamt-Designs ("Themes"): komplette Optik-Pakete aus Layout-HTML,
+ * Farbschema und – neu – Design-Tokens (Rundungen, Hero-Höhe, Abstände,
+ * Schrift, Button-Form, Schatten). Diese Tokens setzen die CSS-Variablen, die
+ * cms-blocks.css überall auswertet – so sieht jedes Design komplett anders aus.
+ *
+ * Eigene Designs (auch von der KI erstellt) liegen in der Tabelle `themes` und
+ * nutzen dieselbe Struktur wie die mitgelieferten.
  */
 class Themes
 {
-    public static function all(): array
+    /** Mitgelieferte Designs – bewusst nur wenige, dafür grundverschieden. */
+    public static function builtins(): array
     {
         return [
-            'klar' => [
-                'name' => 'Klar',
-                'description' => 'Hell und modern mit Indigo-Akzenten – das Standard-Design.',
-                'colors' => ['primary' => '#4f46e5', 'accent' => '#f59e0b', 'text' => '#1e293b', 'bg' => '#ffffff', 'surface' => '#f1f5f9'],
-                'headerBg' => '#ffffff', 'headerText' => '#0f172a',
-            ],
-            'mitternacht' => [
-                'name' => 'Mitternacht',
-                'description' => 'Dunkles Design mit Violett und Türkis – edel und ruhig.',
-                'colors' => ['primary' => '#8b5cf6', 'accent' => '#22d3ee', 'text' => '#e2e8f0', 'bg' => '#0b1220', 'surface' => '#182238'],
-                'headerBg' => '#0b1220', 'headerText' => '#f1f5f9',
-            ],
-            'magazin' => [
-                'name' => 'Magazin',
-                'description' => 'Zeitungs-Stil mit Serifen-Überschriften und rotem Akzent.',
-                'colors' => ['primary' => '#b91c1c', 'accent' => '#d97706', 'text' => '#292524', 'bg' => '#fffdf8', 'surface' => '#f6f1e7'],
-                'headerBg' => '#fffdf8', 'headerText' => '#1c1917',
-            ],
-            'natur' => [
-                'name' => 'Natur',
-                'description' => 'Warme Erd- und Grüntöne, weiche Formen – freundlich und organisch.',
-                'colors' => ['primary' => '#4d7c0f', 'accent' => '#ca8a04', 'text' => '#2d3319', 'bg' => '#faf9f3', 'surface' => '#eef0e2'],
-                'headerBg' => '#eef0e2', 'headerText' => '#2d3319',
-            ],
-            'studio' => [
-                'name' => 'Studio',
-                'description' => 'Radikal reduziert: Schwarz auf Weiß, große Typografie, klare Kanten.',
-                'colors' => ['primary' => '#111111', 'accent' => '#ef4444', 'text' => '#111111', 'bg' => '#ffffff', 'surface' => '#f4f4f4'],
-                'headerBg' => '#ffffff', 'headerText' => '#111111',
-            ],
-            'ozean' => [
-                'name' => 'Ozean',
-                'description' => 'Frisches Blau mit Farbverlauf im Kopfbereich – maritim und klar.',
-                'colors' => ['primary' => '#0369a1', 'accent' => '#f59e0b', 'text' => '#0f2b3d', 'bg' => '#fbfeff', 'surface' => '#e3f2fb'],
-                'headerBg' => 'linear-gradient(120deg, #082f49, #0369a1)', 'headerText' => '#ffffff',
-            ],
             'blockwerk' => [
                 'name' => 'Blockwerk Orange',
-                'description' => 'Das Design in den Blockwerk-Orange-Farben: warmes Orange, dunkelbrauner Kopfbereich, goldener Akzent.',
+                'description' => 'Warmes Orange, dunkelbrauner Kopfbereich, weiche Rundungen – das Hausdesign.',
                 'colors' => ['primary' => '#ea580c', 'accent' => '#fbbf24', 'text' => '#2b1d12', 'bg' => '#fffaf5', 'surface' => '#fff1e6'],
                 'headerBg' => '#2a1508', 'headerText' => '#ffffff',
+                'tokens' => ['header' => 'bar', 'radius' => 12, 'button' => 'round', 'hero' => 68, 'container' => 1120, 'section' => 56, 'shadow' => 'soft', 'scale' => 16.5, 'headingWeight' => 800, 'headingSpacing' => '-.4px', 'uppercase' => false, 'headingFont' => 'sans'],
             ],
-            'beere' => [
-                'name' => 'Beere',
-                'description' => 'Kräftiges Beerenrot mit violettem Akzent und weichem Verlauf – auffällig und lebendig.',
-                'colors' => ['primary' => '#be185d', 'accent' => '#7c3aed', 'text' => '#3b1c2a', 'bg' => '#fffbfd', 'surface' => '#fdf2f8'],
-                'headerBg' => 'linear-gradient(120deg, #500724, #be185d)', 'headerText' => '#ffffff',
+            'kontrast' => [
+                'name' => 'Kontrast — groß & mutig',
+                'description' => 'Riesiger Vollbild-Hero (100 vh), scharfe Kanten, große Versal-Überschriften – plakativ und modern.',
+                'colors' => ['primary' => '#111827', 'accent' => '#ef4444', 'text' => '#0b0f19', 'bg' => '#ffffff', 'surface' => '#f3f4f6'],
+                'headerBg' => '#0b0f19', 'headerText' => '#ffffff',
+                'tokens' => ['header' => 'bar', 'radius' => 0, 'button' => 'sharp', 'hero' => 100, 'container' => 1280, 'section' => 96, 'shadow' => 'none', 'scale' => 18, 'headingWeight' => 800, 'headingSpacing' => '-1.2px', 'uppercase' => true, 'headingFont' => 'sans'],
             ],
-            'sand' => [
-                'name' => 'Sand & Stein',
-                'description' => 'Ruhige Beige- und Steintöne mit Petrol-Akzent – zurückhaltend und hochwertig.',
-                'colors' => ['primary' => '#a16207', 'accent' => '#0f766e', 'text' => '#292524', 'bg' => '#faf7f2', 'surface' => '#f0e9dd'],
-                'headerBg' => '#f0e9dd', 'headerText' => '#292524',
+            'atelier' => [
+                'name' => 'Atelier — weich & rund',
+                'description' => 'Sehr runde Formen, Pillen-Buttons, sanfte Verläufe und großzügige Schatten – freundlich und verspielt.',
+                'colors' => ['primary' => '#7c3aed', 'accent' => '#ec4899', 'text' => '#3b3054', 'bg' => '#faf7ff', 'surface' => '#f1e9ff'],
+                'headerBg' => 'linear-gradient(120deg, #7c3aed, #ec4899)', 'headerText' => '#ffffff',
+                'tokens' => ['header' => 'bar', 'radius' => 26, 'button' => 'pill', 'hero' => 74, 'container' => 1080, 'section' => 70, 'shadow' => 'strong', 'scale' => 16.5, 'headingWeight' => 800, 'headingSpacing' => '-.4px', 'uppercase' => false, 'headingFont' => 'sans'],
             ],
-            'graphit' => [
-                'name' => 'Graphit',
-                'description' => 'Anthrazit mit Smaragd-Akzent – technisch, modern, seriös.',
-                'colors' => ['primary' => '#1f2937', 'accent' => '#10b981', 'text' => '#1f2937', 'bg' => '#ffffff', 'surface' => '#f3f4f6'],
-                'headerBg' => '#111827', 'headerText' => '#f9fafb',
+            'journal' => [
+                'name' => 'Journal — Magazin',
+                'description' => 'Serifen-Überschriften, schmale Lesebreite, zentrierter Kopf und feine Linien – redaktionell und edel.',
+                'colors' => ['primary' => '#1c1917', 'accent' => '#b45309', 'text' => '#292524', 'bg' => '#fbf9f4', 'surface' => '#f0eadd'],
+                'headerBg' => '#fbf9f4', 'headerText' => '#1c1917',
+                'tokens' => ['header' => 'center', 'radius' => 3, 'button' => 'sharp', 'hero' => 58, 'container' => 900, 'section' => 46, 'shadow' => 'none', 'scale' => 18, 'headingWeight' => 700, 'headingSpacing' => '0', 'uppercase' => false, 'headingFont' => 'serif'],
             ],
         ];
     }
 
-    public static function activeKey(): string
+    /** Eigene Designs aus der Datenbank (inkl. KI-erstellter). */
+    public static function custom(): array
     {
-        return Setting::get('active_theme', 'klar');
+        $out = [];
+        try {
+            $rows = Database::pdo()->query('SELECT * FROM themes ORDER BY created_at DESC')->fetchAll();
+        } catch (\Throwable $e) {
+            return [];
+        }
+        foreach ($rows as $row) {
+            $cfg = json_decode((string) $row['config'], true);
+            if (!is_array($cfg)) {
+                continue;
+            }
+            $cfg['name'] = $row['name'];
+            $cfg['description'] = $row['description'] ?? '';
+            $cfg['custom'] = true;
+            $out[(string) $row['tkey']] = $cfg;
+        }
+        return $out;
     }
 
-    /** Aktiviert ein Theme: überschreibt das Standard-Layout. */
+    public static function all(): array
+    {
+        return self::custom() + self::builtins();
+    }
+
+    public static function find(string $key): ?array
+    {
+        return self::all()[$key] ?? null;
+    }
+
+    public static function activeKey(): string
+    {
+        return Setting::get('active_theme', 'blockwerk');
+    }
+
+    /** Aktiviert ein Design: überschreibt das Standard-Layout. */
     public static function apply(string $key): bool
     {
-        $theme = self::all()[$key] ?? null;
+        $theme = self::find($key);
         if ($theme === null) {
             return false;
         }
@@ -97,44 +100,81 @@ class Themes
         $design = json_encode([
             'colors' => $theme['colors'],
             'fonts' => [],
-            'css' => self::css($key, $theme),
+            'css' => self::css($theme),
         ], JSON_UNESCAPED_UNICODE) ?: null;
 
         $layout = Layout::default();
         if ($layout === null) {
-            $id = Layout::create('Standard (' . $theme['name'] . ')', self::html($key), $design);
+            $id = Layout::create('Standard (' . $theme['name'] . ')', self::html($theme), $design);
         } else {
             $id = (int) $layout['id'];
-            Layout::update($id, 'Standard (' . $theme['name'] . ')', self::html($key), $design);
+            Layout::update($id, 'Standard (' . $theme['name'] . ')', self::html($theme), $design);
         }
-        // Themes sind HTML-Layouts – eine evtl. vorhandene Baukasten-Struktur ablösen.
         Layout::saveBuilder($id, null);
         Setting::set('active_theme', $key);
         return true;
     }
 
-    /* ---------- Layout-HTML pro Theme ---------- */
+    /* ---------- Eigene Designs verwalten ---------- */
 
-    private static function html(string $key): string
+    /** Eigenes Design speichern (neu oder überschreiben). Liefert den Key. */
+    public static function saveCustom(string $name, string $description, array $colors, string $headerBg, string $headerText, array $tokens): string
     {
-        $header = match ($key) {
-            // Magazin: Markenname zentriert, Menü darunter zwischen Linien.
-            'magazin' => <<<'HTML'
+        $key = self::uniqueKey($name);
+        $config = json_encode([
+            'colors' => $colors,
+            'headerBg' => $headerBg,
+            'headerText' => $headerText,
+            'tokens' => $tokens,
+        ], JSON_UNESCAPED_UNICODE);
+        Database::pdo()
+            ->prepare('INSERT INTO themes (tkey, name, description, config) VALUES (?, ?, ?, ?)')
+            ->execute([$key, $name, $description, $config]);
+        return $key;
+    }
+
+    public static function deleteCustom(string $key): void
+    {
+        Database::pdo()->prepare('DELETE FROM themes WHERE tkey = ?')->execute([$key]);
+    }
+
+    public static function isCustom(string $key): bool
+    {
+        return !isset(self::builtins()[$key]) && isset(self::all()[$key]);
+    }
+
+    private static function uniqueKey(string $name): string
+    {
+        $base = 'my-' . (slugify($name) ?: 'design');
+        $key = $base;
+        $i = 2;
+        $existing = array_keys(self::all());
+        while (in_array($key, $existing, true)) {
+            $key = $base . '-' . $i++;
+        }
+        return $key;
+    }
+
+    /* ---------- Layout-HTML ---------- */
+
+    private static function html(array $theme): string
+    {
+        $center = (($theme['tokens']['header'] ?? 'bar') === 'center');
+        $header = $center
+            ? <<<'HTML'
 <header class="t-header">
   <div class="container t-brandwrap"><a class="t-brand" href="{{base_url}}/">{{site_name}}</a></div>
   <nav class="t-nav"><div class="container">{{menu}}</div></nav>
 </header>
-HTML,
-            // Alle anderen: Marke links, Menü rechts.
-            default => <<<'HTML'
+HTML
+            : <<<'HTML'
 <header class="t-header">
   <div class="container t-headerbar">
     <a class="t-brand" href="{{base_url}}/">{{site_name}}</a>
     <nav class="t-nav">{{menu}}</nav>
   </div>
 </header>
-HTML,
-        };
+HTML;
 
         return <<<HTML
 <!doctype html>
@@ -144,7 +184,7 @@ HTML,
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{title}} – {{site_name}}</title>
 </head>
-<body class="bw-t-$key">
+<body class="bw-theme">
 $header
 <main class="container t-main">
 {{content}}
@@ -157,125 +197,100 @@ $header
 HTML;
     }
 
-    /* ---------- Theme-CSS ---------- */
+    /* ---------- CSS: Tokens + Kopf/Fuß + Feinschliff ---------- */
 
-    private static function css(string $key, array $theme): string
+    private static function css(array $theme): string
     {
-        $headerBg = $theme['headerBg'];
-        $headerText = $theme['headerText'];
+        $t = $theme['tokens'] ?? [];
+        $headerBg = $theme['headerBg'] ?? '#ffffff';
+        $headerText = $theme['headerText'] ?? '#111111';
+        $center = (($t['header'] ?? 'bar') === 'center');
+        $serif = (($t['headingFont'] ?? 'sans') === 'serif');
+
+        $tokens = self::tokenRootCss($t);
 
         $base = <<<CSS
 *{box-sizing:border-box}html,body{margin:0;padding:0}
-body{font-size:16px;line-height:1.65}
-.container{max-width:1100px;margin:0 auto;padding:0 20px}
+body{line-height:1.65}
+.container{max-width:var(--cms-container,1100px);margin:0 auto;padding:0 20px}
 a{color:var(--cms-primary)}
 img{max-width:100%;height:auto}
 .t-header{background:$headerBg;color:$headerText}
-.t-headerbar{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:66px;flex-wrap:wrap}
+.t-headerbar{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:70px;flex-wrap:wrap}
 .t-brand{font-size:21px;font-weight:800;letter-spacing:-.4px;color:inherit;text-decoration:none}
 .t-nav ul.menu{display:flex;gap:4px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
 .t-nav li{position:relative}
 .t-nav a{display:block;padding:8px 14px;color:inherit;text-decoration:none;font-weight:600;border-radius:8px}
-.t-nav ul.submenu{display:none;position:absolute;top:100%;left:0;min-width:200px;background:var(--cms-bg);border:1px solid color-mix(in srgb,var(--cms-text) 15%,transparent);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.15);list-style:none;margin:0;padding:6px;z-index:60;color:var(--cms-text)}
+.t-nav a:hover{background:color-mix(in srgb,$headerText 16%,transparent)}
+.t-nav ul.submenu{display:none;position:absolute;top:100%;left:0;min-width:200px;background:var(--cms-bg);border:1px solid color-mix(in srgb,var(--cms-text) 15%,transparent);border-radius:var(--cms-radius,10px);box-shadow:var(--cms-shadow);list-style:none;margin:0;padding:6px;z-index:60;color:var(--cms-text)}
 .t-nav li.has-children:hover>ul.submenu,.t-nav li.has-children:focus-within>ul.submenu{display:block}
 .t-nav ul.submenu ul.submenu{top:0;left:100%}
-.t-main{padding-top:36px;padding-bottom:56px}
-.t-footer{padding:26px 0;font-size:14px}
+.t-main{padding-top:40px;padding-bottom:56px}
+.t-footer{padding:30px 0;font-size:14px;color:color-mix(in srgb,var(--cms-text) 65%,transparent);border-top:1px solid color-mix(in srgb,var(--cms-text) 12%,transparent);margin-top:40px}
+.cms-btn-primary:hover{filter:brightness(.94)}
 CSS;
 
-        $extra = match ($key) {
-            'klar' => <<<'CSS'
-.t-header{position:sticky;top:0;z-index:50;border-bottom:1px solid #e2e8f0}
-.t-nav a:hover{background:var(--cms-surface);color:var(--cms-primary)}
-.t-footer{border-top:1px solid #e2e8f0;color:#64748b}
-CSS,
-            'mitternacht' => <<<'CSS'
-.t-header{position:sticky;top:0;z-index:50;border-bottom:1px solid #1e2a44;backdrop-filter:blur(8px)}
-.t-nav a:hover{background:#1e2a44;color:var(--cms-accent)}
-.t-footer{border-top:1px solid #1e2a44;color:#7c8db0}
-.cms-card{border:1px solid #23304d}
-.cms-form input,.cms-form textarea{background:var(--cms-surface)}
-CSS,
-            'magazin' => <<<'CSS'
-h1,h2,h3,h4,h5,h6,.t-brand{font-family:Georgia,"Times New Roman",serif}
-.t-brandwrap{text-align:center;padding:26px 20px 14px}
-.t-brand{font-size:34px}
-.t-nav{border-top:3px double #d6cbb6;border-bottom:1px solid #d6cbb6}
-.t-nav ul.menu{justify-content:center}
-.t-nav a{border-radius:0;text-transform:uppercase;font-size:13px;letter-spacing:1.5px}
-.t-nav a:hover{color:var(--cms-primary)}
-.t-footer{border-top:3px double #d6cbb6;color:#78716c;text-align:center}
-.cms-heading{letter-spacing:0}
-CSS,
-            'natur' => <<<'CSS'
-body{font-family:"Segoe UI",system-ui,sans-serif}
-.t-header{border-radius:0 0 26px 26px}
-.t-headerbar{min-height:76px}
-.t-nav a{border-radius:999px}
-.t-nav a:hover{background:var(--cms-primary);color:#fff}
-.t-footer{background:var(--cms-surface);color:#5b6242}
-.cms-image,.cms-card,.cms-gallery img{border-radius:22px}
-.cms-btn{border-radius:999px}
-CSS,
-            'studio' => <<<'CSS'
-.t-header{border-bottom:2px solid #111}
-.t-brand{text-transform:uppercase;letter-spacing:3px;font-size:17px}
-.t-nav a{border-radius:0;text-transform:uppercase;font-size:12px;letter-spacing:2px}
-.t-nav a:hover{background:#111;color:#fff}
-h1.cms-heading{font-size:3.1em;letter-spacing:-1px}
-.t-footer{border-top:2px solid #111;color:#555;text-transform:uppercase;font-size:12px;letter-spacing:2px}
-.cms-image,.cms-figure img,.cms-card,.cms-gallery img,.cms-video,.cms-btn,.cms-imgslider{border-radius:0!important}
-.cms-btn-primary:hover{background:var(--cms-accent)}
-CSS,
-            'ozean' => <<<'CSS'
-.t-header{box-shadow:0 4px 20px rgba(3,105,161,.25)}
-.t-headerbar{min-height:74px}
-.t-nav a:hover{background:rgba(255,255,255,.16)}
-.t-footer{background:#082f49;color:#9cc7de;margin-top:40px}
-.cms-card{box-shadow:0 4px 16px rgba(3,105,161,.08)}
-h1.cms-heading,h2.cms-heading{color:#075985}
-CSS,
-            'blockwerk' => <<<'CSS'
-.t-header{position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(42,21,8,.3)}
-.t-headerbar{min-height:70px}
-.t-nav a:hover{background:rgba(255,255,255,.12);color:#fbbf24}
-.t-footer{background:#2a1508;color:#e2cfbc;margin-top:44px}
-.cms-image,.cms-figure img,.cms-gallery img,.cms-card,.cms-imgslider{border-radius:14px}
-.cms-btn{border-radius:10px}
-.cms-btn-primary:hover{background:#c2410c}
-h1.cms-heading{letter-spacing:-.5px}
-CSS,
-            'beere' => <<<'CSS'
-.t-header{box-shadow:0 4px 22px rgba(190,24,93,.3)}
-.t-headerbar{min-height:72px}
-.t-nav a{border-radius:999px}
-.t-nav a:hover{background:rgba(255,255,255,.18)}
-.t-footer{background:#500724;color:#f5c2d7;margin-top:40px}
-.cms-btn{border-radius:999px}
-.cms-image,.cms-gallery img,.cms-card{border-radius:18px}
-CSS,
-            'sand' => <<<'CSS'
-body{letter-spacing:.1px}
-.t-header{border-bottom:1px solid #ddd2bf}
-.t-headerbar{min-height:72px}
-.t-brand{letter-spacing:2px;text-transform:uppercase;font-size:17px}
-.t-nav a{border-radius:8px;font-weight:500}
-.t-nav a:hover{background:#e5dcc9;color:#292524}
-.t-footer{background:#f0e9dd;color:#8a8175}
-.cms-image,.cms-gallery img,.cms-card{border-radius:6px}
-CSS,
-            'graphit' => <<<'CSS'
-.t-header{position:sticky;top:0;z-index:50;border-bottom:2px solid #10b981}
-.t-nav a{border-radius:6px}
-.t-nav a:hover{background:#1f2937;color:#10b981}
-.t-footer{background:#111827;color:#9ca3af;margin-top:40px}
-.cms-btn-primary:hover{background:#10b981;color:#053b2b}
-.cms-card{border:1px solid #e5e7eb}
-h1.cms-heading,h2.cms-heading{letter-spacing:-.6px}
-CSS,
-            default => '',
+        $extra = '';
+        if ($center) {
+            $extra .= ".t-brandwrap{text-align:center;padding:26px 20px 14px}.t-brand{font-size:34px}"
+                . ".t-nav{border-top:1px solid color-mix(in srgb,var(--cms-text) 15%,transparent);border-bottom:1px solid color-mix(in srgb,var(--cms-text) 15%,transparent)}"
+                . ".t-nav ul.menu{justify-content:center}.t-nav a{text-transform:uppercase;font-size:13px;letter-spacing:1.4px}\n";
+        }
+        if ($serif) {
+            $extra .= ".t-brand{font-family:Georgia,'Times New Roman',serif}\n";
+        }
+        // Sticky-Kopf bei dunklem Kopfbereich wirkt gut; bei hellem dezenter.
+        $extra .= ".t-header{position:sticky;top:0;z-index:50}\n";
+
+        return $tokens . "\n" . $base . "\n" . $extra;
+    }
+
+    /** :root mit allen Design-Tokens. */
+    private static function tokenRootCss(array $t): string
+    {
+        $radius = (int) ($t['radius'] ?? 12);
+        $btn = match ($t['button'] ?? 'round') {
+            'pill' => '999px',
+            'sharp' => '0',
+            default => $radius . 'px',
+        };
+        $hero = max(30, min(100, (int) ($t['hero'] ?? 65)));
+        $container = max(700, min(1600, (int) ($t['container'] ?? 1100)));
+        $section = max(0, min(200, (int) ($t['section'] ?? 0)));
+        $shadow = match ($t['shadow'] ?? 'soft') {
+            'none' => 'none',
+            'strong' => '0 26px 64px rgba(0,0,0,.16)',
+            default => '0 12px 34px rgba(0,0,0,.08)',
+        };
+        $scale = (float) ($t['scale'] ?? 16);
+        $scale = max(14, min(22, $scale));
+        $hw = (int) ($t['headingWeight'] ?? 800);
+        $hs = self::cssLen((string) ($t['headingSpacing'] ?? '-.3px'));
+        $ht = !empty($t['uppercase']) ? 'uppercase' : 'none';
+        $hf = match ($t['headingFont'] ?? 'sans') {
+            'serif' => "Georgia,'Times New Roman',serif",
+            'mono' => 'ui-monospace,SFMono-Regular,Menlo,monospace',
+            default => 'inherit',
         };
 
-        return $base . "\n" . $extra . "\n";
+        return ':root{'
+            . '--cms-radius:' . $radius . 'px;'
+            . '--cms-btn-radius:' . $btn . ';'
+            . '--cms-hero-h:' . $hero . 'vh;'
+            . '--cms-container:' . $container . 'px;'
+            . '--cms-section-space:' . $section . 'px;'
+            . '--cms-shadow:' . $shadow . ';'
+            . '--cms-font-scale:' . rtrim(rtrim(number_format($scale, 2, '.', ''), '0'), '.') . 'px;'
+            . '--cms-heading-weight:' . $hw . ';'
+            . '--cms-heading-spacing:' . $hs . ';'
+            . '--cms-heading-transform:' . $ht . ';'
+            . '--cms-heading-font:' . $hf . ';'
+            . '}';
+    }
+
+    /** Nur unbedenkliche Längenangaben zulassen (z. B. „-1.2px", „0"). */
+    private static function cssLen(string $value): string
+    {
+        return preg_match('/^-?\d+(\.\d+)?(px|em|rem)?$/', trim($value)) ? trim($value) : '-.3px';
     }
 }

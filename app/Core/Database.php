@@ -152,6 +152,15 @@ class Database
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 
+            'CREATE TABLE IF NOT EXISTS themes (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                tkey VARCHAR(64) NOT NULL UNIQUE,
+                name VARCHAR(120) NOT NULL,
+                description VARCHAR(255) NULL,
+                config MEDIUMTEXT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
             /* ===== Shop ===== */
             'CREATE TABLE IF NOT EXISTS shop_categories (
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

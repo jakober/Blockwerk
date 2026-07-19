@@ -524,6 +524,55 @@ class AiController extends AdminController
                     ];
                     return 'Produkt id=' . $prod['id'] . ' aktualisiert.';
 
+                case 'create_design':
+                    $name = trim((string) ($input['name'] ?? ''));
+                    if ($name === '') {
+                        return 'FEHLER: Design-Name fehlt.';
+                    }
+                    $hex = static fn ($v, $fallback) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $v) ? strtolower((string) $v) : $fallback;
+                    $ci = is_array($input['colors'] ?? null) ? $input['colors'] : [];
+                    $colors = [
+                        'primary' => $hex($ci['primary'] ?? '', '#4f46e5'),
+                        'accent' => $hex($ci['accent'] ?? '', '#f59e0b'),
+                        'text' => $hex($ci['text'] ?? '', '#1e293b'),
+                        'bg' => $hex($ci['bg'] ?? '', '#ffffff'),
+                        'surface' => $hex($ci['surface'] ?? '', '#f1f5f9'),
+                    ];
+                    $hi = is_array($input['header'] ?? null) ? $input['header'] : [];
+                    // Kopf-Hintergrund: Hex oder sicherer CSS-Verlauf (keine CSS-Ausbrüche).
+                    $rawHeaderBg = (string) ($hi['bg'] ?? '');
+                    $headerBg = preg_match('/^#[0-9a-fA-F]{6}$/', $rawHeaderBg)
+                        ? strtolower($rawHeaderBg)
+                        : (preg_match('/^(linear|radial)-gradient\([#0-9a-zA-Z(),.%\s-]+\)$/', $rawHeaderBg) ? $rawHeaderBg : $colors['bg']);
+                    $headerText = $hex($hi['text'] ?? '', '#111111');
+
+                    $si = is_array($input['style'] ?? null) ? $input['style'] : [];
+                    $enum = static fn ($v, array $allowed, $fallback) => in_array($v, $allowed, true) ? $v : $fallback;
+                    $tokens = [
+                        'header' => $enum($si['header_layout'] ?? '', ['bar', 'center'], 'bar'),
+                        'radius' => max(0, min(40, (int) ($si['radius'] ?? 12))),
+                        'button' => $enum($si['button'] ?? '', ['round', 'pill', 'sharp'], 'round'),
+                        'hero' => max(30, min(100, (int) ($si['hero'] ?? 65))),
+                        'container' => max(800, min(1400, (int) ($si['container'] ?? 1100))),
+                        'section' => max(0, min(140, (int) ($si['section'] ?? 0))),
+                        'shadow' => $enum($si['shadow'] ?? '', ['none', 'soft', 'strong'], 'soft'),
+                        'scale' => max(14, min(22, (float) ($si['scale'] ?? 16))),
+                        'headingWeight' => max(400, min(900, (int) ($si['heading_weight'] ?? 800))),
+                        'headingSpacing' => (string) ($si['heading_spacing'] ?? '-.3px'),
+                        'uppercase' => (bool) ($si['uppercase'] ?? false),
+                        'headingFont' => $enum($si['heading_font'] ?? '', ['sans', 'serif', 'mono'], 'sans'),
+                    ];
+                    $key = \Core\Themes::saveCustom($name, trim((string) ($input['description'] ?? '')), $colors, $headerBg, $headerText, $tokens);
+                    \Core\Themes::apply($key);
+                    Cache::clear();
+                    $actions[] = [
+                        'type' => 'link',
+                        'label' => 'Design „' . $name . '“ erstellt & aktiviert',
+                        'editorUrl' => url('/admin/themes'),
+                        'viewUrl' => url('/'),
+                    ];
+                    return 'Design „' . $name . '" erstellt, unter Designs gespeichert und aktiviert. Die ganze Website hat jetzt die neue Optik.';
+
                 case 'generate_image':
                     $prompt = trim((string) ($input['prompt'] ?? ''));
                     if ($prompt === '') {

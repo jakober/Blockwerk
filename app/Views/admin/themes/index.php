@@ -1,5 +1,5 @@
 <div class="card" style="margin-bottom:20px">
-    <p class="muted" style="margin:0">Ein Design ändert die komplette Optik deiner Website – Kopfbereich, Menü, Farben, Formen und Schriftstil. <strong>Deine Inhalte bleiben dabei unverändert</strong> und passen sich automatisch an. Beim Aktivieren wird das Standard-Layout überschrieben; eigene Änderungen daran (auch eigene Farben im Layout-Designer) werden ersetzt.</p>
+    <p class="muted" style="margin:0">Ein Design ändert die <strong>komplette Optik</strong> deiner Website – Größe, Rundungen, Hero-Höhe, Abstände, Schriftstil, Button-Form und Kopfbereich. <strong>Deine Inhalte bleiben dabei unverändert</strong> und passen sich automatisch an. Beim Aktivieren wird das Standard-Layout überschrieben (auch eigene Farben im Layout-Designer). Tipp: Der <a href="<?= e(url('/admin/ai')) ?>">KI-Assistent</a> kann dir ein <strong>individuelles Design nach Beschreibung</strong> erstellen – es erscheint danach hier.</p>
 </div>
 
 <div class="card brand-download" style="margin-bottom:20px">
@@ -44,6 +44,7 @@
                 <div class="theme-name">
                     <?= e($theme['name']) ?>
                     <?php if ($key === $activeKey): ?><span class="badge badge-green">Aktiv</span><?php endif; ?>
+                    <?php if (!empty($theme['custom'])): ?><span class="badge badge-orange">Eigenes</span><?php endif; ?>
                 </div>
                 <p class="muted small"><?= e($theme['description']) ?></p>
                 <?php if ($key !== $activeKey): ?>
@@ -53,6 +54,12 @@
                     </form>
                 <?php else: ?>
                     <a class="btn btn-ghost btn-block" href="<?= e(url('/')) ?>" target="_blank" rel="noopener">Website ansehen ↗</a>
+                <?php endif; ?>
+                <?php if (!empty($theme['custom'])): ?>
+                    <form method="post" action="<?= e(url('/admin/themes/' . $key . '/delete')) ?>" data-confirm="Eigenes Design „<?= e($theme['name']) ?>“ löschen?" data-confirm-danger data-confirm-ok="Löschen" style="margin-top:6px">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-ghost btn-small btn-block">Löschen</button>
+                    </form>
                 <?php endif; ?>
             </div>
         </div>

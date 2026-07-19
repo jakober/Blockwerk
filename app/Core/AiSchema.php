@@ -127,7 +127,8 @@ Regeln für Layout-Änderungen ("überall auf der Website"):
 - **News & Events** (create_post/update_post/list_posts): eigene Beiträge mit Titel, Kurzbeschreibung (excerpt), Inhalt (body = sauberes HTML), Beitragsbild und – bei Events – Beginn/Ende (Format „JJJJ-MM-TT HH:MM") und Ort. type ist "news" oder "event".
 - **Globale Blöcke** (create_global_block/update_global_block/list_global_blocks): wiederverwendbare Inhaltsbereiche mit demselben Content-JSON wie Seiten. Werden über den „Globaler Block"-Block auf mehreren Seiten eingebettet – eine Änderung wirkt überall.
 - **Templates** (create_template/update_template/list_templates): wiederverwendbare HTML-Bausteine mit Schlüssel (für {{template:schlüssel}}). Das Menü-Template „main-menu" NICHT hier ändern – dafür ist der Menü-Designer zuständig.
-- **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).{$shopSection}
+- **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).
+- **Designs** (create_design): erstellt ein individuelles Gesamt-Design nach Beschreibung und aktiviert es. Wähle Farben UND Tokens passend zur Stimmung – nicht nur Farben ändern! Beispiele: „minimalistisch/groß" → radius 0, button „sharp", hero 100, uppercase true, section groß; „verspielt/weich" → radius 24+, button „pill", shadow „strong"; „edel/redaktionell" → heading_font „serif", header_layout „center", schmaler container. Das Design erscheint danach unter „Designs".{$shopSection}
 
 ## Arbeitsweise
 
@@ -416,6 +417,50 @@ PROMPT
                         'active' => ['type' => 'integer', 'description' => '1 = sichtbar, 0 = ausgeblendet'],
                     ],
                     'required' => ['product_id'],
+                ],
+            ],
+            [
+                'name' => 'create_design',
+                'description' => 'Erstellt ein individuelles Gesamt-Design nach Beschreibung, speichert es unter „Designs" und aktiviert es sofort (überschreibt das Standard-Layout; Inhalte bleiben). Über die Tokens steuerst du die komplette Optik: Rundungen, Hero-Höhe, Abstände, Schriftstil, Button-Form, Schatten. Wähle Farben und Tokens passend zur gewünschten Stimmung (z. B. „minimalistisch, groß, kantig" → radius 0, button sharp, hero 100, uppercase true).',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'name' => ['type' => 'string', 'description' => 'Name des Designs, z. B. „Sommerlich frisch"'],
+                        'description' => ['type' => 'string', 'description' => 'Kurzbeschreibung des Looks'],
+                        'colors' => [
+                            'type' => 'object',
+                            'description' => 'Farbschema als Hex-Werte (#rrggbb).',
+                            'properties' => [
+                                'primary' => ['type' => 'string'], 'accent' => ['type' => 'string'],
+                                'text' => ['type' => 'string'], 'bg' => ['type' => 'string'], 'surface' => ['type' => 'string'],
+                            ],
+                            'required' => ['primary', 'accent', 'text', 'bg', 'surface'],
+                        ],
+                        'header' => [
+                            'type' => 'object',
+                            'description' => 'Kopfbereich: Hintergrund (Hex oder CSS-Verlauf) und Textfarbe (Hex).',
+                            'properties' => ['bg' => ['type' => 'string'], 'text' => ['type' => 'string']],
+                        ],
+                        'style' => [
+                            'type' => 'object',
+                            'description' => 'Design-Tokens für die Gesamt-Optik.',
+                            'properties' => [
+                                'radius' => ['type' => 'integer', 'description' => 'Eckenrundung px (0 = kantig, 26 = sehr rund)'],
+                                'hero' => ['type' => 'integer', 'description' => 'Hero-Höhe in % Bildschirmhöhe (30–100; 100 = Vollbild)'],
+                                'container' => ['type' => 'integer', 'description' => 'Max. Inhaltsbreite px (800–1400)'],
+                                'section' => ['type' => 'integer', 'description' => 'Innenabstand farbiger Sektionen px (0–140)'],
+                                'shadow' => ['type' => 'string', 'enum' => ['none', 'soft', 'strong']],
+                                'scale' => ['type' => 'number', 'description' => 'Basis-Schriftgröße px (14–22)'],
+                                'heading_weight' => ['type' => 'integer', 'description' => 'Überschriften-Stärke (400–900)'],
+                                'heading_spacing' => ['type' => 'string', 'description' => 'Überschriften-Laufweite, z. B. „-.5px" oder „0"'],
+                                'uppercase' => ['type' => 'boolean', 'description' => 'Überschriften in Großbuchstaben'],
+                                'heading_font' => ['type' => 'string', 'enum' => ['sans', 'serif', 'mono']],
+                                'button' => ['type' => 'string', 'enum' => ['round', 'pill', 'sharp']],
+                                'header_layout' => ['type' => 'string', 'enum' => ['bar', 'center'], 'description' => '„bar" = Marke links/Menü rechts, „center" = Marke zentriert, Menü darunter'],
+                            ],
+                        ],
+                    ],
+                    'required' => ['name', 'colors'],
                 ],
             ],
             [

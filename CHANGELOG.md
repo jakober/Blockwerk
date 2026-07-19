@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.40.0 – 2026-07-19
+
+- **Designs verändern jetzt die komplette Optik – nicht nur Farben.** Ein Design steuert über neue „Design-Tokens" die gesamte Gestaltung: Eckenrundung, Hero-Höhe, Inhaltsbreite, Abstände, Basis-Schriftgröße, Überschriften-Stil (Stärke, Laufweite, Groß-/Kleinschreibung, Serif/Sans), Button-Form (rund/Pille/kantig) und Schatten. So sehen Designs wirklich grundverschieden aus, aber in sich stimmig.
+  - **Neue mitgelieferte Designs:** „**Blockwerk Orange**" (Hausdesign), „**Kontrast — groß & mutig**" (Vollbild-Hero 100 vh, kantig, große Versal-Überschriften), „**Atelier — weich & rund**" (sehr rund, Pillen-Buttons, sanfte Verläufe & Schatten) und „**Journal — Magazin**" (Serifen-Überschriften, schmale Lesebreite, zentrierter Kopf). Die bisherigen reinen Farbvarianten wurden entfernt.
+  - Der **Hero-Slider** übernimmt die Höhe des Designs automatisch (z. B. 100 vh im großen Design); pro Hero weiterhin überschreibbar (Höhe 0 = automatisch).
+- **KI erstellt individuelle Designs:** Der KI-Assistent kann per Beschreibung ein komplettes Design bauen („mach ein minimalistisches, großes, kantiges Design in Blau") – es wird unter **Designs** gespeichert, aktiviert und ist dort löschbar. Neues Werkzeug `create_design`.
+- **Zeilen: Schräge, Welle & Eckenrundung.** Farbige Sektionen (Zeilen mit Hintergrundfarbe) können jetzt oben und/oder unten eine **Schräge** oder **Welle** in derselben Farbe bekommen (diagonaler bzw. geschwungener Übergang). Zusätzlich lässt sich die **Eckenrundung** pro Zeile und pro Block mit Hintergrundfarbe einstellen – standardmäßig automatisch nach dem gewählten Design, aber frei änderbar (0 = eckig). Funktioniert im Inhalts-Editor und im visuellen Layout-Baukasten.
+
 ## 1.39.0 – 2026-07-19
 
 - **Produkte: Staffelpreise, Varianten und Cross-Selling.** Das Produktformular hat drei neue Bereiche:

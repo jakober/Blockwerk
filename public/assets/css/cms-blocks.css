@@ -14,6 +14,20 @@
     --cms-text: #1e293b;
     --cms-bg: #ffffff;
     --cms-surface: #f1f5f9;
+
+    /* Design-Tokens (werden vom gewählten Design gesetzt) – steuern die
+       Gesamt-Optik: Rundungen, Hero-Höhe, Abstände, Schrift & Schatten. */
+    --cms-radius: 12px;          /* Standard-Eckenrundung für Boxen/Bilder */
+    --cms-btn-radius: 10px;      /* Button-Form */
+    --cms-hero-h: 65vh;          /* Standard-Höhe des Hero, wenn Block „automatisch" */
+    --cms-container: 1100px;     /* max. Inhaltsbreite */
+    --cms-section-space: 0px;    /* vertikaler Innenabstand farbiger Sektionen */
+    --cms-shadow: 0 12px 34px rgba(0, 0, 0, .08);
+    --cms-font-scale: 16px;      /* Basis-Schriftgröße */
+    --cms-heading-weight: 800;
+    --cms-heading-spacing: -.3px;
+    --cms-heading-transform: none;
+    --cms-shape-h: 52px;         /* Höhe von Schrägen/Wellen an Sektionen */
 }
 
 /* :where() hält die Spezifität bei 0, damit der Admin-Editor (der diese
@@ -22,15 +36,22 @@
     background: var(--cms-bg);
     color: var(--cms-text);
     font-family: var(--cms-font-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+    font-size: var(--cms-font-scale, 16px);
 }
 /* Jede Überschriften-Ebene nutzt zuerst ihre eigene Schrift (falls im Layout
-   gewählt), sonst die allgemeine Überschriften-Schrift, sonst die Standard. */
-:where(h1) { font-family: var(--cms-font-h1, var(--cms-font-heading, inherit)); }
-:where(h2) { font-family: var(--cms-font-h2, var(--cms-font-heading, inherit)); }
-:where(h3) { font-family: var(--cms-font-h3, var(--cms-font-heading, inherit)); }
-:where(h4) { font-family: var(--cms-font-h4, var(--cms-font-heading, inherit)); }
-:where(h5) { font-family: var(--cms-font-h5, var(--cms-font-heading, inherit)); }
-:where(h6) { font-family: var(--cms-font-h6, var(--cms-font-heading, inherit)); }
+   gewählt), sonst die allgemeine Überschriften-Schrift, sonst die Design-
+   Schrift, sonst die Standard. */
+:where(h1) { font-family: var(--cms-font-h1, var(--cms-font-heading, var(--cms-heading-font, inherit))); }
+:where(h2) { font-family: var(--cms-font-h2, var(--cms-font-heading, var(--cms-heading-font, inherit))); }
+:where(h3) { font-family: var(--cms-font-h3, var(--cms-font-heading, var(--cms-heading-font, inherit))); }
+:where(h4) { font-family: var(--cms-font-h4, var(--cms-font-heading, var(--cms-heading-font, inherit))); }
+:where(h5) { font-family: var(--cms-font-h5, var(--cms-font-heading, var(--cms-heading-font, inherit))); }
+:where(h6) { font-family: var(--cms-font-h6, var(--cms-font-heading, var(--cms-heading-font, inherit))); }
+:where(.cms-heading) {
+    font-weight: var(--cms-heading-weight, 800);
+    letter-spacing: var(--cms-heading-spacing, -.3px);
+    text-transform: var(--cms-heading-transform, none);
+}
 
 /* ===== Zeilen & flexible Spalten (12er-Raster) ===== */
 .cms-row {
@@ -68,10 +89,41 @@
     margin-bottom: 28px;
 }
 .cms-section > .cms-row {
-    max-width: 1100px;
+    max-width: var(--cms-container, 1100px);
     margin: 0 auto;
     padding-left: 20px;
     padding-right: 20px;
+}
+/* Farbige Sektionen bekommen standardmäßig den Design-Innenabstand
+   (Zeilen-Einstellungen pt/pb überschreiben ihn per Inline-Style). */
+.cms-section { padding-top: var(--cms-section-space, 0px); padding-bottom: var(--cms-section-space, 0px); }
+/* Eigene Eckenrundung einer Sektion (per Inline-Var --sec-radius). */
+.cms-section[style*="--sec-radius"] { border-radius: var(--sec-radius); overflow: hidden; }
+
+/* ---- Formen an farbigen Sektionen: Schräge & Welle (oben/unten) ---- */
+/* Schräge = die Sektion wird per clip-path diagonal beschnitten (der Anschnitt
+   gibt den dahinterliegenden Seitenhintergrund frei – farbunabhängig). */
+.cms-sec-st-slant:not(.cms-sec-sb-slant) { clip-path: polygon(0 var(--cms-shape-h), 100% 0, 100% 100%, 0 100%); }
+.cms-sec-sb-slant:not(.cms-sec-st-slant) { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cms-shape-h)), 0 100%); }
+.cms-sec-st-slant.cms-sec-sb-slant { clip-path: polygon(0 var(--cms-shape-h), 100% 0, 100% calc(100% - var(--cms-shape-h)), 0 100%); }
+
+/* Welle = die Sektion wird an der Kante per SVG-Maske wellig beschnitten.
+   (Der nötige Innenabstand wird beim Rendern als Inline-Style gesetzt.) */
+.cms-sec-sb-wave:not(.cms-sec-st-wave) {
+    -webkit-mask: linear-gradient(#000 0 0) top/100% calc(100% - var(--cms-shape-h)) no-repeat, var(--cms-wave-b) bottom/128px var(--cms-shape-h) repeat-x;
+            mask: linear-gradient(#000 0 0) top/100% calc(100% - var(--cms-shape-h)) no-repeat, var(--cms-wave-b) bottom/128px var(--cms-shape-h) repeat-x;
+}
+.cms-sec-st-wave:not(.cms-sec-sb-wave) {
+    -webkit-mask: linear-gradient(#000 0 0) bottom/100% calc(100% - var(--cms-shape-h)) no-repeat, var(--cms-wave-t) top/128px var(--cms-shape-h) repeat-x;
+            mask: linear-gradient(#000 0 0) bottom/100% calc(100% - var(--cms-shape-h)) no-repeat, var(--cms-wave-t) top/128px var(--cms-shape-h) repeat-x;
+}
+.cms-sec-st-wave.cms-sec-sb-wave {
+    -webkit-mask: var(--cms-wave-t) top/128px var(--cms-shape-h) repeat-x, linear-gradient(#000 0 0) center/100% calc(100% - 2 * var(--cms-shape-h)) no-repeat, var(--cms-wave-b) bottom/128px var(--cms-shape-h) repeat-x;
+            mask: var(--cms-wave-t) top/128px var(--cms-shape-h) repeat-x, linear-gradient(#000 0 0) center/100% calc(100% - 2 * var(--cms-shape-h)) no-repeat, var(--cms-wave-b) bottom/128px var(--cms-shape-h) repeat-x;
+}
+:root {
+    --cms-wave-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 52' preserveAspectRatio='none'%3E%3Cpath d='M0 26 C32 52 96 0 128 26 L128 0 L0 0 Z' fill='%23000'/%3E%3C/svg%3E");
+    --cms-wave-t: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 52' preserveAspectRatio='none'%3E%3Cpath d='M0 26 C32 0 96 52 128 26 L128 52 L0 52 Z' fill='%23000'/%3E%3C/svg%3E");
 }
 
 /* Wrapper für Block-Gestaltung (Abstände/Farben ohne CSS) */
@@ -95,7 +147,7 @@ h1.cms-heading { font-size: 2.3em; }
 /* ===== Text ===== */
 .cms-text p { margin: 0 0 1em; }
 .cms-text.cms-v-infobox {
-    background: var(--cms-surface); border-radius: 12px; padding: 18px 20px;
+    background: var(--cms-surface); border-radius: var(--cms-radius, 12px); padding: 18px 20px;
 }
 .cms-text.cms-v-note {
     background: color-mix(in srgb, var(--cms-accent) 12%, transparent);
@@ -105,7 +157,7 @@ h1.cms-heading { font-size: 2.3em; }
 
 /* ===== Bild ===== */
 .cms-figure { margin: 0; }
-.cms-figure img.cms-image { max-width: 100%; height: auto; border-radius: 12px; display: block; }
+.cms-figure img.cms-image { max-width: 100%; height: auto; border-radius: var(--cms-radius, 12px); display: block; }
 .cms-figure figcaption { font-size: .88em; color: color-mix(in srgb, var(--cms-text) 60%, transparent); padding-top: 7px; }
 .cms-figure.cms-v-frame img.cms-image {
     border: 1px solid color-mix(in srgb, var(--cms-text) 15%, transparent);
@@ -123,13 +175,13 @@ h1.cms-heading { font-size: 2.3em; }
 .cms-gallery .cms-gl-item { margin: 0; min-width: 0; }
 .cms-gallery img {
     width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
-    border-radius: 10px; display: block;
+    border-radius: var(--cms-radius, 10px); display: block;
 }
 .cms-gallery .cms-gl-link { display: block; transition: transform .15s; }
 .cms-gallery .cms-gl-link:hover { transform: scale(1.02); }
 .cms-gallery figcaption { font-size: .85em; color: color-mix(in srgb, var(--cms-text) 60%, transparent); padding-top: 5px; }
 .cms-gallery.cms-v-cards .cms-gl-item {
-    background: var(--cms-surface); border-radius: 12px; padding: 10px;
+    background: var(--cms-surface); border-radius: var(--cms-radius, 12px); padding: 10px;
 }
 .cms-gallery.cms-v-seamless { gap: 3px; }
 .cms-gallery.cms-v-seamless img { border-radius: 0; }
@@ -139,7 +191,7 @@ h1.cms-heading { font-size: 2.3em; }
 /* ===== Slider (Bilder) ===== */
 .cms-imgslider {
     position: relative; height: var(--h, 420px);
-    border-radius: 14px; overflow: hidden; background: #0f172a;
+    border-radius: var(--cms-radius, 14px); overflow: hidden; background: #0f172a;
 }
 .cms-imgslider .cms-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s; }
 .cms-imgslider .cms-slide.is-active { opacity: 1; z-index: 1; }
@@ -152,7 +204,7 @@ h1.cms-heading { font-size: 2.3em; }
 
 /* ===== Hero (volle Breite) ===== */
 .cms-hero {
-    position: relative; height: var(--hero-h, 65vh); min-height: 320px;
+    position: relative; height: var(--hero-h, var(--cms-hero-h, 65vh)); min-height: 320px;
     overflow: hidden; background: #0f172a; margin-bottom: 36px;
 }
 .cms-hero .cms-slide {
@@ -224,7 +276,7 @@ h1.cms-heading { font-size: 2.3em; }
 
 /* ===== Button ===== */
 .cms-btn {
-    display: inline-block; padding: 11px 22px; border-radius: 9px;
+    display: inline-block; padding: 11px 22px; border-radius: var(--cms-btn-radius, 9px);
     font-weight: 700; text-decoration: none;
     transition: transform .12s, box-shadow .12s, background .12s;
 }
@@ -430,7 +482,7 @@ h1.cms-heading { font-size: 2.3em; }
 
 /* ===== Team ===== */
 .cms-team { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); gap: 22px; }
-.cms-team-card { background: var(--cms-surface); border-radius: 14px; padding: 22px; text-align: center; }
+.cms-team-card { background: var(--cms-surface); border-radius: var(--cms-radius, 14px); padding: 22px; text-align: center; }
 .cms-team-card img { width: 110px; height: 110px; object-fit: cover; border-radius: 50%; margin-bottom: 12px; }
 .cms-team-card h3 { margin: 0 0 2px; font-size: 1.05em; }
 .cms-team-role { color: var(--cms-primary); font-weight: 700; font-size: .85em; margin-bottom: 8px; }

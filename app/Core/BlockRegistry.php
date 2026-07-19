@@ -199,22 +199,34 @@ class BlockRegistry
     private static function styleAttr(array $style): string
     {
         $css = '';
-        $lengths = ['mt' => 'margin-top', 'mb' => 'margin-bottom', 'p' => 'padding', 'radius' => 'border-radius'];
-        foreach ($lengths as $key => $prop) {
+        foreach (['mt' => 'margin-top', 'mb' => 'margin-bottom', 'p' => 'padding'] as $key => $prop) {
             if (isset($style[$key]) && $style[$key] !== '' && (int) $style[$key] > 0) {
                 $css .= $prop . ':' . min(400, (int) $style[$key]) . 'px;';
             }
         }
+        $hasBg = false;
         foreach (['color' => 'color', 'bg' => 'background'] as $key => $prop) {
             $value = (string) ($style[$key] ?? '');
             if (preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
                 $css .= $prop . ':' . strtolower($value) . ';';
+                if ($key === 'bg') {
+                    $hasBg = true;
+                }
             }
+        }
+        // Eckenrundung: explizit gesetzter Wert gewinnt (0 = eckig); ohne Angabe
+        // bekommen farbige Blöcke automatisch die Design-Rundung.
+        $radiusSet = isset($style['radius']) && $style['radius'] !== '';
+        if ($radiusSet) {
+            $r = min(400, max(0, (int) $style['radius']));
+            $css .= 'border-radius:' . $r . 'px;';
+        } elseif ($hasBg) {
+            $css .= 'border-radius:var(--cms-radius,12px);';
         }
         if (in_array($style['align'] ?? '', ['left', 'center', 'right'], true)) {
             $css .= 'text-align:' . $style['align'] . ';';
         }
-        if (str_contains($css, 'border-radius') || str_contains($css, 'background')) {
+        if (str_contains($css, 'border-radius') || $hasBg) {
             $css .= 'overflow:hidden;';
         }
         return $css;
@@ -376,12 +388,15 @@ class BlockRegistry
         if ($slides === []) {
             return '';
         }
-        $height = min(100, max(30, (int) ($data['height'] ?? 65)));
+        // Höhe 0/leer = automatisch: dann bestimmt das gewählte Design die
+        // Hero-Höhe (--cms-hero-h). Sonst fester Wert in % der Bildschirmhöhe.
+        $height = (int) ($data['height'] ?? 0);
+        $heroStyle = $height > 0 ? ' style="--hero-h:' . min(100, max(30, $height)) . 'vh"' : '';
         $overlay = $data['overlay'] ?? 'medium';
         $overlay = in_array($overlay, ['none', 'light', 'medium', 'dark'], true) ? $overlay : 'medium';
 
         $html = '<div class="cms-hero cms-fullwidth"' . self::sliderAttrs($data, 6)
-            . ' style="--hero-h:' . $height . 'vh">';
+            . $heroStyle . '>';
         foreach ($slides as $i => $slide) {
             $html .= '<div class="cms-slide' . ($i === 0 ? ' is-active' : '') . '"'
                 . (!empty($slide['src']) ? ' style="background-image:url(\'' . e((string) $slide['src']) . '\')"' : '') . '>';

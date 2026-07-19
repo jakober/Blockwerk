@@ -151,7 +151,7 @@
         },
         hero: {
             label: 'Hero (volle Breite)', icon: '▬',
-            defaults: { slides: [], height: 65, overlay: 'medium', autoplay: 1, interval: 6, arrows: 1, dots: 1 },
+            defaults: { slides: [], height: 0, overlay: 'medium', autoplay: 1, interval: 6, arrows: 1, dots: 1 },
             items: {
                 key: 'slides', label: 'Slides', itemLabel: 'Slide',
                 fields: [
@@ -163,7 +163,7 @@
                 ],
             },
             fields: [
-                { key: 'height', label: 'Höhe (% der Bildschirmhöhe)', type: 'number' },
+                { key: 'height', label: 'Höhe (% der Bildschirmhöhe, 0 = automatisch nach Design)', type: 'number' },
                 { key: 'overlay', label: 'Abdunkelung', type: 'select', options: [['none', 'Keine'], ['light', 'Leicht'], ['medium', 'Mittel'], ['dark', 'Stark']] },
                 { key: 'autoplay', label: 'Automatisch wechseln', type: 'checkbox' },
                 { key: 'interval', label: 'Wechsel alle … Sekunden', type: 'number' },
@@ -1239,6 +1239,26 @@
                 applyRowStyles();
             });
         });
+
+        // Form der farbigen Sektion (Schräge/Welle) + eigene Eckenrundung.
+        // Nur sinnvoll, wenn die Zeile eine Hintergrundfarbe/Vollbreite hat.
+        var shapeOpts = [['', 'Gerade'], ['slant', 'Schräge'], ['wave', 'Welle']];
+        addField(inspectorBody, { key: 'st', label: 'Form oben (bei Hintergrundfarbe)', type: 'select', options: shapeOpts }, style.st, (v) => {
+            if (v === '') delete style.st; else style.st = v;
+            markDirty();
+        });
+        addField(inspectorBody, { key: 'sb', label: 'Form unten (bei Hintergrundfarbe)', type: 'select', options: shapeOpts }, style.sb, (v) => {
+            if (v === '') delete style.sb; else style.sb = v;
+            markDirty();
+        });
+        addField(inspectorBody, { key: 'radius', label: 'Eckenrundung (px, leer = automatisch nach Design)', type: 'number' }, style.radius, (v) => {
+            if (v === '') delete style.radius; else style.radius = v;
+            markDirty();
+        });
+        var shapeHint = document.createElement('p');
+        shapeHint.className = 'muted small';
+        shapeHint.textContent = 'Schräge/Welle und Eckenrundung wirken auf farbige Sektionen und erscheinen auf der Website (Vorschau über „Website ansehen").';
+        inspectorBody.appendChild(shapeHint);
 
         // Mobiles Verhalten der Spalten – verständliche Auswahl.
         // Intern gesteuert über style.bp: leer = Standard (768 px),

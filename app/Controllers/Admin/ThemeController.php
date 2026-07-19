@@ -33,4 +33,15 @@ class ThemeController extends AdminController
         }
         redirect('/admin/themes');
     }
+
+    public function delete(string $key): void
+    {
+        if (Themes::isCustom($key)) {
+            Themes::deleteCustom($key);
+            flash('success', 'Eigenes Design gelöscht.');
+        } else {
+            flash('error', 'Mitgelieferte Designs können nicht gelöscht werden.');
+        }
+        redirect('/admin/themes');
+    }
 }

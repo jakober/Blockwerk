@@ -17,14 +17,17 @@ Paket, ist dort aber ohne `config.php` funktionslos.
      gibt (`.htaccess` wirkt bei nginx nicht):
 
      ```nginx
+     # Beispiel: ai-server liegt in /var/www/blockwerk/ai-server,
+     # erreichbar unter /ai-server. root (NICHT alias) verwenden, wenn der
+     # URL-Pfad dem Ordnernamen entspricht -> vermeidet den bekannten
+     # alias+try_files-404-Bug.
      location ^~ /ai-server/ {
-         alias /pfad/zu/ai-server/;
+         root /var/www/blockwerk;
          location ~ ^/ai-server/(data\.sqlite|.*config.*\.php)$ { deny all; }
          try_files $uri /ai-server/index.php$is_args$args;
          location ~ ^/ai-server/.+\.php$ {
-             include fastcgi_params;
+             include snippets/fastcgi-php.conf;
              fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-             fastcgi_param SCRIPT_FILENAME $request_filename;
          }
      }
      ```

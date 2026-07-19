@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Controllers\Admin;
 
 use Core\Auth;
-use Core\Updater;
 use Core\View;
 
 abstract class AdminController
@@ -12,14 +11,9 @@ abstract class AdminController
     public function __construct()
     {
         Auth::requireLogin();
-        // Beim Betreten des Backends (normale Seitenaufrufe) prüfen, ob es ein
-        // Update gibt – gecacht (höchstens alle 6 h) und mit kurzem Timeout.
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-            try {
-                Updater::refreshIfStale();
-            } catch (\Throwable) {
-            }
-        }
+        // Die Update-Prüfung läuft NICHT hier (das würde den Seitenaufbau
+        // blockieren), sondern per Hintergrund-XHR nach dem Laden der Seite –
+        // siehe /admin/update/status (UpdateController::status).
     }
 
     protected function view(string $template, array $data = []): void

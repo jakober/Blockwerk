@@ -72,7 +72,7 @@ $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : n
                         <div class="nav-group"><?= e($groupLabel) ?></div>
                     <?php endif; ?>
                     <?php foreach ($items as $key => [$label, $href, $icon]): ?>
-                        <a href="<?= e(url($href)) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
+                        <a href="<?= e(url($href)) ?>" data-nav-key="<?= e($key) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
                             <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
                             <?php if ($key === 'update' && $navUpdateVersion !== null): ?><span class="nav-badge" title="Update auf <?= e($navUpdateVersion) ?> verfügbar">1</span><?php endif; ?>
                         </a>
@@ -120,6 +120,42 @@ $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : n
     if (brand) { brand.addEventListener('click', flip); }
     if (backdrop) { backdrop.addEventListener('click', function () { toggle(false); }); }
 })();
+<?php if (\Core\Auth::isAdmin()): ?>
+// Update-Prüfung im Hintergrund (blockiert den Seitenaufbau nicht). Zeigt ein
+// verfügbares Update sofort an – ohne die Seite neu zu laden.
+(function () {
+    var base = window.CMS_BASE || '';
+    fetch(base + '/admin/update/status', { credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+            if (!d || !d.available) { return; }
+            var v = String(d.available).replace(/[^0-9.]/g, '');
+            if (!v) { return; }
+            // Menü-Markierung am Punkt „Updates".
+            var link = document.querySelector('[data-nav-key="update"]');
+            if (link && !link.querySelector('.nav-badge')) {
+                var badge = document.createElement('span');
+                badge.className = 'nav-badge';
+                badge.title = 'Update auf ' + v + ' verfügbar';
+                badge.textContent = '1';
+                link.appendChild(badge);
+            }
+            // Banner im Dashboard (nur wenn noch keiner da ist).
+            var content = document.querySelector('.content');
+            if (content && !document.querySelector('.dash-update') && document.querySelector('.dash-actions')) {
+                var a = document.createElement('a');
+                a.className = 'card dash-update';
+                a.href = base + '/admin/update';
+                a.innerHTML = '<span class="dash-update-icon">⟳</span>'
+                    + '<span class="dash-update-text"><strong>Update verfügbar: Version ' + v + '</strong>'
+                    + '<span class="muted small">Jetzt aktualisieren.</span></span>'
+                    + '<span class="btn btn-primary btn-small dash-update-btn">Zu den Updates →</span>';
+                content.insertBefore(a, content.firstChild);
+            }
+        })
+        .catch(function () {});
+})();
+<?php endif; ?>
 </script>
 </body>
 </html>

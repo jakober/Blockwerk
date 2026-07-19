@@ -94,26 +94,20 @@ class Updater
     }
 
     /**
-     * Wärmt den Cache beim Betreten des Backends – aber NIE blockierend.
-     * Der Netzabruf läuft erst NACH dem Ausliefern der Seite (php-fpm:
-     * fastcgi_finish_request), damit kein Klick im Backend hängt. Das Ergebnis
-     * steht beim nächsten Seitenaufruf bereit.
+     * Prüft bei Fälligkeit online auf eine neuere Version und gibt sie zurück
+     * (sonst null). Gedacht für den Hintergrund-Aufruf per XHR NACH dem Laden
+     * der Seite: dort darf der Netzabruf ruhig ein paar Sekunden dauern, weil er
+     * den Seitenaufbau selbst nicht blockiert. So hängt kein Klick im Backend.
      */
-    public static function refreshIfStale(): void
+    public static function autoCheck(): ?string
     {
-        $cached = trim((string) \Models\Setting::get('update_remote', ''));
+        $cached = self::cachedRemote();
         $checkedAt = (int) \Models\Setting::get('update_checked_at', '0');
-        // Erfolg: höchstens alle 6 h neu prüfen. Noch nie erfolgreich / Fehler:
-        // alle 15 min erneut versuchen (aber nicht bei jedem einzelnen Klick).
-        $ttl = $cached !== '' ? 6 * 3600 : 15 * 60;
-        if ((time() - $checkedAt) < $ttl) {
-            return;
-        }
-        // Sofort den Zeitstempel setzen, damit parallele Aufrufe nicht ebenfalls
-        // prüfen (kein „Stampede").
-        \Models\Setting::set('update_checked_at', (string) time());
-
-        $run = static function (): void {
+        // Mit bekanntem Wert höchstens alle 6 h erneut online sehen; solange noch
+        // gar kein Wert bekannt ist, alle 60 s erneut versuchen (bis es klappt).
+        $ttl = $cached !== null ? 6 * 3600 : 60;
+        if ((time() - $checkedAt) >= $ttl) {
+            \Models\Setting::set('update_checked_at', (string) time());
             try {
                 $remote = self::remoteVersion(15);
                 if ($remote !== null) {
@@ -122,14 +116,8 @@ class Updater
             } catch (\Throwable) {
                 // Ignorieren – beim nächsten Fälligkeitsfenster erneut versuchen.
             }
-        };
-        // Antwort zuerst vollständig senden, dann im Hintergrund prüfen.
-        register_shutdown_function(static function () use ($run): void {
-            if (function_exists('fastcgi_finish_request')) {
-                @fastcgi_finish_request();
-            }
-            $run();
-        });
+        }
+        return self::updateAvailable();
     }
 
     /** Reiner Cache-Lesezugriff (kein Netz) – zeigt die zuletzt bekannte Version. */

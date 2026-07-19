@@ -31,6 +31,21 @@ class UpdateController extends AdminController
         ]);
     }
 
+    /**
+     * Hintergrund-Check per XHR (nach dem Laden der Seite aufgerufen). Prüft bei
+     * Fälligkeit online und liefert die verfügbare neuere Version als JSON – ohne
+     * den Seitenaufbau zu blockieren.
+     */
+    public function status(): void
+    {
+        $available = Updater::autoCheck();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'current' => Updater::currentVersion(),
+            'available' => $available,
+        ]);
+    }
+
     public function check(): void
     {
         // Erzwungene, frische Prüfung.

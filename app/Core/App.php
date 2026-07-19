@@ -239,6 +239,7 @@ class App
         $router->add('POST', '/admin/preview/blocks', [\Controllers\Admin\PreviewController::class, 'blocks']);
 
         $router->add('GET', '/admin/update', [\Controllers\Admin\UpdateController::class, 'index']);
+        $router->add('GET', '/admin/update/status', [\Controllers\Admin\UpdateController::class, 'status']);
         $router->add('POST', '/admin/update/check', [\Controllers\Admin\UpdateController::class, 'check']);
         $router->add('POST', '/admin/update/run', [\Controllers\Admin\UpdateController::class, 'run']);
 

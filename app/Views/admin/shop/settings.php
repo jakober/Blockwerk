@@ -71,9 +71,22 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
 
 <div class="card">
     <h2>Versandarten</h2>
+    <?php
+    $tiersToText = static function (array $sh): string {
+        $parts = [];
+        foreach (\Models\ShopShipping::weightTiers($sh) as $t) {
+            $kg = rtrim(rtrim(number_format($t['max'] / 1000, 3, '.', ''), '0'), '.');
+            $eur = rtrim(rtrim(number_format($t['price'] / 100, 2, ',', ''), '0'), ',');
+            $parts[] = $kg . ':' . $eur;
+        }
+        return implode('; ', $parts);
+    };
+    $countriesToText = static fn (array $sh): string => implode(', ', \Models\ShopShipping::countries($sh));
+    ?>
+    <p class="muted small">Gewichtsstaffeln als „kg:€" je Stufe, mit <strong>Semikolon</strong> getrennt – z. B. <code>5:20; 20:50</code> = bis 5 kg 20 €, bis 20 kg 50 €. Ohne Staffeln gilt der Pauschalpreis. Das Warenkorbgewicht ergibt sich aus dem Gewicht der Produkte (kein Gewicht = niedrigste Stufe). Länder kommagetrennt (leer = alle Länder); an der Kasse werden nur passende Versandarten angezeigt.</p>
     <?php if (!empty($shipping)): ?>
         <table class="table">
-            <thead><tr><th>Name</th><th>Preis</th><th>Gratis ab</th><th>Aktiv</th><th class="actions-col"></th></tr></thead>
+            <thead><tr><th>Name</th><th>Preis</th><th>Gratis ab</th><th>Länder</th><th>Staffeln (kg:€)</th><th>Aktiv</th><th class="actions-col"></th></tr></thead>
             <tbody>
                 <?php foreach ($shipping as $sh): ?>
                     <tr>
@@ -83,6 +96,8 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
                         </td>
                         <td><input type="text" name="price" value="<?= e($priceStr($sh['price'])) ?>" style="max-width:90px" inputmode="decimal"></td>
                         <td><input type="text" name="free_from" value="<?= e($priceStr($sh['free_from'] ?? '')) ?>" placeholder="—" style="max-width:90px" inputmode="decimal"></td>
+                        <td><input type="text" name="countries" value="<?= e($countriesToText($sh)) ?>" placeholder="alle" style="max-width:150px"></td>
+                        <td><input type="text" name="weight_tiers" value="<?= e($tiersToText($sh)) ?>" placeholder="z. B. 5:20; 20:50" style="max-width:150px"></td>
                         <td><input type="checkbox" name="active" <?= (int) $sh['active'] ? 'checked' : '' ?>></td>
                         <td class="actions-col">
                             <button type="submit" class="btn btn-small btn-primary">Speichern</button>
@@ -106,6 +121,10 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
             <div class="form-group grow"><label>Name</label><input type="text" name="name" placeholder="z. B. Standardversand" required></div>
             <div class="form-group"><label>Preis (€)</label><input type="text" name="price" placeholder="4,90" inputmode="decimal"></div>
             <div class="form-group"><label>Gratis ab (€, optional)</label><input type="text" name="free_from" placeholder="50,00" inputmode="decimal"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group grow"><label>Länder (kommagetrennt, leer = alle)</label><input type="text" name="countries" placeholder="Deutschland, Österreich"></div>
+            <div class="form-group grow"><label>Gewichtsstaffeln (kg:€)</label><input type="text" name="weight_tiers" placeholder="5:20; 20:50"></div>
         </div>
         <div class="form-group checkbox-group"><label><input type="checkbox" name="active" checked> Aktiv</label></div>
         <button type="submit" class="btn">+ Versandart hinzufügen</button>

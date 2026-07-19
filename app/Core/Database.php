@@ -218,6 +218,8 @@ class Database
                 description VARCHAR(255) NULL,
                 price INT NOT NULL DEFAULT 0,
                 free_from INT NULL,
+                countries TEXT NULL,
+                weight_tiers TEXT NULL,
                 active TINYINT(1) NOT NULL DEFAULT 1,
                 position INT NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -295,6 +297,8 @@ class Database
         self::ensureColumn($pdo, 'shop_products', 'options', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_products', 'cross_sell', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_products', 'accessories', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_shipping', 'countries', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_shipping', 'weight_tiers', 'TEXT NULL');
     }
 
     /**

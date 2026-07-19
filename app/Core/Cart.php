@@ -127,4 +127,14 @@ class Cart
         }
         return $sum;
     }
+
+    /** Gesamtgewicht des Warenkorbs in Gramm (fehlendes Produktgewicht = 0). */
+    public static function weight(): int
+    {
+        $sum = 0;
+        foreach (self::items() as $item) {
+            $sum += max(0, (int) ($item['product']['weight'] ?? 0)) * (int) $item['qty'];
+        }
+        return $sum;
+    }
 }

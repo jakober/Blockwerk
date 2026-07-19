@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.47.0 – 2026-07-19
+
+- **Gewichts- und länderabhängige Versandkosten.** Versandarten können jetzt **Gewichtsstaffeln** haben (z. B. bis 5 kg 20 €, bis 20 kg 50 €) und auf bestimmte **Länder** beschränkt werden. Für unterschiedliche Länderpreise legt man einfach mehrere Versandarten an (z. B. „Versand Deutschland" und „Versand EU"). An der Kasse wählt der Kunde sein Land, woraufhin nur passende Versandarten mit dem zum Warenkorbgewicht passenden Preis erscheinen. Ohne Staffeln gilt weiter der Pauschalpreis; „gratis ab" bleibt möglich.
+  - **Produktgewicht** wird jetzt in **kg** eingegeben (vorher Gramm) und fließt ins Warenkorbgewicht ein. Produkte ohne Gewicht zählen zur niedrigsten Staffel.
+  - Eingabe der Staffeln kompakt als „kg:€" je Stufe, per Semikolon getrennt (z. B. `5:20; 20:50`); Länder kommagetrennt (leer = alle Länder).
+  - Der KI-Assistent kann beim Anlegen/Ändern von Produkten nun auch das **Gewicht (in kg)** setzen.
+
 ## 1.46.0 – 2026-07-19
 
 - **KI kann jetzt Staffelpreise und Varianten anlegen.** Der Shop unterstützte Staffelpreise, Produkteigenschaften/Varianten (mit Preisaufschlag) sowie Cross-Selling/Zubehör längst – der KI-Assistent konnte sie beim Anlegen/Ändern von Produkten aber nicht setzen und meldete daher fälschlich, das ginge nicht. Die Produkt-Werkzeuge kennen nun `tier_prices`, `variants`, `cross_sell` und `accessories`; die KI kann Staffelpreise (ab Menge X günstiger), Varianten wie Größe/Farbe (optional mit Aufschlag) und verknüpfte Produkte selbst einpflegen.

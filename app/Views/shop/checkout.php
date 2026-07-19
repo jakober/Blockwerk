@@ -26,7 +26,17 @@ $clientId = \Core\Shop::paypalClientId();
                     <label>PLZ*<input type="text" name="zip" value="<?= $val('zip') ?>" required></label>
                     <label>Ort*<input type="text" name="city" value="<?= $val('city') ?>" required></label>
                 </div>
-                <label>Land<input type="text" name="country" value="<?= $f['country'] ?? '' ? $val('country') : 'Deutschland' ?>"></label>
+                <?php if (!empty($shipCountries)): $curCountry = (string) ($f['country'] ?? ''); ?>
+                    <label>Land*
+                        <select name="country" id="ship-country" required>
+                            <?php foreach ($shipCountries as $c): ?>
+                                <option value="<?= e($c) ?>" <?= mb_strtolower($c) === mb_strtolower($curCountry) ? 'selected' : '' ?>><?= e($c) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                <?php else: ?>
+                    <label>Land<input type="text" name="country" value="<?= $f['country'] ?? '' ? $val('country') : 'Deutschland' ?>"></label>
+                <?php endif; ?>
                 <div class="shop-form-row">
                     <label>E-Mail*<input type="email" name="email" value="<?= $val('email') ?>" required></label>
                     <label>Telefon (optional)<input type="text" name="phone" value="<?= $val('phone') ?>"></label>
@@ -38,15 +48,20 @@ $clientId = \Core\Shop::paypalClientId();
                 <fieldset class="shop-fieldset">
                     <legend>Versandart</legend>
                     <?php foreach ($shipping as $i => $m): ?>
-                        <label class="shop-option">
+                        <?php
+                        $mCost = \Models\ShopShipping::basePrice($m, (int) ($weight ?? 0));
+                        $mCountries = array_map('mb_strtolower', \Models\ShopShipping::countries($m));
+                        ?>
+                        <label class="shop-option" data-ship-countries='<?= e(json_encode($mCountries)) ?>'>
                             <input type="radio" name="shipping_id" value="<?= (int) $m['id'] ?>" <?= $i === 0 ? 'checked' : '' ?>
-                                   data-price="<?= (int) $m['price'] ?>" data-free="<?= (int) ($m['free_from'] ?? 0) ?>">
+                                   data-price="<?= (int) $mCost ?>" data-free="<?= (int) ($m['free_from'] ?? 0) ?>">
                             <span><strong><?= e($m['name']) ?></strong><?php if (!empty($m['description'])): ?> – <?= e($m['description']) ?><?php endif; ?>
                                 <?php if (($m['free_from'] ?? null) !== null): ?><em class="muted small">(gratis ab <?= e($fmt($m['free_from'])) ?>)</em><?php endif; ?>
                             </span>
-                            <span class="shop-option-price"><?= e($fmt($m['price'])) ?></span>
+                            <span class="shop-option-price"><?= e($fmt($mCost)) ?></span>
                         </label>
                     <?php endforeach; ?>
+                    <p class="muted small" id="ship-none" hidden>In das gewählte Land ist derzeit kein Versand möglich.</p>
                 </fieldset>
             <?php endif; ?>
 
@@ -107,6 +122,34 @@ $clientId = \Core\Shop::paypalClientId();
         document.getElementById('sum-total').textContent = fmt(subtotal + ship);
     }
     form.querySelectorAll('input[name=shipping_id]').forEach(function (el) { el.addEventListener('change', updateTotals); });
+
+    // Versandarten nach gewähltem Land ein-/ausblenden.
+    var countrySel = document.getElementById('ship-country');
+    function filterByCountry() {
+        if (!countrySel) return;
+        var country = (countrySel.value || '').trim().toLowerCase();
+        var anyVisible = false, checkedVisible = false;
+        form.querySelectorAll('.shop-option[data-ship-countries]').forEach(function (opt) {
+            var list = [];
+            try { list = JSON.parse(opt.getAttribute('data-ship-countries') || '[]'); } catch (e) {}
+            var serves = list.length === 0 || list.indexOf(country) !== -1;
+            opt.style.display = serves ? '' : 'none';
+            var radio = opt.querySelector('input[name=shipping_id]');
+            if (radio) {
+                radio.disabled = !serves;
+                if (serves) { anyVisible = true; if (radio.checked) checkedVisible = true; }
+                else if (radio.checked) radio.checked = false;
+            }
+        });
+        if (!checkedVisible && anyVisible) {
+            var first = form.querySelector('.shop-option[data-ship-countries] input[name=shipping_id]:not([disabled])');
+            if (first) first.checked = true;
+        }
+        var none = document.getElementById('ship-none');
+        if (none) none.hidden = anyVisible;
+    }
+    if (countrySel) countrySel.addEventListener('change', function () { filterByCountry(); updateTotals(); });
+    filterByCountry();
     updateTotals();
 
     // PayPal vs. normale Bestellung je nach Zahlungsart umschalten

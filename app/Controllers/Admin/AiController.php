@@ -675,7 +675,7 @@ class AiController extends AdminController
                         'cross_sell' => $extras['cross_sell'],
                         'accessories' => $extras['accessories'],
                         'stock' => isset($input['stock']) && $input['stock'] !== '' ? (int) $input['stock'] : null,
-                        'weight' => null,
+                        'weight' => isset($input['weight']) && $input['weight'] !== '' ? (int) round(((float) $input['weight']) * 1000) : null,
                         'active' => 1,
                         'featured' => (int) ($input['featured'] ?? 0) ? 1 : 0,
                         'position' => 0,
@@ -711,7 +711,7 @@ class AiController extends AdminController
                         // sonst die bestehenden erhalten (nicht überschreiben).
                         ...$this->shopExtrasJson($input, $prod),
                         'stock' => array_key_exists('stock', $input) && $input['stock'] !== '' ? (int) $input['stock'] : ($prod['stock'] ?? null),
-                        'weight' => $prod['weight'] ?? null,
+                        'weight' => array_key_exists('weight', $input) && $input['weight'] !== '' ? (int) round(((float) $input['weight']) * 1000) : ($prod['weight'] ?? null),
                         'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : (int) $prod['active'],
                         'featured' => array_key_exists('featured', $input) ? ((int) $input['featured'] ? 1 : 0) : (int) $prod['featured'],
                         'position' => (int) $prod['position'],

@@ -95,11 +95,36 @@ class ShopSettingsController extends ShopAdminController
             flash('error', 'Bitte einen Namen für die Versandart angeben.');
             return null;
         }
+        // Länder (kommagetrennt) → JSON-Liste. Leer = alle Länder.
+        $countries = array_values(array_filter(
+            array_map('trim', explode(',', (string) ($_POST['countries'] ?? ''))),
+            static fn ($c) => $c !== ''
+        ));
+
+        // Gewichtsstaffeln als kompakter Text "kg:€" pro Stufe, mit Semikolon
+        // (oder Zeilenumbruch) getrennt – z. B. "5:20; 20:50,50" = bis 5 kg 20 €,
+        // bis 20 kg 50,50 €. Semikolon als Trenner, damit Komma-Preise funktionieren.
+        $tiers = [];
+        foreach (preg_split('/[;\n]+/', (string) ($_POST['weight_tiers'] ?? '')) ?: [] as $part) {
+            $part = trim($part);
+            if ($part === '' || !str_contains($part, ':')) {
+                continue;
+            }
+            [$kg, $price] = explode(':', $part, 2);
+            $grams = (int) round(((float) str_replace(',', '.', trim($kg))) * 1000);
+            if ($grams > 0) {
+                $tiers[] = ['max' => $grams, 'price' => Shop::parsePrice(trim($price))];
+            }
+        }
+        usort($tiers, static fn ($a, $b) => $a['max'] <=> $b['max']);
+
         return [
             'name' => $name,
             'description' => trim($_POST['description'] ?? '') ?: null,
             'price' => Shop::parsePrice((string) ($_POST['price'] ?? '0')),
             'free_from' => ($_POST['free_from'] ?? '') !== '' ? Shop::parsePrice((string) $_POST['free_from']) : null,
+            'countries' => $countries !== [] ? json_encode($countries, JSON_UNESCAPED_UNICODE) : null,
+            'weight_tiers' => $tiers !== [] ? json_encode($tiers) : null,
             'active' => isset($_POST['active']) ? 1 : 0,
             'position' => (int) ($_POST['position'] ?? 0),
         ];

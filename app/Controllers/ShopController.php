@@ -129,7 +129,9 @@ class ShopController
         $this->render('checkout', 'Kasse', [
             'items' => Cart::items(),
             'subtotal' => Cart::subtotal(),
+            'weight' => Cart::weight(),
             'shipping' => $shipping,
+            'shipCountries' => ShopShipping::allCountries(),
             'payments' => Shop::paymentMethods(),
             'form' => $_SESSION['shop_checkout'] ?? [],
         ]);
@@ -263,10 +265,11 @@ class ShopController
             ];
         }
 
-        // Versandart
+        // Versandart – abhängig von Land (Verfügbarkeit) und Warenkorbgewicht (Preis).
         $shippingCost = 0;
         $shippingName = null;
-        $methods = ShopShipping::active();
+        $weight = Cart::weight();
+        $methods = ShopShipping::availableFor($form['country']);
         if ($methods !== []) {
             $chosen = null;
             $sid = (int) ($_POST['shipping_id'] ?? 0);
@@ -277,10 +280,12 @@ class ShopController
                 }
             }
             if ($chosen === null) {
-                return [[], [], 'Bitte eine Versandart wählen.'];
+                return [[], [], 'Bitte eine für das gewählte Land verfügbare Versandart wählen.'];
             }
-            $shippingCost = ShopShipping::costFor($chosen, $subtotal);
+            $shippingCost = ShopShipping::costFor($chosen, $subtotal, $weight);
             $shippingName = $chosen['name'];
+        } elseif (ShopShipping::active() !== []) {
+            return [[], [], 'In das gewählte Land ist derzeit kein Versand möglich.'];
         }
 
         $head = $form + [

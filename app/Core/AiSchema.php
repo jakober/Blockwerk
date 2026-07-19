@@ -444,6 +444,7 @@ PROMPT
                         'image' => ['type' => 'string', 'description' => 'Produktbild-URL (optional, z. B. aus list_media oder generate_image)'],
                         'compare_price' => ['type' => 'number', 'description' => 'Streichpreis für Angebote in Euro (optional)'],
                         'stock' => ['type' => 'integer', 'description' => 'Lagerbestand (optional, leer = unbegrenzt)'],
+                        'weight' => ['type' => 'number', 'description' => 'Gewicht in kg (optional, für gewichtsabhängigen Versand, z. B. 2.5)'],
                         'featured' => ['type' => 'integer', 'description' => '1 = auf der Shop-Startseite empfehlen'],
                         'tier_prices' => [
                             'type' => 'array',
@@ -479,6 +480,7 @@ PROMPT
                         'image' => ['type' => 'string'],
                         'compare_price' => ['type' => 'number'],
                         'stock' => ['type' => 'integer'],
+                        'weight' => ['type' => 'number', 'description' => 'Gewicht in kg (optional, z. B. 2.5)'],
                         'featured' => ['type' => 'integer'],
                         'active' => ['type' => 'integer', 'description' => '1 = sichtbar, 0 = ausgeblendet'],
                         'tier_prices' => [

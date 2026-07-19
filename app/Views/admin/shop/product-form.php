@@ -49,8 +49,8 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
                 <input type="number" id="stock" name="stock" value="<?= e($product['stock'] ?? '') ?>" min="0">
             </div>
             <div class="form-group">
-                <label for="weight">Gewicht in g (optional)</label>
-                <input type="number" id="weight" name="weight" value="<?= e($product['weight'] ?? '') ?>" min="0">
+                <label for="weight">Gewicht in kg (optional, für gewichtsabhängigen Versand)</label>
+                <input type="number" step="0.01" id="weight" name="weight" value="<?= e(!empty($product['weight']) ? rtrim(rtrim(number_format((int) $product['weight'] / 1000, 3, '.', ''), '0'), '.') : '') ?>" min="0">
             </div>
         </div>
 

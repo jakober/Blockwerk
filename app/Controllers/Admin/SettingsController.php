@@ -23,6 +23,7 @@ class SettingsController extends AdminController
             'siteName' => Setting::get('site_name', 'Meine Website'),
             'homePage' => (int) Setting::get('home_page', '0'),
             'contactEmail' => Setting::get('contact_email', ''),
+            'shopEnabled' => Setting::get('shop_enabled', '0'),
             'pages' => Page::tree(),
             'mail' => [
                 'transport' => Setting::get('mail_transport', 'mail'),
@@ -58,6 +59,7 @@ class SettingsController extends AdminController
         Setting::set('languages', $langs !== [] ? implode(',', $langs) : 'de');
 
         Setting::set('cache_enabled', isset($_POST['cache_enabled']) ? '1' : '0');
+        Setting::set('shop_enabled', isset($_POST['shop_enabled']) ? '1' : '0');
         \Core\Cache::clear();
 
         // KI-Assistent: Dienst-URL + Lizenzschlüssel.

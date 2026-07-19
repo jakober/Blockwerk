@@ -7,14 +7,8 @@ use Core\Shop;
 use Models\ShopCategory;
 use Models\ShopProduct;
 
-class ShopProductController extends AdminController
+class ShopProductController extends ShopAdminController
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->requireAdmin();
-    }
-
     public function index(): void
     {
         $cats = [];

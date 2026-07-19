@@ -60,6 +60,11 @@ class AiSchema
         $layoutsList = $layouts !== [] ? implode("\n", $layouts) : '- (keine Layouts)';
         $mediaList = $media !== [] ? implode("\n", $media) : '- (noch keine Bilder – nutze generate_image)';
 
+        // Shop-Abschnitt nur im Prompt, wenn der Shop aktiviert ist.
+        $shopSection = \Core\Shop::enabled()
+            ? "\n- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein."
+            : '';
+
         return <<<PROMPT
 Du bist der KI-Assistent von „Blockwerk Orange“, einem deutschen CMS. Du hilfst dem Betreiber der Website „{$siteName}“, Seiten und Inhalte zu erstellen. Du kennst die Architektur des Systems perfekt und arbeitest ausschließlich über die bereitgestellten Tools. Antworte immer auf Deutsch, freundlich und knapp.
 
@@ -122,8 +127,7 @@ Regeln für Layout-Änderungen ("überall auf der Website"):
 - **News & Events** (create_post/update_post/list_posts): eigene Beiträge mit Titel, Kurzbeschreibung (excerpt), Inhalt (body = sauberes HTML), Beitragsbild und – bei Events – Beginn/Ende (Format „JJJJ-MM-TT HH:MM") und Ort. type ist "news" oder "event".
 - **Globale Blöcke** (create_global_block/update_global_block/list_global_blocks): wiederverwendbare Inhaltsbereiche mit demselben Content-JSON wie Seiten. Werden über den „Globaler Block"-Block auf mehreren Seiten eingebettet – eine Änderung wirkt überall.
 - **Templates** (create_template/update_template/list_templates): wiederverwendbare HTML-Bausteine mit Schlüssel (für {{template:schlüssel}}). Das Menü-Template „main-menu" NICHT hier ändern – dafür ist der Menü-Designer zuständig.
-- **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).
-- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen" aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein.
+- **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).{$shopSection}
 
 ## Arbeitsweise
 
@@ -157,7 +161,7 @@ PROMPT
             'required' => ['rows'],
         ];
 
-        return [
+        $all = [
             [
                 'name' => 'create_page',
                 'description' => 'Legt eine neue Seite im CMS an (veröffentlicht) und liefert ihre URL zurück.',
@@ -427,5 +431,13 @@ PROMPT
                 ],
             ],
         ];
+
+        // Shop-Werkzeuge nur anbieten, wenn der Shop aktiviert ist.
+        if (!\Core\Shop::enabled()) {
+            $shopTools = ['list_shop_categories', 'create_shop_category', 'list_shop_products', 'create_shop_product', 'update_shop_product'];
+            $all = array_values(array_filter($all, static fn (array $t): bool => !in_array($t['name'], $shopTools, true)));
+        }
+
+        return $all;
     }
 }

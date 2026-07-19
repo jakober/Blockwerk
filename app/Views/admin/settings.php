@@ -32,6 +32,12 @@
             <label><input type="checkbox" name="cache_enabled" <?= \Models\Setting::get('cache_enabled', '0') === '1' ? 'checked' : '' ?>> Seiten-Cache aktivieren (schnellere Website – fertige Seiten werden zwischengespeichert; jede Änderung im Admin leert den Cache automatisch)</label>
         </div>
 
+        <h2 style="margin-top:28px" id="shop">🛒 Shop</h2>
+        <p class="muted small">Aktiviere den Online-Shop, wenn du Produkte verkaufen möchtest. Erst dann erscheinen der Shop-Bereich im Menü (Produkte, Kategorien, Bestellungen, Shop-Einstellungen) und die Shop-Seiten auf der Website. Die Detail-Einstellungen (Hauptseite, Zahlungs- &amp; Versandarten) findest du danach unter <strong>Shop → Shop-Einstellungen</strong>.</p>
+        <div class="form-group checkbox-group">
+            <label><input type="checkbox" name="shop_enabled" <?= ($shopEnabled ?? '0') === '1' ? 'checked' : '' ?>> Shop-Funktion aktivieren</label>
+        </div>
+
         <h2 style="margin-top:28px" id="ki">✨ KI-Assistent</h2>
         <p class="muted small">Der KI-Assistent erstellt Seiten, Texte und Bilder direkt im CMS. Dafür brauchst du einen Lizenzschlüssel mit Token-Guthaben vom Blockwerk-Orange-Anbieter.</p>
         <div class="form-group">

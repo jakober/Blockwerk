@@ -8,14 +8,8 @@ use Models\Page;
 use Models\Setting;
 use Models\ShopShipping;
 
-class ShopSettingsController extends AdminController
+class ShopSettingsController extends ShopAdminController
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->requireAdmin();
-    }
-
     public function index(): void
     {
         $this->view('admin/shop/settings', [
@@ -42,7 +36,8 @@ class ShopSettingsController extends AdminController
 
     public function save(): void
     {
-        Setting::set('shop_enabled', isset($_POST['enabled']) ? '1' : '0');
+        // Der Ein/Aus-Schalter liegt in den allgemeinen Einstellungen –
+        // hier NICHT anfassen (sonst würde Speichern den Shop abschalten).
         Setting::set('shop_root_page', (string) (int) ($_POST['root_page'] ?? 0));
         Setting::set('shop_currency', trim($_POST['currency'] ?? 'EUR') ?: 'EUR');
         Setting::set('shop_currency_symbol', trim($_POST['symbol'] ?? '€') ?: '€');

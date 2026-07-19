@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.38.0 – 2026-07-19
+
+- **Shop standardmäßig aus – zentral aktivierbar:** Der Shop ist jetzt klar opt-in. Der **Ein/Aus-Schalter liegt in den allgemeinen Einstellungen** (Einstellungen → „🛒 Shop"). Erst wenn er aktiviert ist, erscheinen:
+  - der **Shop-Bereich im Backend-Menü** (Produkte, Kategorien, Bestellungen, Shop-Einstellungen),
+  - die **Shop-Seiten auf der Website** (Startseite, Kategorien, Produkte, Warenkorb, Kasse),
+  - die **Shop-Werkzeuge des KI-Assistenten** (Produkte/Kategorien anlegen).
+  - Ist der Shop aus, sind die Shop-Verwaltungsseiten nicht erreichbar (ein direkter Aufruf leitet mit Hinweis in die Einstellungen). Die eigentlichen Shop-Detaileinstellungen (Hauptseite, Zahlungs- &amp; Versandarten) bleiben unter „Shop → Shop-Einstellungen".
+
 ## 1.37.0 – 2026-07-19
 
 - **KI-Assistent kann jetzt den Shop pflegen:** Der KI-Assistent kann **Produkte und Kategorien anlegen** (und Produkte aktualisieren). Beispiele: „Lege eine Kategorie ‚Accessoires' an", „Erstelle 3 Produkte für Kaffee mit Beschreibung und Preis" oder „Erhöhe den Preis von Produkt X auf 24,90 €". Auf Wunsch generiert die KI dabei auch passende Produktbilder und ordnet die Produkte den richtigen Kategorien zu. Neue Werkzeuge: `list_shop_categories`, `create_shop_category`, `list_shop_products`, `create_shop_product`, `update_shop_product`. Hinweis der KI: Der Shop muss unter „Shop-Einstellungen" aktiviert sein, damit die Produkte auf der Website erscheinen.

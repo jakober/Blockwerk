@@ -5,14 +5,8 @@ namespace Controllers\Admin;
 
 use Models\ShopCategory;
 
-class ShopCategoryController extends AdminController
+class ShopCategoryController extends ShopAdminController
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->requireAdmin();
-    }
-
     public function index(): void
     {
         $this->view('admin/shop/categories', [

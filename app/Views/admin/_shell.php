@@ -13,12 +13,6 @@ $navGroups = [
         'media' => ['Mediathek', '/admin/media', '▧'],
         'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
     ],
-    'Shop' => [
-        'shop-products' => ['Produkte', '/admin/shop/products', '◰'],
-        'shop-categories' => ['Kategorien', '/admin/shop/categories', '≡'],
-        'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
-        'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
-    ],
     'Gestaltung' => [
         'themes' => ['Designs', '/admin/themes', '✦'],
         'menu' => ['Menü', '/admin/menu', '☰'],
@@ -32,6 +26,18 @@ $navGroups = [
         'settings' => ['Einstellungen', '/admin/settings', '⚙'],
     ],
 ];
+// Shop-Bereich nur zeigen, wenn der Shop in den Einstellungen aktiviert ist –
+// direkt nach „Inhalte" einsortiert.
+if (\Core\Shop::enabled()) {
+    $shopGroup = ['Shop' => [
+        'shop-products' => ['Produkte', '/admin/shop/products', '◰'],
+        'shop-categories' => ['Kategorien', '/admin/shop/categories', '≡'],
+        'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
+        'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
+    ]];
+    $pos = array_search('Inhalte', array_keys($navGroups), true);
+    $navGroups = array_slice($navGroups, 0, $pos + 1, true) + $shopGroup + array_slice($navGroups, $pos + 1, null, true);
+}
 // KI-Verwaltung (Keys & Kunden-Lizenzen) nur auf der Anbieter-Domain.
 if (\Core\Updater::isVendorHost()) {
     $navGroups['System']['ai-admin'] = ['KI-Verwaltung', '/admin/ai-admin', '🗝'];

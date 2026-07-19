@@ -5,14 +5,8 @@ namespace Controllers\Admin;
 
 use Models\ShopOrder;
 
-class ShopOrderController extends AdminController
+class ShopOrderController extends ShopAdminController
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->requireAdmin();
-    }
-
     public function index(): void
     {
         $filter = $_GET['status'] ?? '';

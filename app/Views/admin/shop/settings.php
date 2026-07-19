@@ -5,10 +5,7 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
     <?= csrf_field() ?>
     <div class="card">
         <h2>Shop</h2>
-        <div class="form-group checkbox-group">
-            <label><input type="checkbox" name="enabled" <?= $s['enabled'] === '1' ? 'checked' : '' ?>> Shop aktivieren</label>
-        </div>
-        <p class="muted small">Ist der Shop aktiv, wird die gewählte Hauptseite und alles darunter (Kategorien, Produkte, Warenkorb, Kasse) vom Shop übernommen.</p>
+        <p class="muted small">Der Shop ist aktiv. <span class="badge badge-green">Aktiv</span> Ein-/Ausschalten kannst du ihn unter <a href="<?= e(url('/admin/settings#shop')) ?>">Einstellungen</a>. Die gewählte Hauptseite und alles darunter (Kategorien, Produkte, Warenkorb, Kasse) wird vom Shop übernommen.</p>
 
         <div class="form-row">
             <div class="form-group grow">

@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.11 – 2026-07-19
+
+- **Automatische Update-Anzeige jetzt endgültig zuverlässig.** Die Hintergrund-Prüfung wurde vom Browser zwischengespeichert – dadurch kam dauerhaft die alte Antwort „kein Update", obwohl der Server das Update längst erkannt hatte. Der Prüf-Aufruf wird jetzt mit „nicht zwischenspeichern"-Vorgaben und einem Cache-Buster ausgeliefert, sodass immer frisch geprüft wird. (Die Diagnose unter `…/admin/update/status?force=1` hatte bestätigt: Server und GitHub-Abruf funktionieren – es lag nur am Browser-Cache.)
+
 ## 1.53.10 – 2026-07-19
 
 - **Testrelease** zur Prüfung der automatischen Update-Anzeige (ab 1.53.9): sollte innerhalb von ~2 Minuten von selbst im Dashboard erscheinen – ohne „Nach Updates suchen". (Keine funktionalen Änderungen.)

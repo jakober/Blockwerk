@@ -46,6 +46,10 @@ class UpdateController extends AdminController
         }
 
         header('Content-Type: application/json; charset=utf-8');
+        // Antwort NIE zwischenspeichern – sonst liefert der Browser dauerhaft die
+        // alte „kein Update"-Antwort, obwohl der Server längst ein neues kennt.
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
         $payload = [
             'current' => Updater::currentVersion(),
             'available' => $available,

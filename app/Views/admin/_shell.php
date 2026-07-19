@@ -125,7 +125,8 @@ $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : n
 // verfügbares Update sofort an – ohne die Seite neu zu laden.
 (function () {
     var base = window.CMS_BASE || '';
-    fetch(base + '/admin/update/status', { credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } })
+    // Cache-Buster + no-store: die Prüfung darf nie aus dem Browser-Cache kommen.
+    fetch(base + '/admin/update/status?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store', headers: { 'X-Requested-With': 'fetch' } })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
             if (!d || !d.available) { return; }

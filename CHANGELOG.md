@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.2 – 2026-07-19
+
+- **Spalten im visuellen Layout richtig ausgerichtet.** In Zeilen mit mehreren Spalten (z. B. drei Karten nebeneinander) stand die inhaltsreichste Spalte weiter oben als die anderen, weil der Seiteninhalt versehentlich vertikal zentriert wurde (diese Zentrierung ist eigentlich nur für die Kopfzeile gedacht). Der Seiteninhalt fließt jetzt – wie im Editor – von oben; alle Spalten beginnen auf gleicher Höhe. Damit stimmt die Frontend-Ansicht wieder mit dem Editor überein.
+- **Kein doppelter Abstand vor farbigen Abschnitten.** Zwischen einem Block (z. B. Hero) und einem direkt folgenden farbigen Abschnitt gab es einen zu großen Zwischenraum (Zeilen-Abstand + Abschnitts-Innenabstand). Der Zeilen-Abstand entfällt jetzt vor farbigen Abschnitten – der Abschnitt bringt seinen eigenen Innenabstand mit.
+
 ## 1.53.1 – 2026-07-19
 
 - **Alle Admin-Listen jetzt voll mobiltauglich.** Wie bereits die Seitenübersicht werden nun auch **News, Events, Formulare, Produkte, Kategorien, Bestellungen, Layouts, Templates, Schriften** und die **Kunden-Lizenzen** (KI-Verwaltung) auf schmalen Bildschirmen als übersichtliche Karten dargestellt: Statt einer überlaufenden Tabelle steht jede Zeile als eigene Karte, mit der Spaltenüberschrift jeweils über dem Wert. Kein horizontales Scrollen und keine überlappenden Buttons mehr. Am Desktop bleibt die gewohnte Tabellenansicht unverändert.

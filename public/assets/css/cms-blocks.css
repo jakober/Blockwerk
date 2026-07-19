@@ -635,8 +635,17 @@ h1.cms-heading { font-size: 2.3em; }
 .bwl-menu.is-left { justify-content: flex-start; }
 .bwl-menu.is-center { justify-content: center; }
 .bwl-menu.is-right { justify-content: flex-end; }
-/* Zeilen im Baukasten: Spalteninhalte vertikal mittig (typisch Kopfzeile) */
-.bwl-page .cms-col { display: flex; flex-direction: column; justify-content: center; }
+/* Kopf-/Fußzeilen des Layouts (direkte Zeilen der bwl-page): Spalteninhalte
+   vertikal mittig – typisch für die Kopfzeile (Logo neben Menü). */
+.bwl-page > .cms-row > .cms-col { display: flex; flex-direction: column; justify-content: center; }
+/* Seiteninhalt NICHT vertikal zentrieren. Sonst rutschen z. B. mehrere Karten
+   in einer Zeile unterschiedlich hoch (die höchste Spalte wandert nach oben),
+   und die Frontend-Ansicht weicht vom Editor ab. Der Inhalt fließt – wie im
+   Editor – von oben. */
+.bwl-content .cms-col { display: block; }
+/* Kein doppelter Abstand vor einer farbigen Sektion: die Zeile davor braucht
+   keinen Abstand nach unten, die Sektion bringt ihren eigenen Innenabstand mit. */
+.bwl-content .cms-row:has(+ .cms-section) { margin-bottom: 0; }
 
 /* =====================================================================
    Menü 2.0: visuelle Optionen, schöneres Mega-Menü, Mobil- & Touch-Menü

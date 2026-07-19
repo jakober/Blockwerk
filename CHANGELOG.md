@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.9 – 2026-07-19
+
+- **Update-Prüfung reagiert jetzt schnell.** Die Online-Prüfung wird nun höchstens alle 2 Minuten (statt alle 6 Stunden) im Hintergrund wiederholt – ein neues Release erscheint damit zeitnah von selbst im Dashboard, ohne „Nach Updates suchen".
+- **Zuverlässigerer Abruf:** Die Versionsnummer wird jetzt zuerst direkt von der Datei (`raw.githubusercontent.com`) gelesen (kein Rate-Limit); die GitHub-API dient nur noch als Reserve. Ein Cache-Buster sorgt für frische Werte.
+- **Diagnose-Ausgang:** `…/admin/update/status?force=1` liefert (für Administratoren) eine Klartext-Übersicht, ob die Update-Quelle erreichbar ist – hilfreich zur Fehlersuche.
+
 ## 1.53.8 – 2026-07-19
 
 - **Kleines Testrelease** zur Prüfung der automatischen Update-Anzeige (ab 1.53.7): Dieses Update sollte beim nächsten Dashboard-Aufruf von selbst erscheinen – ohne „Nach Updates suchen". (Keine funktionalen Änderungen.)

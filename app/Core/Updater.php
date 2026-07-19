@@ -50,20 +50,26 @@ class Updater
 
     public static function remoteVersion(int $timeout = 120): ?string
     {
-        // raw.githubusercontent.com cached bis zu 5 Minuten (auch mit
-        // Query-Parametern). Für GitHub-URLs deshalb zuerst die API fragen –
-        // sie liefert immer den frischen Stand.
         $url = self::versionUrl();
-        $raw = null;
+        // Zuerst die rohe Datei abrufen: kein Rate-Limit, sehr zuverlässig. Ein
+        // Cache-Buster (?t=…) umgeht das ~5-Minuten-CDN-Caching so weit wie möglich.
+        $bust = (str_contains($url, '?') ? '&' : '?') . 't=' . time();
+        $version = self::parseVersion(self::fetch($url . $bust, [], $timeout));
+        if ($version !== null) {
+            return $version;
+        }
+        // Fallback: GitHub-API (immer frisch, aber Rate-Limit 60/h und je nach
+        // Server/Proxy nicht immer erreichbar).
         if (preg_match('#^https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/(.+)/VERSION$#', $url, $m)) {
             $api = 'https://api.github.com/repos/' . $m[1] . '/' . $m[2] . '/contents/VERSION?ref=' . rawurlencode($m[3]);
-            $apiRaw = self::fetch($api, ['Accept: application/vnd.github.raw'], $timeout);
-            // Nur übernehmen, wenn die Antwort wirklich wie eine Version aussieht.
-            if ($apiRaw !== null && preg_match('/^\d+\.\d+\.\d+\s*$/', $apiRaw)) {
-                $raw = $apiRaw;
-            }
+            $version = self::parseVersion(self::fetch($api, ['Accept: application/vnd.github.raw'], $timeout));
         }
-        $raw ??= self::fetch($url, [], $timeout);
+        return $version;
+    }
+
+    /** Trimmt und akzeptiert nur eine echte Versionsnummer (x.y.z). */
+    private static function parseVersion(?string $raw): ?string
+    {
         if ($raw === null) {
             return null;
         }
@@ -106,9 +112,11 @@ class Updater
         $checkedAt = (int) \Models\Setting::get('update_checked_at', '0');
         $checkedVer = (string) \Models\Setting::get('update_checked_version', '');
         $current = self::currentVersion();
-        // Mit bekanntem Wert höchstens alle 6 h erneut online sehen; solange noch
-        // gar kein Wert bekannt ist, alle 60 s erneut versuchen (bis es klappt).
-        $ttl = $cached !== null ? 6 * 3600 : 60;
+        // Alle 2 Minuten erneut online nachsehen (kleiner Hintergrund-Abruf einer
+        // ~7-Byte-Datei, blockiert die Seite nicht). Solange noch gar kein Wert
+        // bekannt ist, alle 60 s. So erscheint ein neues Release zügig – nicht
+        // erst nach Stunden.
+        $ttl = $cached !== null ? 120 : 60;
         $stale = (time() - $checkedAt) >= $ttl;
         // Hat sich die installierte Version seit der letzten Prüfung geändert
         // (z. B. gerade ein Update eingespielt), SOFORT neu prüfen – sonst würde
@@ -134,6 +142,47 @@ class Updater
     {
         $cached = trim((string) \Models\Setting::get('update_remote', ''));
         return $cached !== '' ? $cached : null;
+    }
+
+    /**
+     * Diagnose: prüft, ob die Versions-Quellen (GitHub API + raw) erreichbar sind
+     * und was sie liefern. Nur für die Fehlersuche (Status-Endpunkt ?force=1).
+     * Gibt je Quelle HTTP-Status, kurzen Body-Auszug und ggf. curl-Fehler zurück.
+     */
+    public static function diagnose(): array
+    {
+        $probe = static function (string $url, array $headers = []): array {
+            if (!function_exists('curl_init')) {
+                return ['url' => $url, 'error' => 'curl fehlt'];
+            }
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_CONNECTTIMEOUT => 8,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_USERAGENT => 'Blockwerk-Updater',
+                CURLOPT_HTTPHEADER => $headers,
+            ]);
+            $body = curl_exec($ch);
+            $http = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            return [
+                'url' => $url,
+                'http' => $http,
+                'body' => is_string($body) ? substr(trim($body), 0, 60) : null,
+                'curl_error' => $err !== '' ? $err : null,
+            ];
+        };
+
+        $versionUrl = self::versionUrl();
+        $out = ['versionUrl' => $versionUrl, 'raw' => $probe($versionUrl)];
+        if (preg_match('#^https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/(.+)/VERSION$#', $versionUrl, $m)) {
+            $api = 'https://api.github.com/repos/' . $m[1] . '/' . $m[2] . '/contents/VERSION?ref=' . rawurlencode($m[3]);
+            $out['api'] = $probe($api, ['Accept: application/vnd.github.raw']);
+        }
+        return $out;
     }
 
     /** Gibt die verfügbare neuere Version zurück (nur Cache-Lesen, kein Netz), sonst null. */

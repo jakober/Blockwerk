@@ -38,12 +38,26 @@ class UpdateController extends AdminController
      */
     public function status(): void
     {
-        $available = Updater::autoCheck();
+        $force = ($_GET['force'] ?? '') === '1';
+        // Bei ?force=1 eine frische Online-Prüfung erzwingen (für die Fehlersuche).
+        $available = $force ? Updater::cachedRemoteVersion(true) : Updater::autoCheck();
+        if ($force) {
+            $available = Updater::updateAvailable();
+        }
+
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
+        $payload = [
             'current' => Updater::currentVersion(),
             'available' => $available,
-        ]);
+            'cached' => Updater::cachedRemote(),
+            'checkedAgoSec' => time() - (int) \Models\Setting::get('update_checked_at', '0'),
+            'checkedVersion' => (string) \Models\Setting::get('update_checked_version', ''),
+        ];
+        if ($force) {
+            // Klartext-Diagnose: sind die GitHub-Quellen erreichbar?
+            $payload['diagnose'] = Updater::diagnose();
+        }
+        echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
     public function check(): void

@@ -333,7 +333,7 @@ class AiController extends AdminController
                     Cache::clear();
                     $actions[] = ['type' => 'page', 'label' => 'Schrift „' . trim((string) ($input['family'] ?? '')) . '“ geladen',
                         'editorUrl' => url('/admin/fonts'), 'viewUrl' => url('/admin/layouts')];
-                    return 'Schrift „' . trim((string) ($input['family'] ?? '')) . '“ heruntergeladen und lokal gespeichert. Weise den Nutzer darauf hin, sie im gewünschten Layout unter Design als Überschriften-/Textschrift auszuwählen.';
+                    return 'Schrift „' . trim((string) ($input['family'] ?? '')) . '“ heruntergeladen und lokal gespeichert. Du kannst sie jetzt mit set_layout_design dem Layout als Überschriften-/Text-/Ebenen-Schrift zuweisen.';
 
                 case 'list_media':
                     $folderId = null;
@@ -404,6 +404,64 @@ class AiController extends AdminController
                         'viewUrl' => url('/'),
                     ];
                     return 'Layout id=' . $layout['id'] . ' aktualisiert – die Änderung ist auf allen Seiten mit diesem Layout aktiv.';
+
+                case 'set_layout_design':
+                    $layout = \Models\Layout::find((int) ($input['layout_id'] ?? 0));
+                    if ($layout === null) {
+                        return 'FEHLER: Layout nicht gefunden.';
+                    }
+                    $design = json_decode((string) ($layout['design'] ?? ''), true);
+                    if (!is_array($design)) {
+                        $design = [];
+                    }
+                    $design['colors'] = is_array($design['colors'] ?? null) ? $design['colors'] : [];
+                    $design['fonts'] = is_array($design['fonts'] ?? null) ? $design['fonts'] : [];
+
+                    $changed = [];
+                    $fontsInput = is_array($input['fonts'] ?? null) ? $input['fonts'] : [];
+                    foreach (['heading', 'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as $slot) {
+                        $family = trim((string) ($fontsInput[$slot] ?? ''));
+                        if ($family === '') {
+                            continue;
+                        }
+                        $font = \Models\Font::findByFolder(slugify($family));
+                        if ($font === null) {
+                            // Schrift noch nicht vorhanden → automatisch von Google Fonts laden.
+                            $err = FontController::download($family);
+                            if ($err !== null && !str_contains($err, 'bereits installiert')) {
+                                return 'FEHLER beim Laden der Schrift „' . $family . '“: ' . $err;
+                            }
+                            $font = \Models\Font::findByFolder(slugify($family));
+                        }
+                        if ($font === null) {
+                            return 'FEHLER: Schrift „' . $family . '“ konnte nicht zugewiesen werden.';
+                        }
+                        $design['fonts'][$slot] = (int) $font['id'];
+                        $changed[] = $slot . '=' . $family;
+                    }
+
+                    $colorsInput = is_array($input['colors'] ?? null) ? $input['colors'] : [];
+                    foreach (['primary', 'accent', 'text', 'bg', 'surface'] as $key) {
+                        $value = strtolower(trim((string) ($colorsInput[$key] ?? '')));
+                        if (preg_match('/^#[0-9a-f]{6}$/', $value)) {
+                            $design['colors'][$key] = $value;
+                            $changed[] = $key . '=' . $value;
+                        }
+                    }
+
+                    if ($changed === []) {
+                        return 'FEHLER: Keine gültigen Schriften/Farben angegeben (Schrift-Slots: heading, body, h1–h6; Farben als #rrggbb).';
+                    }
+
+                    \Models\Layout::saveDesign((int) $layout['id'], json_encode($design, JSON_UNESCAPED_UNICODE) ?: null);
+                    Cache::clear();
+                    $actions[] = [
+                        'type' => 'page',
+                        'label' => 'Design von Layout „' . $layout['name'] . '“ aktualisiert',
+                        'editorUrl' => url('/admin/layouts/' . $layout['id'] . '/edit'),
+                        'viewUrl' => url('/'),
+                    ];
+                    return 'Layout-Design (id=' . $layout['id'] . ') gesetzt: ' . implode(', ', $changed) . '. Wirkt sofort auf allen Seiten mit diesem Layout.';
 
                 case 'list_shop_categories':
                     $lines = [];

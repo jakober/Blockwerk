@@ -74,6 +74,12 @@ class Layout
         Database::pdo()->prepare('UPDATE layouts SET builder = ? WHERE id = ?')->execute([$json, $id]);
     }
 
+    /** Nur die Design-Spalte (Farben/Schriften/CSS) aktualisieren. */
+    public static function saveDesign(int $id, ?string $design): void
+    {
+        Database::pdo()->prepare('UPDATE layouts SET design = ? WHERE id = ?')->execute([$design, $id]);
+    }
+
     public static function delete(int $id): void
     {
         $pdo = Database::pdo();

@@ -121,13 +121,14 @@ Regeln für Layout-Änderungen ("überall auf der Website"):
 2. Der Footer sind die Zeilen NACH der l-content-Zeile. "Über dem Footer auf allen Seiten" = neue Zeile direkt vor der ersten Footer-Zeile (nach l-content) einfügen.
 3. update_layout mit dem VOLLSTÄNDIGEN neuen Builder-JSON aufrufen. Änderungen wirken sofort auf allen Seiten mit diesem Layout.
 4. Klassische Layouts (HTML) kannst du nur lesen – bitte den Nutzer in dem Fall, den visuellen Baukasten zu nutzen.
+5. Schriften und Design-Farben eines Layouts setzt du mit set_layout_design (nicht über update_layout) – das gilt auch für klassische Layouts.
 
 ## Weitere Bereiche, die du verwalten kannst
 
 - **News & Events** (create_post/update_post/list_posts): eigene Beiträge mit Titel, Kurzbeschreibung (excerpt), Inhalt (body = sauberes HTML), Beitragsbild und – bei Events – Beginn/Ende (Format „JJJJ-MM-TT HH:MM") und Ort. type ist "news" oder "event".
 - **Globale Blöcke** (create_global_block/update_global_block/list_global_blocks): wiederverwendbare Inhaltsbereiche mit demselben Content-JSON wie Seiten. Werden über den „Globaler Block"-Block auf mehreren Seiten eingebettet – eine Änderung wirkt überall.
 - **Templates** (create_template/update_template/list_templates): wiederverwendbare HTML-Bausteine mit Schlüssel (für {{template:schlüssel}}). Das Menü-Template „main-menu" NICHT hier ändern – dafür ist der Menü-Designer zuständig.
-- **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).
+- **Schriften** (load_font, set_layout_design): load_font lädt eine Google-Schrift lokal (DSGVO). Mit set_layout_design weist du einem Layout Schriften direkt zu – je Slot (`heading`, `body` oder einzeln `h1`–`h6`) den Google-Fonts-Namen angeben; noch nicht installierte Schriften werden dabei automatisch geladen. Optional lassen sich damit auch die Design-Farben (`primary`,`accent`,`text`,`bg`,`surface` als #rrggbb) setzen. Du musst das NICHT mehr dem Nutzer überlassen – wähle passende Schriften und weise sie selbst zu.
 - **Designs** (create_design): erstellt ein individuelles Gesamt-Design nach Beschreibung und aktiviert es. Wähle Farben, Tokens UND die Stilrichtung `component_style` passend zur Stimmung – nicht nur Farben ändern! `component_style` bestimmt das Aussehen ALLER Elemente (Karten, Zitate, Akkordeon …): „panel"=klar/umrandet, „soft"=rund/weich, „bold"=blockig/kantig, „editorial"=Serif/Magazin, „slant"=schräg/diagonal. Beispiele: „minimalistisch/groß" → component_style „bold", radius 0, button „sharp", hero 100, uppercase true; „verspielt/weich" → component_style „soft", radius 24+, button „pill", shadow „strong"; „edel/redaktionell" → component_style „editorial", heading_font „serif", header_layout „center"; „dynamisch/schräg" → component_style „slant". Das Design erscheint danach unter „Designs".
 - **Online-Recherche** (fetch_url, download_image): Du kannst eine öffentliche Webseite abrufen (fetch_url), um sie als Vorlage zu nehmen und eine ähnliche Seite zu bauen, und einzelne Bilder herunterladen (download_image, nur auf ausdrücklichen Wunsch). WICHTIG: Übernimm fremde Texte NIE 1:1 – formuliere alles mit eigenen Worten. Weise den Nutzer aktiv darauf hin, dass fremde Inhalte und Bilder urheberrechtlich geschützt sein können und die Verantwortung für ihre Verwendung bei ihm liegt.{$shopSection}
 
@@ -350,6 +351,42 @@ PROMPT
                         ],
                     ],
                     'required' => ['layout_id', 'builder'],
+                ],
+            ],
+            [
+                'name' => 'set_layout_design',
+                'description' => 'Weist einem Layout Schriften und optional Design-Farben zu (Layout-Design, nicht die Struktur). Noch nicht installierte Google-Schriften werden automatisch geladen. Wirkt sofort auf allen Seiten mit diesem Layout.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'layout_id' => ['type' => 'integer'],
+                        'fonts' => [
+                            'type' => 'object',
+                            'description' => 'Google-Fonts-Namen je Slot (alle optional). „heading" = alle Überschriften, „body" = Fließtext; h1–h6 überschreiben einzelne Ebenen.',
+                            'properties' => [
+                                'heading' => ['type' => 'string'],
+                                'body' => ['type' => 'string'],
+                                'h1' => ['type' => 'string'],
+                                'h2' => ['type' => 'string'],
+                                'h3' => ['type' => 'string'],
+                                'h4' => ['type' => 'string'],
+                                'h5' => ['type' => 'string'],
+                                'h6' => ['type' => 'string'],
+                            ],
+                        ],
+                        'colors' => [
+                            'type' => 'object',
+                            'description' => 'Design-Farben als #rrggbb (alle optional).',
+                            'properties' => [
+                                'primary' => ['type' => 'string'],
+                                'accent' => ['type' => 'string'],
+                                'text' => ['type' => 'string'],
+                                'bg' => ['type' => 'string'],
+                                'surface' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                    'required' => ['layout_id'],
                 ],
             ],
             [

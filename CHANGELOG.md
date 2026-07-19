@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.43.0 – 2026-07-19
+
+- **KI weist Schriften jetzt selbst dem Layout zu.** Bisher konnte der KI-Assistent eine Google-Schrift zwar herunterladen (`load_font`), aber nicht dem Layout zuordnen – er musste den Nutzer bitten, das manuell zu tun. Neu: das Werkzeug **`set_layout_design`** setzt Schriften je Slot (alle Überschriften, Fließtext oder einzeln H1–H6) und optional die Design-Farben (Primär/Akzent/Text/Hintergrund/Fläche) direkt im Layout. Noch nicht installierte Schriften werden dabei automatisch geladen. So kann die KI ein Layout jetzt komplett gestalten – inklusive passender Typografie – ohne manuellen Zwischenschritt.
+
 ## 1.42.4 – 2026-07-19
 
 - **nginx: Timeout für lange KI-Anfragen dokumentiert.** Bei Installationen hinter nginx brachen längere KI-Aktionen (Agent-Loop mit mehreren Runden + Bildgenerierung) mit „Verbindung fehlgeschlagen" ab, weil nginx PHP-Anfragen standardmäßig nach 60 s abschneidet (Apache erlaubt 300 s). Die mitgelieferte `nginx.conf.example` und die `ai-server`-nginx-Vorlage enthalten jetzt `fastcgi_read_timeout 300s;` im PHP-Block – passend zum internen `set_time_limit(300)` des KI-Assistenten.

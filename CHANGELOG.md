@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.10 – 2026-07-19
+
+- **Testrelease** zur Prüfung der automatischen Update-Anzeige (ab 1.53.9): sollte innerhalb von ~2 Minuten von selbst im Dashboard erscheinen – ohne „Nach Updates suchen". (Keine funktionalen Änderungen.)
+
 ## 1.53.9 – 2026-07-19
 
 - **Update-Prüfung reagiert jetzt schnell.** Die Online-Prüfung wird nun höchstens alle 2 Minuten (statt alle 6 Stunden) im Hintergrund wiederholt – ein neues Release erscheint damit zeitnah von selbst im Dashboard, ohne „Nach Updates suchen".

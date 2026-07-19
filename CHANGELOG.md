@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.55.1 – 2026-07-19
+
+- **Versandarten: Länder werden beim Bearbeiten wieder gespeichert.** In den Shop-Einstellungen wurden die einer bestehenden Versandart zugeordneten Länder beim Speichern nicht übernommen (nur beim Neu-Anlegen). Grund war eine technische Eigenheit der Bearbeiten-Zeile, durch die das Länder-Auswahlfeld nicht mit abgeschickt wurde. Jetzt werden die ausgewählten Länder korrekt gespeichert – und an der Kasse erscheint dann wie vorgesehen eine Auswahlliste mit ausschließlich den Ländern, für die es eine Versandart gibt.
+
 ## 1.55.0 – 2026-07-19
 
 - **Team-Block: E-Mail & Telefon pro Person.** Jedes Team-Mitglied hat jetzt Felder für **E-Mail** (wird als klickbarer Link ausgegeben) und **Telefon** (klickbar, zum direkten Anrufen auf dem Handy). Beide stehen in **eigenen Zeilen** – Telefon nicht mehr neben der E-Mail.

@@ -96,18 +96,19 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
             <thead><tr><th>Name</th><th>Preis</th><th>Gratis ab</th><th>Länder</th><th>Staffeln (kg:€)</th><th>Aktiv</th><th class="actions-col"></th></tr></thead>
             <tbody>
                 <?php foreach ($shipping as $sh): ?>
+                    <?php $shipFormId = 'ship-form-' . (int) $sh['id']; ?>
                     <tr>
-                        <td><form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'])) ?>" class="inline shipping-row"><?= csrf_field() ?>
-                            <input type="text" name="name" value="<?= e($sh['name']) ?>" required>
-                            <input type="text" name="description" value="<?= e($sh['description'] ?? '') ?>" placeholder="Beschreibung">
+                        <td><form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'])) ?>" id="<?= e($shipFormId) ?>" class="inline shipping-row"><?= csrf_field() ?>
+                            <input type="text" name="name" form="<?= e($shipFormId) ?>" value="<?= e($sh['name']) ?>" required>
+                            <input type="text" name="description" form="<?= e($shipFormId) ?>" value="<?= e($sh['description'] ?? '') ?>" placeholder="Beschreibung">
                         </td>
-                        <td><input type="text" name="price" value="<?= e($priceStr($sh['price'])) ?>" style="max-width:90px" inputmode="decimal"></td>
-                        <td><input type="text" name="free_from" value="<?= e($priceStr($sh['free_from'] ?? '')) ?>" placeholder="—" style="max-width:90px" inputmode="decimal"></td>
-                        <td style="min-width:200px"><select name="countries[]" multiple data-country-select data-placeholder="alle Länder"><?= $countryOptions(\Models\ShopShipping::countries($sh)) ?></select></td>
-                        <td><input type="text" name="weight_tiers" value="<?= e($tiersToText($sh)) ?>" placeholder="z. B. 5:20; 20:50" style="max-width:150px"></td>
-                        <td><input type="checkbox" name="active" <?= (int) $sh['active'] ? 'checked' : '' ?>></td>
+                        <td><input type="text" name="price" form="<?= e($shipFormId) ?>" value="<?= e($priceStr($sh['price'])) ?>" style="max-width:90px" inputmode="decimal"></td>
+                        <td><input type="text" name="free_from" form="<?= e($shipFormId) ?>" value="<?= e($priceStr($sh['free_from'] ?? '')) ?>" placeholder="—" style="max-width:90px" inputmode="decimal"></td>
+                        <td style="min-width:200px"><select name="countries[]" form="<?= e($shipFormId) ?>" multiple data-country-select data-placeholder="alle Länder"><?= $countryOptions(\Models\ShopShipping::countries($sh)) ?></select></td>
+                        <td><input type="text" name="weight_tiers" form="<?= e($shipFormId) ?>" value="<?= e($tiersToText($sh)) ?>" placeholder="z. B. 5:20; 20:50" style="max-width:150px"></td>
+                        <td><input type="checkbox" name="active" form="<?= e($shipFormId) ?>" <?= (int) $sh['active'] ? 'checked' : '' ?>></td>
                         <td class="actions-col">
-                            <button type="submit" class="btn btn-small btn-primary">Speichern</button>
+                            <button type="submit" form="<?= e($shipFormId) ?>" class="btn btn-small btn-primary">Speichern</button>
                             </form>
                             <form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'] . '/delete')) ?>" class="inline" data-confirm="Versandart löschen?" data-confirm-danger data-confirm-ok="Löschen"><?= csrf_field() ?>
                                 <button type="submit" class="btn btn-small btn-danger">✕</button>

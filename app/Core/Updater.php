@@ -93,10 +93,50 @@ class Updater
         return $cached !== '' ? $cached : null;
     }
 
-    /** Wärmt den Cache beim Betreten des Backends – ohne Ergebnis zurückzugeben. */
+    /**
+     * Wärmt den Cache beim Betreten des Backends – aber NIE blockierend.
+     * Der Netzabruf läuft erst NACH dem Ausliefern der Seite (php-fpm:
+     * fastcgi_finish_request), damit kein Klick im Backend hängt. Das Ergebnis
+     * steht beim nächsten Seitenaufruf bereit.
+     */
     public static function refreshIfStale(): void
     {
-        self::cachedRemoteVersion(false);
+        $cached = trim((string) \Models\Setting::get('update_remote', ''));
+        $checkedAt = (int) \Models\Setting::get('update_checked_at', '0');
+        // Erfolg: höchstens alle 6 h neu prüfen. Noch nie erfolgreich / Fehler:
+        // alle 15 min erneut versuchen (aber nicht bei jedem einzelnen Klick).
+        $ttl = $cached !== '' ? 6 * 3600 : 15 * 60;
+        if ((time() - $checkedAt) < $ttl) {
+            return;
+        }
+        // Sofort den Zeitstempel setzen, damit parallele Aufrufe nicht ebenfalls
+        // prüfen (kein „Stampede").
+        \Models\Setting::set('update_checked_at', (string) time());
+
+        $run = static function (): void {
+            try {
+                $remote = self::remoteVersion(15);
+                if ($remote !== null) {
+                    \Models\Setting::set('update_remote', $remote);
+                }
+            } catch (\Throwable) {
+                // Ignorieren – beim nächsten Fälligkeitsfenster erneut versuchen.
+            }
+        };
+        // Antwort zuerst vollständig senden, dann im Hintergrund prüfen.
+        register_shutdown_function(static function () use ($run): void {
+            if (function_exists('fastcgi_finish_request')) {
+                @fastcgi_finish_request();
+            }
+            $run();
+        });
+    }
+
+    /** Reiner Cache-Lesezugriff (kein Netz) – zeigt die zuletzt bekannte Version. */
+    public static function cachedRemote(): ?string
+    {
+        $cached = trim((string) \Models\Setting::get('update_remote', ''));
+        return $cached !== '' ? $cached : null;
     }
 
     /** Gibt die verfügbare neuere Version zurück (nur Cache-Lesen, kein Netz), sonst null. */

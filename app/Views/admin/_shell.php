@@ -108,12 +108,16 @@ $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : n
 (function () {
     var burger = document.querySelector('.admin-burger');
     var backdrop = document.querySelector('.nav-backdrop');
+    var brand = document.querySelector('.sidebar-brand');
     if (!burger) { return; }
     function toggle(open) {
         document.body.classList.toggle('nav-open', open);
         burger.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
-    burger.addEventListener('click', function () { toggle(!document.body.classList.contains('nav-open')); });
+    function flip() { toggle(!document.body.classList.contains('nav-open')); }
+    burger.addEventListener('click', flip);
+    // Auch ein Klick auf das Logo öffnet/schließt das Menü (Mobil).
+    if (brand) { brand.addEventListener('click', flip); }
     if (backdrop) { backdrop.addEventListener('click', function () { toggle(false); }); }
 })();
 </script>

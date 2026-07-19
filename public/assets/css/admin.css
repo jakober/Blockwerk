@@ -262,6 +262,10 @@ form.inline { display: inline; }
     .table:not(.table-plain) tbody,
     .table:not(.table-plain) tr,
     .table:not(.table-plain) td { display: block; width: 100%; }
+    /* Wichtig: die gestapelte Tabelle darf NICHT die 560px-Mindestbreite der
+       normalen Tabellen erben – sonst wird die Karte breiter als der Bildschirm
+       und man kann horizontal scrollen. */
+    .table:not(.table-plain) { min-width: 0; }
     .table:not(.table-plain) tr {
         border: 1px solid var(--border);
         border-radius: 10px;
@@ -272,7 +276,12 @@ form.inline { display: inline; }
     .table:not(.table-plain) td {
         border-bottom: 1px solid var(--border);
         padding: 9px 12px;
+        /* Lange, umbruchlose Werte (z. B. Lizenzschlüssel, Template-Keys in
+           <code>) umbrechen statt die Karte zu verbreitern. */
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
+    .table:not(.table-plain) td code { white-space: normal; word-break: break-word; }
     .table:not(.table-plain) tr td:last-child { border-bottom: none; }
     .table:not(.table-plain) td::before {
         content: attr(data-label);
@@ -903,7 +912,7 @@ body.nav-open .admin-burger span:nth-child(3) { transform: translateY(-7px) rota
         gap: 6px;
         box-shadow: 0 2px 12px rgba(26, 12, 4, .3);
     }
-    .sidebar-brand { padding: 0 14px; font-size: 16px; flex-shrink: 0; }
+    .sidebar-brand { padding: 0 14px; font-size: 16px; flex-shrink: 0; cursor: pointer; }
     .sidebar-brand .brand-orange { font-size: 11px; letter-spacing: 2px; }
     .sidebar-brand .bw-logo { width: 24px; height: 24px; }
     .admin-burger { display: flex; }

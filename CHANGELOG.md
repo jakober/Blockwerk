@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.3 – 2026-07-19
+
+- **Admin-Listen auf dem Handy: kein horizontales Scrollen mehr.** Die als Karten gestapelten Tabellen erbten noch die Mindestbreite (560px) der normalen Tabellen – dadurch war die Karte breiter als der Bildschirm. Das ist behoben; lange, umbruchlose Werte (z. B. Lizenzschlüssel, Template-Keys) brechen jetzt sauber um.
+- **Menü öffnet auch per Klick aufs Logo.** Im Backend öffnet/schließt sich das Menü auf schmalen Bildschirmen jetzt nicht nur über das Menü-Symbol, sondern auch mit einem Tipp auf das Logo „Blockwerk Orange".
+- **Automatische Update-Prüfung repariert (und entzerrt).** Die Prüfung lief bisher direkt beim Seitenaufbau und mit sehr kurzem Timeout – auf manchen Servern schlug sie deshalb fehl (kein Update sichtbar) und machte das Backend zäh. Jetzt läuft der Online-Check **im Hintergrund, nachdem die Seite ausgeliefert wurde** (blockiert also keinen Klick mehr) und mit ausreichend Zeit. Das Ergebnis erscheint beim nächsten Seitenaufruf automatisch im Dashboard und am Menüpunkt „Updates" – ohne „Nach Updates suchen" zu drücken. Nach einem Fehlversuch wird alle 15 Minuten erneut geprüft, im Erfolgsfall höchstens alle 6 Stunden.
+
 ## 1.53.2 – 2026-07-19
 
 - **Spalten im visuellen Layout richtig ausgerichtet.** In Zeilen mit mehreren Spalten (z. B. drei Karten nebeneinander) stand die inhaltsreichste Spalte weiter oben als die anderen, weil der Seiteninhalt versehentlich vertikal zentriert wurde (diese Zentrierung ist eigentlich nur für die Kopfzeile gedacht). Der Seiteninhalt fließt jetzt – wie im Editor – von oben; alle Spalten beginnen auf gleicher Höhe. Damit stimmt die Frontend-Ansicht wieder mit dem Editor überein.

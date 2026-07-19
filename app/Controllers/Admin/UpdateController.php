@@ -22,8 +22,10 @@ class UpdateController extends AdminController
             'title' => 'Updates',
             'active' => 'update',
             'currentVersion' => Updater::currentVersion(),
-            // Verfügbare Version direkt anzeigen (aus dem Cache) – kein Klick auf „Suchen" nötig.
-            'remoteVersion' => Updater::cachedRemoteVersion(false),
+            // Verfügbare Version direkt aus dem Cache anzeigen (kein Netz, blockiert
+            // die Seite nicht) – der Hintergrund-Check füllt den Cache; „Suchen"
+            // erzwingt eine sofortige Prüfung.
+            'remoteVersion' => Updater::cachedRemote(),
             'updateDone' => $done,
             'changelog' => is_array($done) ? $this->changelogSince($done['from']) : [],
         ]);

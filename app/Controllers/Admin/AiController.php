@@ -65,6 +65,65 @@ class AiController extends AdminController
         }
     }
 
+    /**
+     * Wandelt die KI-Eingaben für Staffelpreise/Varianten/Verknüpfungen in die
+     * gespeicherte JSON-Form (Preise in Cent). Nicht übergebene Felder behalten
+     * den bestehenden Wert ($existing), damit ein Update sie nicht löscht.
+     *
+     * @return array{tier_prices:?string,options:?string,cross_sell:?string,accessories:?string}
+     */
+    private function shopExtrasJson(array $input, array $existing): array
+    {
+        $out = [
+            'tier_prices' => $existing['tier_prices'] ?? null,
+            'options' => $existing['options'] ?? null,
+            'cross_sell' => $existing['cross_sell'] ?? null,
+            'accessories' => $existing['accessories'] ?? null,
+        ];
+
+        if (array_key_exists('tier_prices', $input) && is_array($input['tier_prices'])) {
+            $tiers = [];
+            foreach ($input['tier_prices'] as $t) {
+                $min = (int) ($t['min'] ?? 0);
+                $price = isset($t['price']) ? \Core\Shop::parsePrice((string) $t['price']) : 0;
+                if ($min > 1 && $price > 0) {
+                    $tiers[] = ['min' => $min, 'price' => $price];
+                }
+            }
+            $out['tier_prices'] = $tiers !== [] ? json_encode($tiers) : null;
+        }
+
+        if (array_key_exists('variants', $input) && is_array($input['variants'])) {
+            $groups = [];
+            foreach ($input['variants'] as $g) {
+                $gname = trim((string) ($g['name'] ?? ''));
+                $choices = [];
+                foreach ((array) ($g['choices'] ?? []) as $c) {
+                    $label = trim((string) ($c['label'] ?? ''));
+                    if ($label !== '') {
+                        $choices[] = [
+                            'label' => $label,
+                            'diff' => isset($c['surcharge']) ? \Core\Shop::parsePrice((string) $c['surcharge']) : 0,
+                        ];
+                    }
+                }
+                if ($gname !== '' && $choices !== []) {
+                    $groups[] = ['name' => $gname, 'choices' => $choices];
+                }
+            }
+            $out['options'] = $groups !== [] ? json_encode($groups) : null;
+        }
+
+        foreach (['cross_sell', 'accessories'] as $rel) {
+            if (array_key_exists($rel, $input) && is_array($input[$rel])) {
+                $ids = array_values(array_filter(array_map('intval', $input[$rel]), static fn ($i) => $i > 0));
+                $out[$rel] = $ids !== [] ? json_encode($ids) : null;
+            }
+        }
+
+        return $out;
+    }
+
     /** POST /admin/ai/chat – führt einen kompletten Assistenten-Durchlauf aus. */
     public function chat(): void
     {
@@ -599,6 +658,7 @@ class AiController extends AdminController
                         return 'FEHLER: Preis fehlt (in Euro, z. B. 19.90).';
                     }
                     $catId = (int) ($input['category_id'] ?? 0);
+                    $extras = $this->shopExtrasJson($input, []);
                     $pidNew = \Models\ShopProduct::create([
                         'name' => $name,
                         'slug' => '',
@@ -610,6 +670,10 @@ class AiController extends AdminController
                         'description' => trim((string) ($input['description'] ?? '')) ?: null,
                         'image' => trim((string) ($input['image'] ?? '')) ?: null,
                         'gallery' => null,
+                        'tier_prices' => $extras['tier_prices'],
+                        'options' => $extras['options'],
+                        'cross_sell' => $extras['cross_sell'],
+                        'accessories' => $extras['accessories'],
                         'stock' => isset($input['stock']) && $input['stock'] !== '' ? (int) $input['stock'] : null,
                         'weight' => null,
                         'active' => 1,
@@ -643,6 +707,9 @@ class AiController extends AdminController
                         'description' => array_key_exists('description', $input) ? (trim((string) $input['description']) ?: null) : ($prod['description'] ?? null),
                         'image' => array_key_exists('image', $input) ? (trim((string) $input['image']) ?: null) : ($prod['image'] ?? null),
                         'gallery' => $prod['gallery'] ?? null,
+                        // Staffelpreise/Varianten/Verknüpfungen: neue Werte übernehmen,
+                        // sonst die bestehenden erhalten (nicht überschreiben).
+                        ...$this->shopExtrasJson($input, $prod),
                         'stock' => array_key_exists('stock', $input) && $input['stock'] !== '' ? (int) $input['stock'] : ($prod['stock'] ?? null),
                         'weight' => $prod['weight'] ?? null,
                         'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : (int) $prod['active'],

@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.46.0 – 2026-07-19
+
+- **KI kann jetzt Staffelpreise und Varianten anlegen.** Der Shop unterstützte Staffelpreise, Produkteigenschaften/Varianten (mit Preisaufschlag) sowie Cross-Selling/Zubehör längst – der KI-Assistent konnte sie beim Anlegen/Ändern von Produkten aber nicht setzen und meldete daher fälschlich, das ginge nicht. Die Produkt-Werkzeuge kennen nun `tier_prices`, `variants`, `cross_sell` und `accessories`; die KI kann Staffelpreise (ab Menge X günstiger), Varianten wie Größe/Farbe (optional mit Aufschlag) und verknüpfte Produkte selbst einpflegen.
+- **Bugfix:** Beim Ändern eines Produkts über die KI wurden zuvor vorhandene Staffelpreise/Varianten versehentlich gelöscht, wenn sie nicht mitübergeben wurden. Nicht angegebene Felder bleiben jetzt erhalten.
+
 ## 1.45.1 – 2026-07-19
 
 - **Fehler 500 im KI-Assistenten behoben.** Auf Installationen, bei denen die neue Verlaufs-Tabelle noch nicht angelegt war, warf der KI-Assistent einen Serverfehler (500). Der Verlaufs-Speicher legt seine Tabelle jetzt bei Bedarf selbst an und arbeitet grundsätzlich absturzsicher – im schlimmsten Fall fehlt kurz der gespeicherte Verlauf, aber der KI-Assistent lädt normal. Auch die Installations-Übersicht in der KI-Verwaltung ist gegen Datenbankfehler abgesichert.

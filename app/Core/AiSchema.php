@@ -62,7 +62,7 @@ class AiSchema
 
         // Shop-Abschnitt nur im Prompt, wenn der Shop aktiviert ist.
         $shopSection = \Core\Shop::enabled()
-            ? "\n- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein."
+            ? "\n- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Du kannst pro Produkt auch **Staffelpreise** (tier_prices: ab Menge X günstigerer Stückpreis), **Varianten/Eigenschaften** (variants: z. B. Größe S/M/L oder Farbe, optional mit Preisaufschlag surcharge) sowie **Cross-Selling** und **Zubehör** (cross_sell/accessories mit Produkt-IDs aus list_shop_products) setzen. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein."
             : '';
 
         return <<<PROMPT
@@ -445,6 +445,21 @@ PROMPT
                         'compare_price' => ['type' => 'number', 'description' => 'Streichpreis für Angebote in Euro (optional)'],
                         'stock' => ['type' => 'integer', 'description' => 'Lagerbestand (optional, leer = unbegrenzt)'],
                         'featured' => ['type' => 'integer', 'description' => '1 = auf der Shop-Startseite empfehlen'],
+                        'tier_prices' => [
+                            'type' => 'array',
+                            'description' => 'Staffelpreise (optional): ab Menge „min" (>1) gilt der Stückpreis „price" in Euro.',
+                            'items' => ['type' => 'object', 'properties' => ['min' => ['type' => 'integer'], 'price' => ['type' => 'number']]],
+                        ],
+                        'variants' => [
+                            'type' => 'array',
+                            'description' => 'Produkteigenschaften/Varianten (optional), z. B. Größe oder Farbe. Je Gruppe „name" plus Auswahlmöglichkeiten „choices" mit „label" und optionalem Preisaufschlag „surcharge" in Euro.',
+                            'items' => ['type' => 'object', 'properties' => [
+                                'name' => ['type' => 'string'],
+                                'choices' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['label' => ['type' => 'string'], 'surcharge' => ['type' => 'number']]]],
+                            ]],
+                        ],
+                        'cross_sell' => ['type' => 'array', 'description' => 'Cross-Selling: Produkt-IDs verwandter Produkte (optional).', 'items' => ['type' => 'integer']],
+                        'accessories' => ['type' => 'array', 'description' => 'Zubehör: Produkt-IDs (optional).', 'items' => ['type' => 'integer']],
                     ],
                     'required' => ['name', 'price'],
                 ],
@@ -466,6 +481,21 @@ PROMPT
                         'stock' => ['type' => 'integer'],
                         'featured' => ['type' => 'integer'],
                         'active' => ['type' => 'integer', 'description' => '1 = sichtbar, 0 = ausgeblendet'],
+                        'tier_prices' => [
+                            'type' => 'array',
+                            'description' => 'Staffelpreise (optional, ersetzt vorhandene): ab Menge „min" (>1) Stückpreis „price" in Euro.',
+                            'items' => ['type' => 'object', 'properties' => ['min' => ['type' => 'integer'], 'price' => ['type' => 'number']]],
+                        ],
+                        'variants' => [
+                            'type' => 'array',
+                            'description' => 'Varianten/Eigenschaften (optional, ersetzt vorhandene): je Gruppe „name" + „choices" mit „label" und optionalem „surcharge" in Euro.',
+                            'items' => ['type' => 'object', 'properties' => [
+                                'name' => ['type' => 'string'],
+                                'choices' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['label' => ['type' => 'string'], 'surcharge' => ['type' => 'number']]]],
+                            ]],
+                        ],
+                        'cross_sell' => ['type' => 'array', 'description' => 'Cross-Selling Produkt-IDs (optional, ersetzt vorhandene).', 'items' => ['type' => 'integer']],
+                        'accessories' => ['type' => 'array', 'description' => 'Zubehör Produkt-IDs (optional, ersetzt vorhandene).', 'items' => ['type' => 'integer']],
                     ],
                     'required' => ['product_id'],
                 ],

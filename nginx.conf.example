@@ -1,0 +1,57 @@
+# Beispiel-nginx-Konfiguration für Blockwerk Orange
+# -------------------------------------------------
+# nginx wertet KEINE .htaccess aus – die mitgelieferten .htaccess-Dateien
+# gelten nur für Apache. Unter nginx muss der docroot deshalb direkt auf das
+# Verzeichnis public/ zeigen und PHP über PHP-FPM ausgeführt werden.
+# Ohne einen "location ~ \.php$"-Block liefert nginx index.php/install.php
+# als Download aus, statt sie auszuführen.
+#
+# Verwendung:
+#   1. Datei nach /etc/nginx/sites-available/blockwerk-orange.de kopieren
+#      und die mit <...> markierten Stellen anpassen.
+#   2. PHP-FPM installieren, z. B.:
+#        sudo apt install php-fpm php-mysql php-curl php-zip php-mbstring php-gd
+#      Socket-Version prüfen mit:  ls /run/php/
+#   3. Aktivieren:
+#        sudo ln -s /etc/nginx/sites-available/blockwerk-orange.de /etc/nginx/sites-enabled/
+#        sudo nginx -t && sudo systemctl reload nginx
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name <deine-domain.de> www.<deine-domain.de>;
+
+    # WICHTIG: auf das public/-Unterverzeichnis zeigen, nicht auf die Projektwurzel.
+    root /var/www/<blockwerk>/public;
+    index index.php;
+
+    # Uploads dürfen groß sein (Bilder, Medien, System-Wiederherstellung).
+    client_max_body_size 64m;
+
+    # Front-Controller: alles, was keine echte Datei ist, geht an index.php.
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP an PHP-FPM weiterreichen. Socket-Version an "ls /run/php/" anpassen.
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    # Sensible Verzeichnisse/Dateien abschotten (liegen ohnehin außerhalb von public/,
+    # dieser Schutz greift falls der docroot doch einmal höher gesetzt wird).
+    location ~ ^/(config|app|ai-server)/ { deny all; }
+    location ~ /\.(?!well-known) { deny all; }
+}
+
+# Hinweis zum Ein-Datei-Installer (install.php):
+# install.php liegt in der PROJEKTWURZEL (eine Ebene über public/) und ist mit
+# obigem docroot=public/ absichtlich NICHT erreichbar. Auf einem Server mit
+# SSH-Zugang lädst du das Paket am einfachsten direkt herunter und entpackst es,
+# danach zeigt der docroot auf public/ und der eingebaute Assistent unter /install
+# übernimmt den Rest:
+#   cd /var/www/<blockwerk>
+#   wget https://github.com/jakober/Blockwerk/archive/refs/heads/main.zip
+#   unzip main.zip && mv Blockwerk-main/* Blockwerk-main/.[!.]* . && rmdir Blockwerk-main && rm main.zip
+#   chown -R www-data:www-data /var/www/<blockwerk>

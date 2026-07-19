@@ -22,7 +22,7 @@
 
 - PHP 8.1 oder neuer (mit PDO-MySQL-Erweiterung)
 - MySQL 5.7+ / MariaDB 10.3+
-- Apache mit `mod_rewrite` (oder ein anderer Webserver mit entsprechender Rewrite-Regel)
+- Apache mit `mod_rewrite` **oder** nginx mit PHP-FPM (siehe „Installation auf nginx" unten)
 
 ## Installation
 
@@ -40,6 +40,15 @@
    - **Schritt 1:** Datenbank-Zugangsdaten eingeben (die Datenbank wird bei Bedarf angelegt).
    - **Schritt 2:** Namen der Website und Admin-Zugang festlegen.
 4. Anmelden unter `/login` und im Admin-Bereich (`/admin`) loslegen.
+
+### Installation auf nginx
+
+nginx wertet **keine** `.htaccess` aus (die mitgelieferten `.htaccess`-Dateien gelten nur für Apache) und führt PHP nur über PHP-FPM aus. Wird beides nicht eingerichtet, liefert nginx `install.php`/`index.php` als **Download** aus, statt sie auszuführen. Für nginx daher:
+
+1. PHP-FPM installieren, z. B. `sudo apt install php-fpm php-mysql php-curl php-zip php-mbstring php-gd` (Socket-Version prüfen mit `ls /run/php/`).
+2. Den docroot der Domain direkt auf das Verzeichnis **`public/`** zeigen lassen.
+3. Die mitgelieferte Vorlage [`nginx.conf.example`](nginx.conf.example) als Serverblock übernehmen (Domain und PHP-FPM-Socket anpassen) und einen `location ~ \.php$`-Block an PHP-FPM weiterreichen lassen.
+4. Website öffnen → der Install-Assistent startet. (Der Ein-Datei-Installer `install.php` liegt in der Projektwurzel und ist bei docroot=`public/` bewusst nicht erreichbar; auf einem Server mit SSH das Paket stattdessen direkt entpacken – siehe Kommentar in `nginx.conf.example`.)
 
 ## Lokale Entwicklung
 

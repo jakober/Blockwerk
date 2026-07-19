@@ -102,45 +102,6 @@ class AiController extends AdminController
         }
     }
 
-    /** POST /admin/ai/help – kontextbezogene Hilfe zur aktuellen Backend-Seite. */
-    public function help(): void
-    {
-        header('Content-Type: application/json');
-        set_time_limit(60);
-
-        $input = json_decode(file_get_contents('php://input') ?: '', true);
-        $page = trim((string) ($input['page'] ?? ''));
-        $pageTitle = trim((string) ($input['title'] ?? ''));
-        $question = trim((string) ($input['question'] ?? ''));
-        $history = is_array($input['messages'] ?? null) ? $input['messages'] : [];
-
-        $messages = [];
-        foreach (array_slice($history, -10) as $turn) {
-            $role = ($turn['role'] ?? '') === 'assistant' ? 'assistant' : 'user';
-            $text = trim((string) ($turn['text'] ?? ''));
-            if ($text !== '' && strlen($text) < 8000) {
-                $messages[] = ['role' => $role, 'content' => $text];
-            }
-        }
-        if ($question === '') {
-            $question = 'Was kann ich auf dieser Seite tun? Erkläre es mir kurz und praktisch.';
-        }
-        $messages[] = ['role' => 'user', 'content' => $question];
-
-        try {
-            $response = Ai::chat($messages, [], AiSchema::helpPrompt($page, $pageTitle), true);
-            $text = '';
-            foreach (is_array($response['content'] ?? null) ? $response['content'] : [] as $part) {
-                if (($part['type'] ?? '') === 'text') {
-                    $text .= $part['text'];
-                }
-            }
-            echo json_encode(['ok' => true, 'text' => trim($text) !== '' ? trim($text) : '—', 'balance' => $response['balance'] ?? null], JSON_UNESCAPED_UNICODE);
-        } catch (\Throwable $e) {
-            echo json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        }
-    }
-
     /** POST /admin/ai/clear – gespeicherten Gesprächsverlauf löschen. */
     public function clear(): void
     {

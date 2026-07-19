@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.43.1 – 2026-07-19
+
+- **KI-Assistent: mehr Arbeitsschritte pro Anfrage.** Die Obergrenze wurde von 8 auf 16 Runden angehoben – mehrteilige Aufgaben (z. B. „Logo hinterlegen und die Farben passend ändern") laufen jetzt durch, statt vorzeitig mit „Zu viele Arbeitsschritte" abzubrechen.
+- **Ehrliche Rückmeldung am Limit:** Wird die Schrittgrenze doch erreicht, gilt das nicht mehr als Fehler – die bereits ausgeführten Schritte (z. B. erstelltes Design, geladenes Bild) werden als erledigt angezeigt, mit dem Hinweis, den Rest kurz nachzufassen.
+
 ## 1.43.0 – 2026-07-19
 
 - **KI weist Schriften jetzt selbst dem Layout zu.** Bisher konnte der KI-Assistent eine Google-Schrift zwar herunterladen (`load_font`), aber nicht dem Layout zuordnen – er musste den Nutzer bitten, das manuell zu tun. Neu: das Werkzeug **`set_layout_design`** setzt Schriften je Slot (alle Überschriften, Fließtext oder einzeln H1–H6) und optional die Design-Farben (Primär/Akzent/Text/Hintergrund/Fläche) direkt im Layout. Noch nicht installierte Schriften werden dabei automatisch geladen. So kann die KI ein Layout jetzt komplett gestalten – inklusive passender Typografie – ohne manuellen Zwischenschritt.

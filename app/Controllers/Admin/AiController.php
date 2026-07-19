@@ -74,7 +74,7 @@ class AiController extends AdminController
             $system = AiSchema::systemPrompt();
             $tools = AiSchema::tools();
 
-            for ($round = 0; $round < 8; $round++) {
+            for ($round = 0; $round < 16; $round++) {
                 $response = Ai::chat($messages, $tools, $system);
                 $balance = $response['balance'] ?? $balance;
                 $content = is_array($response['content'] ?? null) ? $response['content'] : [];
@@ -109,7 +109,12 @@ class AiController extends AdminController
                 $messages[] = ['role' => 'user', 'content' => $results];
             }
 
-            echo json_encode(['ok' => false, 'error' => 'Zu viele Arbeitsschritte – bitte die Aufgabe kleiner formulieren.', 'actions' => $actions, 'balance' => $balance], JSON_UNESCAPED_UNICODE);
+            echo json_encode([
+                'ok' => true,
+                'text' => 'Ich habe die Aufgabe in mehreren Schritten bearbeitet (siehe die Aktionen oben) und bin dabei an die Schrittgrenze gestoßen. Falls noch etwas fehlt, fasse den restlichen Wunsch bitte kurz in einer Folgeanweisung zusammen.',
+                'actions' => $actions,
+                'balance' => $balance,
+            ], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $e) {
             echo json_encode(['ok' => false, 'error' => $e->getMessage(), 'actions' => $actions, 'balance' => $balance], JSON_UNESCAPED_UNICODE);
         }

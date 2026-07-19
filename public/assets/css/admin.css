@@ -1250,6 +1250,22 @@ body.is-editor .ed-row.ed-row-fullwidth > .ed-cols {
 .ai-wrap { max-width: 860px; }
 .ai-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .ai-head-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ai-plan { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface); }
+.ai-plan-head { font-weight: 600; margin-bottom: 8px; }
+.ai-plan-steps { list-style: none; margin: 0; padding: 0; }
+.ai-step { display: flex; gap: 10px; padding: 9px 0; border-top: 1px dashed var(--border); }
+.ai-step:first-child { border-top: none; }
+.ai-step-icon { flex-shrink: 0; width: 22px; text-align: center; font-weight: 700; color: var(--muted); }
+.ai-step.is-running .ai-step-icon { color: var(--primary); }
+.ai-step.is-done .ai-step-icon { color: var(--green); }
+.ai-step.is-error .ai-step-icon { color: var(--danger); }
+.ai-step.is-pending { opacity: .65; }
+.ai-step-main { min-width: 0; flex: 1 1 auto; }
+.ai-step-title { font-weight: 600; }
+.ai-step-result { margin-top: 6px; }
+.ai-step-text { white-space: pre-wrap; margin: 4px 0; }
+.ai-step-err { color: var(--danger); margin-top: 4px; }
+.ai-step-controls { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
 .ai-badge {
     display: inline-flex; align-items: center; justify-content: center;
     width: 34px; height: 34px; border-radius: 10px;

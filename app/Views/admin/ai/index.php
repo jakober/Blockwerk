@@ -67,6 +67,7 @@
     const balanceEl = document.getElementById('ai-balance');
     const csrf = <?= json_encode(csrf_token()) ?>;
     const chatUrl = <?= json_encode(url('/admin/ai/chat')) ?>;
+    const planUrl = <?= json_encode(url('/admin/ai/plan')) ?>;
     // Gespeicherten Verlauf laden, damit die KI sich an frühere Anweisungen erinnert.
     const history = <?= json_encode(array_map(static fn ($m) => ['role' => $m['role'] === 'assistant' ? 'assistant' : 'user', 'text' => $m['content']], $history ?? []), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
     let busy = false;
@@ -90,7 +91,123 @@
         }
     });
 
-    function sendMessage() {
+    function showStatus(msg) {
+        const lines = msg ? [msg] : statusLines;
+        let i = 0;
+        status.hidden = false;
+        statusText.textContent = lines[0];
+        clearInterval(statusTimer);
+        statusTimer = setInterval(() => { i = (i + 1) % lines.length; statusText.textContent = lines[i]; }, 6000);
+    }
+    function hideStatus() { status.hidden = true; clearInterval(statusTimer); }
+
+    function updateBalance(bal) {
+        if (bal !== null && bal !== undefined) {
+            balanceEl.innerHTML = 'Guthaben: <strong>' + new Intl.NumberFormat('de-DE').format(bal) + '</strong> Tokens';
+        }
+    }
+
+    function postJson(url, body) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+            body: JSON.stringify(body),
+        }).then((r) => r.json());
+    }
+
+    function renderChecklist(steps) {
+        const wrap = document.createElement('div');
+        wrap.className = 'ai-msg is-assistant';
+        const plan = document.createElement('div');
+        plan.className = 'ai-plan';
+        plan.innerHTML = '<div class="ai-plan-head">📋 Plan – wird Schritt für Schritt umgesetzt</div>';
+        const ol = document.createElement('ol');
+        ol.className = 'ai-plan-steps';
+        const handles = steps.map((s, i) => {
+            const li = document.createElement('li');
+            li.className = 'ai-step is-pending';
+            li.innerHTML = '<span class="ai-step-icon">○</span><div class="ai-step-main">'
+                + '<div class="ai-step-title"></div><div class="ai-step-detail muted small"></div>'
+                + '<div class="ai-step-result"></div></div>';
+            li.querySelector('.ai-step-title').textContent = (i + 1) + '. ' + s.title;
+            li.querySelector('.ai-step-detail').textContent = s.detail || '';
+            ol.appendChild(li);
+            return { li: li, icon: li.querySelector('.ai-step-icon'), result: li.querySelector('.ai-step-result') };
+        });
+        plan.appendChild(ol);
+        wrap.appendChild(plan);
+        messagesEl.appendChild(wrap);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return handles;
+    }
+
+    function setStep(h, state) {
+        h.li.className = 'ai-step is-' + state;
+        if (state === 'running') { h.icon.innerHTML = '<span class="ai-spinner"></span>'; }
+        else if (state === 'done') { h.icon.textContent = '✓'; }
+        else if (state === 'error') { h.icon.textContent = '✕'; }
+        else { h.icon.textContent = '○'; }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    async function runStep(steps, i) {
+        const s = steps[i];
+        const stepMsg = 'Setze jetzt NUR diesen Schritt aus dem Plan um: ' + (i + 1) + '. ' + s.title
+            + (s.detail ? ' – ' + s.detail : '') + '. Fokussiere dich ausschließlich auf diesen einen Schritt.';
+        const res = await postJson(chatUrl, { messages: history.concat([{ role: 'user', text: stepMsg }]) });
+        updateBalance(res.balance);
+        if (res.ok) {
+            history.push({ role: 'user', text: stepMsg });
+            history.push({ role: 'assistant', text: res.text });
+        }
+        return res;
+    }
+
+    function stepControls(steps, i, handles) {
+        const box = document.createElement('div');
+        box.className = 'ai-step-controls';
+        const retry = document.createElement('button');
+        retry.type = 'button'; retry.className = 'btn btn-small'; retry.textContent = 'Schritt erneut versuchen';
+        retry.addEventListener('click', () => { if (busy) return; busy = true; send.disabled = true; box.remove(); handles[i].result.innerHTML = ''; runFrom(steps, i, handles); });
+        const skip = document.createElement('button');
+        skip.type = 'button'; skip.className = 'btn btn-small btn-ghost'; skip.textContent = 'Überspringen & weiter';
+        skip.addEventListener('click', () => { if (busy) return; busy = true; send.disabled = true; box.remove(); runFrom(steps, i + 1, handles); });
+        box.append(retry, ' ', skip);
+        handles[i].result.appendChild(box);
+    }
+
+    async function runFrom(steps, start, handles) {
+        for (let i = start; i < steps.length; i++) {
+            setStep(handles[i], 'running');
+            showStatus(null);
+            let res;
+            try { res = await runStep(steps, i); }
+            catch (e) { res = { ok: false, error: 'Verbindung fehlgeschlagen.' }; }
+            if (res.ok) {
+                setStep(handles[i], 'done');
+                if (res.text && res.text !== 'Erledigt.') {
+                    const t = document.createElement('div');
+                    t.className = 'ai-step-text'; t.textContent = res.text;
+                    handles[i].result.appendChild(t);
+                }
+                renderActions(handles[i].result, res.actions || []);
+            } else {
+                setStep(handles[i], 'error');
+                const err = document.createElement('div');
+                err.className = 'ai-step-err'; err.textContent = '⚠️ ' + (res.error || 'Fehler in diesem Schritt.');
+                handles[i].result.appendChild(err);
+                stepControls(steps, i, handles);
+                hideStatus();
+                done();
+                return;
+            }
+        }
+        hideStatus();
+        addBubble('assistant', '✅ Fertig – alle Schritte des Plans umgesetzt.');
+        done();
+    }
+
+    async function sendMessage() {
         const text = input.value.trim();
         if (text === '' || busy) return;
         busy = true;
@@ -99,33 +216,21 @@
         addBubble('user', text);
         history.push({ role: 'user', text: text });
 
-        let step = 0;
-        status.hidden = false;
-        statusText.textContent = statusLines[0];
-        statusTimer = setInterval(() => {
-            step = (step + 1) % statusLines.length;
-            statusText.textContent = statusLines[step];
-        }, 6000);
+        // 1. Planungs-Phase (nichts wird ausgeführt)
+        showStatus('Plan wird erstellt …');
+        let plan;
+        try { plan = await postJson(planUrl, { messages: history }); }
+        catch (e) { plan = { ok: false, error: 'Verbindung fehlgeschlagen.' }; }
+        updateBalance(plan.balance);
+        if (!plan.ok) { hideStatus(); addBubble('assistant', '⚠️ ' + (plan.error || 'Der Plan konnte nicht erstellt werden.')); done(); return; }
 
-        fetch(chatUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
-            body: JSON.stringify({ messages: history }),
-        }).then((r) => r.json()).then((res) => {
-            done();
-            if (res.ok) {
-                addBubble('assistant', res.text, res.actions || []);
-                history.push({ role: 'assistant', text: res.text });
-            } else {
-                addBubble('assistant', '⚠️ ' + (res.error || 'Unbekannter Fehler.'), res.actions || []);
-            }
-            if (res.balance !== null && res.balance !== undefined) {
-                balanceEl.innerHTML = 'Guthaben: <strong>' + new Intl.NumberFormat('de-DE').format(res.balance) + '</strong> Tokens';
-            }
-        }).catch(() => {
-            done();
-            addBubble('assistant', '⚠️ Verbindung fehlgeschlagen – bitte erneut versuchen.');
-        });
+        let steps = Array.isArray(plan.steps) ? plan.steps : [];
+        if (steps.length === 0) { steps = [{ title: text, detail: '' }]; } // Fallback: als ein Schritt umsetzen
+        history.push({ role: 'assistant', text: 'Plan:\n' + steps.map((s, i) => (i + 1) + '. ' + s.title).join('\n') });
+
+        const handles = renderChecklist(steps);
+        // 2. Automatisch Schritt für Schritt
+        await runFrom(steps, 0, handles);
     }
 
     function done() {
@@ -136,13 +241,7 @@
         input.focus();
     }
 
-    function addBubble(role, text, actions) {
-        const wrap = document.createElement('div');
-        wrap.className = 'ai-msg is-' + role;
-        const bubble = document.createElement('div');
-        bubble.className = 'ai-msg-bubble';
-        bubble.textContent = text;
-        wrap.appendChild(bubble);
+    function renderActions(target, actions) {
         (actions || []).forEach((action) => {
             const card = document.createElement('div');
             card.className = 'ai-action';
@@ -171,8 +270,18 @@
                     card.append(' · ', a);
                 }
             }
-            wrap.appendChild(card);
+            target.appendChild(card);
         });
+    }
+
+    function addBubble(role, text, actions) {
+        const wrap = document.createElement('div');
+        wrap.className = 'ai-msg is-' + role;
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-msg-bubble';
+        bubble.textContent = text;
+        wrap.appendChild(bubble);
+        renderActions(wrap, actions);
         messagesEl.appendChild(wrap);
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }

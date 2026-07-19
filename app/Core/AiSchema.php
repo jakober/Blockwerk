@@ -154,6 +154,44 @@ PROMPT
         ;
     }
 
+    /** System-Prompt für die Planungs-Phase: nur planen, nichts ausführen. */
+    public static function planPrompt(): string
+    {
+        return self::systemPrompt() . "\n\n## AKTUELLE AUFGABE: NUR PLANEN – NICHTS AUSFÜHREN\n"
+            . 'Zerlege die Anfrage des Nutzers in klare, nacheinander ausführbare Schritte. Jeder Schritt ist '
+            . 'eine zusammenhängende Einheit (z. B. „eine Seite anlegen", „ein Bild generieren", „das Menü anpassen", '
+            . '„ein Produkt einpflegen"). Halte die Schritte sinnvoll grob – höchstens 8 –, deutsch, mit kurzem Titel '
+            . 'und 1–2 Sätzen Detail. Bei einer sehr kleinen Anfrage genügt ein einziger Schritt. Führe nichts aus; '
+            . 'rufe ausschließlich das Werkzeug propose_plan mit den Schritten auf.';
+    }
+
+    /** Das einzige Werkzeug der Planungs-Phase. */
+    public static function planTool(): array
+    {
+        return [[
+            'name' => 'propose_plan',
+            'description' => 'Schlägt einen Umsetzungsplan als geordnete Schrittliste vor. Führt selbst nichts aus.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'steps' => [
+                        'type' => 'array',
+                        'description' => 'Die Schritte in Ausführungsreihenfolge (höchstens 8).',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'title' => ['type' => 'string', 'description' => 'Kurzer Titel des Schritts'],
+                                'detail' => ['type' => 'string', 'description' => 'Was konkret gemacht wird (1–2 Sätze)'],
+                            ],
+                            'required' => ['title'],
+                        ],
+                    ],
+                ],
+                'required' => ['steps'],
+            ],
+        ]];
+    }
+
     /** Tools im Anthropic-Format. */
     public static function tools(): array
     {

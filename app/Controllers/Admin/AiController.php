@@ -45,6 +45,63 @@ class AiController extends AdminController
         ]);
     }
 
+    /** POST /admin/ai/plan – zerlegt die Anfrage in Schritte (führt nichts aus). */
+    public function plan(): void
+    {
+        header('Content-Type: application/json');
+        set_time_limit(120);
+
+        $input = json_decode(file_get_contents('php://input') ?: '', true);
+        $history = is_array($input['messages'] ?? null) ? $input['messages'] : [];
+        $messages = [];
+        foreach (array_slice($history, -16) as $turn) {
+            $role = ($turn['role'] ?? '') === 'assistant' ? 'assistant' : 'user';
+            $text = trim((string) ($turn['text'] ?? ''));
+            if ($text !== '' && strlen($text) < 20000) {
+                $messages[] = ['role' => $role, 'content' => $text];
+            }
+        }
+        if ($messages === [] || end($messages)['role'] !== 'user') {
+            echo json_encode(['ok' => false, 'error' => 'Keine Nachricht übermittelt.']);
+            return;
+        }
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $newUserText = (string) (end($messages)['content'] ?? '');
+
+        try {
+            $response = Ai::chat($messages, AiSchema::planTool(), AiSchema::planPrompt());
+            $balance = $response['balance'] ?? null;
+            $steps = [];
+            $intro = '';
+            foreach (is_array($response['content'] ?? null) ? $response['content'] : [] as $part) {
+                if (($part['type'] ?? '') === 'text') {
+                    $intro .= $part['text'];
+                }
+                if (($part['type'] ?? '') === 'tool_use' && ($part['name'] ?? '') === 'propose_plan') {
+                    foreach ((array) ($part['input']['steps'] ?? []) as $s) {
+                        $title = trim((string) ($s['title'] ?? ''));
+                        if ($title !== '') {
+                            $steps[] = ['title' => $title, 'detail' => trim((string) ($s['detail'] ?? ''))];
+                        }
+                    }
+                }
+            }
+            $steps = array_slice($steps, 0, 12);
+
+            if ($userId > 0 && $steps !== []) {
+                $lines = [];
+                foreach ($steps as $i => $s) {
+                    $lines[] = ($i + 1) . '. ' . $s['title'] . ($s['detail'] !== '' ? ' – ' . $s['detail'] : '');
+                }
+                $this->saveTurn($userId, $newUserText, "Plan:\n" . implode("\n", $lines));
+            }
+
+            echo json_encode(['ok' => true, 'steps' => $steps, 'intro' => trim($intro), 'balance' => $balance], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            echo json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
     /** POST /admin/ai/clear – gespeicherten Gesprächsverlauf löschen. */
     public function clear(): void
     {

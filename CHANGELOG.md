@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.48.0 – 2026-07-19
+
+- **KI-Assistent arbeitet jetzt mit Plan.** Bevor etwas umgesetzt wird, zerlegt die KI deine Anfrage zuerst in einen **Plan aus einzelnen Schritten** (ohne dabei schon etwas zu ändern). Anschließend werden die Schritte **automatisch nacheinander** als jeweils **eigene Anfrage** abgearbeitet. Im Chat erscheint eine **Checkliste**, die live mitläuft: aktueller Schritt mit Ladeanzeige, erledigte mit ✓ – inklusive der Ergebnis-Karten je Schritt (z. B. **generiertes Bild als Vorschau** und „Ansehen"-Link). Bricht ein Schritt ab, kannst du ihn **erneut versuchen** oder **überspringen**. Nebeneffekt: Das frühere „zu viele Arbeitsschritte" tritt praktisch nicht mehr auf, weil jeder Schritt sein eigenes Budget hat.
+
 ## 1.47.0 – 2026-07-19
 
 - **Gewichts- und länderabhängige Versandkosten.** Versandarten können jetzt **Gewichtsstaffeln** haben (z. B. bis 5 kg 20 €, bis 20 kg 50 €) und auf bestimmte **Länder** beschränkt werden. Für unterschiedliche Länderpreise legt man einfach mehrere Versandarten an (z. B. „Versand Deutschland" und „Versand EU"). An der Kasse wählt der Kunde sein Land, woraufhin nur passende Versandarten mit dem zum Warenkorbgewicht passenden Preis erscheinen. Ohne Staffeln gilt weiter der Pauschalpreis; „gratis ab" bleibt möglich.

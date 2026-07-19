@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.4 – 2026-07-19
+
+- **Kleines Testrelease**, um die neue automatische Update-Anzeige zu prüfen: Nach dem Betreten des Backends sollte dieses Update ohne „Nach Updates suchen" im Dashboard und am Menüpunkt „Updates" erscheinen. (Keine funktionalen Änderungen.)
+
 ## 1.53.3 – 2026-07-19
 
 - **Admin-Listen auf dem Handy: kein horizontales Scrollen mehr.** Die als Karten gestapelten Tabellen erbten noch die Mindestbreite (560px) der normalen Tabellen – dadurch war die Karte breiter als der Bildschirm. Das ist behoben; lange, umbruchlose Werte (z. B. Lizenzschlüssel, Template-Keys) brechen jetzt sauber um.

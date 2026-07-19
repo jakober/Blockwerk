@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.50.0 – 2026-07-19
+
+- **KI kann Versandarten anlegen und ändern.** Der KI-Assistent versteht jetzt Versandkosten: er kann Versandarten anlegen/aktualisieren – pauschal, **gewichtsabhängig** (Staffeln „bis X kg → Preis") und auf bestimmte **Länder** begrenzt. Beispiel-Anweisung: „Lege eine Versandart an: bis 5 kg 20 €, bis 20 kg 50 €, nur nach Deutschland und Österreich."
+
 ## 1.49.0 – 2026-07-19
 
 - **Länder-Auswahl mit Suchfeld statt Komma-Liste.** Bei den Versandarten wählst du die Länder jetzt über eine **durchsuchbare Mehrfach-Auswahl** (tippen, anklicken, als Chips hinzufügen/entfernen) statt sie kommagetrennt einzutippen. Auch an der **Kasse** wählt der Kunde sein Land über dasselbe durchsuchbare Feld – **Deutschland ist vorausgewählt**. Die Liste ist alphabetisch, wobei **Deutschland, Österreich, Schweiz** immer oben stehen. Das Feld funktioniert auch ohne JavaScript (normales Mehrfach-/Auswahlfeld). An der Kasse stehen nur Länder zur Wahl, in die tatsächlich geliefert wird (bzw. alle, wenn eine weltweite Versandart existiert).

@@ -62,7 +62,7 @@ class AiSchema
 
         // Shop-Abschnitt nur im Prompt, wenn der Shop aktiviert ist.
         $shopSection = \Core\Shop::enabled()
-            ? "\n- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Du kannst pro Produkt auch **Staffelpreise** (tier_prices: ab Menge X günstigerer Stückpreis), **Varianten/Eigenschaften** (variants: z. B. Größe S/M/L oder Farbe, optional mit Preisaufschlag surcharge) sowie **Cross-Selling** und **Zubehör** (cross_sell/accessories mit Produkt-IDs aus list_shop_products) setzen. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein."
+            ? "\n- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Du kannst pro Produkt auch **Staffelpreise** (tier_prices: ab Menge X günstigerer Stückpreis), **Varianten/Eigenschaften** (variants: z. B. Größe S/M/L oder Farbe, optional mit Preisaufschlag surcharge) sowie **Cross-Selling** und **Zubehör** (cross_sell/accessories mit Produkt-IDs aus list_shop_products) setzen. **Versandarten** (list_shipping/create_shipping/update_shipping): Du kannst Versandarten anlegen und ändern – pauschal oder **gewichtsabhängig** (weight_tiers: „bis X kg → Preis“) und auf bestimmte **Länder** begrenzt (countries mit deutschen Ländernamen, leer = alle). Beispiel: „bis 5 kg 20 €, bis 20 kg 50 € nur nach Deutschland“. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein."
             : '';
 
         return <<<PROMPT
@@ -541,6 +541,50 @@ PROMPT
                 ],
             ],
             [
+                'name' => 'list_shipping',
+                'description' => 'Listet die Versandarten (id, Name, Länder, Gewichtsstaffeln, Preis). Vor dem Ändern aufrufen.',
+                'input_schema' => ['type' => 'object', 'properties' => (object) []],
+            ],
+            [
+                'name' => 'create_shipping',
+                'description' => 'Legt eine Versandart an. Preise in Euro. Optional gewichts- und länderabhängig: „weight_tiers" = Gewichtsstaffeln (ab-Menge nach oben, „bis X kg → Preis"), „countries" = Länder für die die Versandart gilt (leer = alle). Ohne Staffeln gilt der Pauschalpreis „price".',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'name' => ['type' => 'string'],
+                        'price' => ['type' => 'number', 'description' => 'Pauschalpreis in Euro (gilt, wenn keine Gewichtsstaffeln angegeben sind)'],
+                        'free_from' => ['type' => 'number', 'description' => 'Versandkostenfrei ab dieser Warenkorbsumme in Euro (optional)'],
+                        'description' => ['type' => 'string', 'description' => 'Kurzbeschreibung (optional)'],
+                        'countries' => ['type' => 'array', 'description' => 'Länder (deutsche Namen), für die diese Versandart gilt. Leer/weglassen = alle Länder.', 'items' => ['type' => 'string']],
+                        'weight_tiers' => [
+                            'type' => 'array',
+                            'description' => 'Gewichtsstaffeln: bis „up_to_kg" Kilogramm gilt „price" Euro. Beispiel: [{up_to_kg:5, price:20},{up_to_kg:20, price:50}].',
+                            'items' => ['type' => 'object', 'properties' => ['up_to_kg' => ['type' => 'number'], 'price' => ['type' => 'number']]],
+                        ],
+                        'active' => ['type' => 'integer', 'description' => '1 = aktiv (Standard), 0 = deaktiviert'],
+                    ],
+                    'required' => ['name'],
+                ],
+            ],
+            [
+                'name' => 'update_shipping',
+                'description' => 'Ändert eine Versandart (per id aus list_shipping). Nur übergebene Felder werden geändert; countries/weight_tiers ersetzen die vorhandenen.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'shipping_id' => ['type' => 'integer'],
+                        'name' => ['type' => 'string'],
+                        'price' => ['type' => 'number'],
+                        'free_from' => ['type' => 'number'],
+                        'description' => ['type' => 'string'],
+                        'countries' => ['type' => 'array', 'items' => ['type' => 'string']],
+                        'weight_tiers' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['up_to_kg' => ['type' => 'number'], 'price' => ['type' => 'number']]]],
+                        'active' => ['type' => 'integer'],
+                    ],
+                    'required' => ['shipping_id'],
+                ],
+            ],
+            [
                 'name' => 'create_design',
                 'description' => 'Erstellt ein individuelles Gesamt-Design nach Beschreibung, speichert es unter „Designs" und aktiviert es sofort (überschreibt das Standard-Layout; Inhalte bleiben). Über die Tokens steuerst du die komplette Optik: Rundungen, Hero-Höhe, Abstände, Schriftstil, Button-Form, Schatten. Wähle Farben und Tokens passend zur gewünschten Stimmung (z. B. „minimalistisch, groß, kantig" → radius 0, button sharp, hero 100, uppercase true).',
                 'input_schema' => [
@@ -622,7 +666,7 @@ PROMPT
 
         // Shop-Werkzeuge nur anbieten, wenn der Shop aktiviert ist.
         if (!\Core\Shop::enabled()) {
-            $shopTools = ['list_shop_categories', 'create_shop_category', 'list_shop_products', 'create_shop_product', 'update_shop_product'];
+            $shopTools = ['list_shop_categories', 'create_shop_category', 'list_shop_products', 'create_shop_product', 'update_shop_product', 'list_shipping', 'create_shipping', 'update_shipping'];
             $all = array_values(array_filter($all, static fn (array $t): bool => !in_array($t['name'], $shopTools, true)));
         }
 

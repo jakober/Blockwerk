@@ -181,6 +181,45 @@ class AiController extends AdminController
         return $out;
     }
 
+    /** Baut aus der KI-Eingabe die Daten für eine Versandart (kg→g, €→Cent). */
+    private function shippingDataFromInput(array $input, array $existing): array
+    {
+        $countries = $existing['countries'] ?? null;
+        if (array_key_exists('countries', $input) && is_array($input['countries'])) {
+            $list = array_values(array_filter(array_map(static fn ($c) => trim((string) $c), $input['countries']), static fn ($c) => $c !== ''));
+            $countries = $list !== [] ? json_encode($list, JSON_UNESCAPED_UNICODE) : null;
+        }
+
+        $weightTiers = $existing['weight_tiers'] ?? null;
+        if (array_key_exists('weight_tiers', $input) && is_array($input['weight_tiers'])) {
+            $tiers = [];
+            foreach ($input['weight_tiers'] as $t) {
+                $grams = (int) round(((float) ($t['up_to_kg'] ?? 0)) * 1000);
+                if ($grams > 0) {
+                    $tiers[] = ['max' => $grams, 'price' => \Core\Shop::parsePrice((string) ($t['price'] ?? '0'))];
+                }
+            }
+            usort($tiers, static fn ($a, $b) => $a['max'] <=> $b['max']);
+            $weightTiers = $tiers !== [] ? json_encode($tiers) : null;
+        }
+
+        $freeFrom = $existing['free_from'] ?? null;
+        if (array_key_exists('free_from', $input)) {
+            $freeFrom = ($input['free_from'] !== '' && $input['free_from'] !== null) ? \Core\Shop::parsePrice((string) $input['free_from']) : null;
+        }
+
+        return [
+            'name' => trim((string) ($input['name'] ?? '')) ?: (string) ($existing['name'] ?? ''),
+            'description' => array_key_exists('description', $input) ? (trim((string) $input['description']) ?: null) : ($existing['description'] ?? null),
+            'price' => (isset($input['price']) && $input['price'] !== '') ? \Core\Shop::parsePrice((string) $input['price']) : (int) ($existing['price'] ?? 0),
+            'free_from' => $freeFrom,
+            'countries' => $countries,
+            'weight_tiers' => $weightTiers,
+            'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : (int) ($existing['active'] ?? 1),
+            'position' => (int) ($existing['position'] ?? 0),
+        ];
+    }
+
     /** POST /admin/ai/chat – führt einen kompletten Assistenten-Durchlauf aus. */
     public function chat(): void
     {
@@ -782,6 +821,43 @@ class AiController extends AdminController
                         'viewUrl' => \Core\Shop::enabled() ? \Core\Shop::url('produkt/' . $prod['slug']) : null,
                     ];
                     return 'Produkt id=' . $prod['id'] . ' aktualisiert.';
+
+                case 'list_shipping':
+                    $lines = [];
+                    foreach (\Models\ShopShipping::all() as $m) {
+                        $countries = \Models\ShopShipping::countries($m);
+                        $tiers = [];
+                        foreach (\Models\ShopShipping::weightTiers($m) as $t) {
+                            $tiers[] = 'bis ' . rtrim(rtrim(number_format($t['max'] / 1000, 3, '.', ''), '0'), '.') . ' kg → ' . \Core\Shop::formatPrice($t['price']);
+                        }
+                        $lines[] = 'id=' . $m['id'] . ' „' . $m['name'] . '“'
+                            . ($m['active'] ? '' : ' (deaktiviert)')
+                            . ' | Länder: ' . ($countries === [] ? 'alle' : implode(', ', $countries))
+                            . ' | ' . ($tiers === [] ? 'Pauschal ' . \Core\Shop::formatPrice((int) $m['price']) : 'Staffeln: ' . implode('; ', $tiers))
+                            . (($m['free_from'] ?? null) !== null ? ' | gratis ab ' . \Core\Shop::formatPrice((int) $m['free_from']) : '');
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine Versandarten.';
+
+                case 'create_shipping':
+                    $name = trim((string) ($input['name'] ?? ''));
+                    if ($name === '') {
+                        return 'FEHLER: Name der Versandart fehlt.';
+                    }
+                    $sidNew = \Models\ShopShipping::create($this->shippingDataFromInput($input, []));
+                    Cache::clear();
+                    $actions[] = ['type' => 'link', 'label' => 'Versandart „' . $name . '“ angelegt', 'editorUrl' => url('/admin/shop/settings'), 'viewUrl' => null];
+                    return 'Versandart angelegt: id=' . $sidNew . ', „' . $name . '“.'
+                        . (\Core\Shop::enabled() ? '' : ' Hinweis: Der Shop ist noch nicht aktiviert.');
+
+                case 'update_shipping':
+                    $ship = \Models\ShopShipping::find((int) ($input['shipping_id'] ?? 0));
+                    if ($ship === null) {
+                        return 'FEHLER: Versandart nicht gefunden.';
+                    }
+                    \Models\ShopShipping::update((int) $ship['id'], $this->shippingDataFromInput($input, $ship));
+                    Cache::clear();
+                    $actions[] = ['type' => 'link', 'label' => 'Versandart aktualisiert', 'editorUrl' => url('/admin/shop/settings'), 'viewUrl' => null];
+                    return 'Versandart id=' . $ship['id'] . ' aktualisiert.';
 
                 case 'create_design':
                     $name = trim((string) ($input['name'] ?? ''));

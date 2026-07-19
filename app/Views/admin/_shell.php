@@ -33,6 +33,7 @@ if (\Core\Shop::enabled()) {
         'shop-products' => ['Produkte', '/admin/shop/products', '◰'],
         'shop-categories' => ['Kategorien', '/admin/shop/categories', '≡'],
         'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
+        'shop-customers' => ['Kunden', '/admin/shop/customers', '👤'],
         'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
     ]];
     $pos = array_search('Inhalte', array_keys($navGroups), true);

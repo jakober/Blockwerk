@@ -268,6 +268,12 @@ class App
         $router->add('POST', '/admin/shop/orders/{id}/status', [\Controllers\Admin\ShopOrderController::class, 'setStatus']);
         $router->add('POST', '/admin/shop/orders/{id}/delete', [\Controllers\Admin\ShopOrderController::class, 'delete']);
 
+        $router->add('GET', '/admin/shop/customers', [\Controllers\Admin\ShopCustomerController::class, 'index']);
+        $router->add('GET', '/admin/shop/customers/{id}', [\Controllers\Admin\ShopCustomerController::class, 'show']);
+        $router->add('POST', '/admin/shop/customers/{id}', [\Controllers\Admin\ShopCustomerController::class, 'update']);
+        $router->add('POST', '/admin/shop/customers/{id}/password', [\Controllers\Admin\ShopCustomerController::class, 'setPassword']);
+        $router->add('POST', '/admin/shop/customers/{id}/delete', [\Controllers\Admin\ShopCustomerController::class, 'delete']);
+
         $router->add('GET', '/admin/shop/settings', [\Controllers\Admin\ShopSettingsController::class, 'index']);
         $router->add('POST', '/admin/shop/settings', [\Controllers\Admin\ShopSettingsController::class, 'save']);
         $router->add('POST', '/admin/shop/shipping', [\Controllers\Admin\ShopSettingsController::class, 'shippingStore']);

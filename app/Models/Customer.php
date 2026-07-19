@@ -58,6 +58,43 @@ class Customer
         return self::findByEmail($email) !== null;
     }
 
+    /** Alle Kunden mit Anzahl ihrer Bestellungen (für die Backend-Verwaltung). */
+    public static function all(): array
+    {
+        self::ensureTable();
+        $pdo = Database::pdo();
+        // Bestellungen per customer_id ODER E-Mail (Gastbestellungen) zählen –
+        // mit Rückfall, falls die Spalte customer_id (noch) fehlt.
+        $withId = 'SELECT c.*, (SELECT COUNT(*) FROM shop_orders o WHERE o.customer_id = c.id OR LOWER(o.email) = LOWER(c.email)) AS order_count
+                   FROM shop_customers c ORDER BY c.created_at DESC';
+        $byMail = 'SELECT c.*, (SELECT COUNT(*) FROM shop_orders o WHERE LOWER(o.email) = LOWER(c.email)) AS order_count
+                   FROM shop_customers c ORDER BY c.created_at DESC';
+        foreach ([$withId, $byMail, 'SELECT c.*, 0 AS order_count FROM shop_customers c ORDER BY c.created_at DESC'] as $sql) {
+            try {
+                return $pdo->query($sql)->fetchAll();
+            } catch (\Throwable) {
+            }
+        }
+        return [];
+    }
+
+    public static function update(int $id, string $email, string $firstName, string $lastName): void
+    {
+        Database::pdo()->prepare('UPDATE shop_customers SET email = ?, first_name = ?, last_name = ? WHERE id = ?')
+            ->execute([mb_strtolower(trim($email)), $firstName ?: null, $lastName ?: null, $id]);
+    }
+
+    public static function delete(int $id): void
+    {
+        $pdo = Database::pdo();
+        // Bestellungen bleiben erhalten, verlieren nur die Konto-Zuordnung.
+        try {
+            $pdo->prepare('UPDATE shop_orders SET customer_id = NULL WHERE customer_id = ?')->execute([$id]);
+        } catch (\Throwable) {
+        }
+        $pdo->prepare('DELETE FROM shop_customers WHERE id = ?')->execute([$id]);
+    }
+
     /** Legt ein Konto an und liefert die neue ID. */
     public static function create(string $email, string $password, string $firstName = '', string $lastName = ''): int
     {

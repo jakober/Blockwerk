@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.6 – 2026-07-19
+
+- **Kleines Testrelease** zur Prüfung der neuen automatischen Update-Anzeige: Dieses Update sollte ab Version 1.53.5 von selbst im Dashboard und am Menüpunkt „Updates" erscheinen – ohne „Nach Updates suchen". (Keine funktionalen Änderungen.)
+
 ## 1.53.5 – 2026-07-19
 
 - **Automatische Update-Anzeige jetzt zuverlässig.** Die Prüfung „beim Betreten des Backends" lief zuletzt über einen verzögerten Server-Hintergrundprozess, der auf manchen Servern (nginx/php-fpm-Konstellationen) nicht durchlief – dann erschien trotz vorhandenem Update nichts. Neu: Die Seite lädt sofort, und direkt danach fragt der Browser im Hintergrund den Status ab (`/admin/update/status`). Ist ein Update verfügbar, erscheinen **Banner im Dashboard und die Markierung am Menüpunkt „Updates" sofort – ohne Neuladen und ohne „Nach Updates suchen"**. Solange noch keine Version bekannt ist, wird die Prüfung zügig wiederholt; sobald sie klappt, höchstens alle 6 Stunden.

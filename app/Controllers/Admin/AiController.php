@@ -405,6 +405,125 @@ class AiController extends AdminController
                     ];
                     return 'Layout id=' . $layout['id'] . ' aktualisiert – die Änderung ist auf allen Seiten mit diesem Layout aktiv.';
 
+                case 'list_shop_categories':
+                    $lines = [];
+                    foreach (\Models\ShopCategory::tree() as $c) {
+                        $lines[] = 'id=' . $c['id'] . ' ' . str_repeat('— ', (int) $c['depth']) . '„' . $c['name'] . '“'
+                            . ($c['parent_id'] ? ' (Unterkategorie von id=' . $c['parent_id'] . ')' : '');
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine Shop-Kategorien.';
+
+                case 'create_shop_category':
+                    $name = trim((string) ($input['name'] ?? ''));
+                    if ($name === '') {
+                        return 'FEHLER: Kategoriename fehlt.';
+                    }
+                    $pid = (int) ($input['parent_id'] ?? 0);
+                    $cid = \Models\ShopCategory::create([
+                        'name' => $name,
+                        'slug' => '',
+                        'parent_id' => $pid > 0 && \Models\ShopCategory::find($pid) !== null ? $pid : 0,
+                        'description' => trim((string) ($input['description'] ?? '')) ?: null,
+                        'image' => trim((string) ($input['image'] ?? '')) ?: null,
+                        'position' => 0,
+                    ]);
+                    Cache::clear();
+                    $cat = \Models\ShopCategory::find($cid);
+                    $actions[] = [
+                        'type' => 'link',
+                        'label' => 'Kategorie „' . $name . '“ angelegt',
+                        'editorUrl' => url('/admin/shop/categories/' . $cid . '/edit'),
+                        'viewUrl' => \Core\Shop::enabled() ? \Core\Shop::url('kategorie/' . ($cat['slug'] ?? '')) : null,
+                    ];
+                    return 'Kategorie angelegt: id=' . $cid . ', Name=' . $name;
+
+                case 'list_shop_products':
+                    $search = trim((string) ($input['search'] ?? ''));
+                    $cats = [];
+                    foreach (\Models\ShopCategory::all() as $c) {
+                        $cats[(int) $c['id']] = $c['name'];
+                    }
+                    $lines = [];
+                    foreach (\Models\ShopProduct::all() as $pr) {
+                        if ($search !== '' && stripos($pr['name'], $search) === false) {
+                            continue;
+                        }
+                        $lines[] = 'id=' . $pr['id'] . ' „' . $pr['name'] . '“ '
+                            . \Core\Shop::formatPrice((int) $pr['price'])
+                            . ' [' . ($cats[(int) ($pr['category_id'] ?? 0)] ?? 'ohne Kategorie') . ']'
+                            . ((int) $pr['active'] ? '' : ' (inaktiv)');
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine Produkte.';
+
+                case 'create_shop_product':
+                    $name = trim((string) ($input['name'] ?? ''));
+                    if ($name === '') {
+                        return 'FEHLER: Produktname fehlt.';
+                    }
+                    if (!isset($input['price'])) {
+                        return 'FEHLER: Preis fehlt (in Euro, z. B. 19.90).';
+                    }
+                    $catId = (int) ($input['category_id'] ?? 0);
+                    $pidNew = \Models\ShopProduct::create([
+                        'name' => $name,
+                        'slug' => '',
+                        'sku' => trim((string) ($input['sku'] ?? '')) ?: null,
+                        'category_id' => $catId > 0 && \Models\ShopCategory::find($catId) !== null ? $catId : 0,
+                        'price' => \Core\Shop::parsePrice((string) $input['price']),
+                        'compare_price' => isset($input['compare_price']) ? \Core\Shop::parsePrice((string) $input['compare_price']) : null,
+                        'short_desc' => trim((string) ($input['short_desc'] ?? '')) ?: null,
+                        'description' => trim((string) ($input['description'] ?? '')) ?: null,
+                        'image' => trim((string) ($input['image'] ?? '')) ?: null,
+                        'gallery' => null,
+                        'stock' => isset($input['stock']) && $input['stock'] !== '' ? (int) $input['stock'] : null,
+                        'weight' => null,
+                        'active' => 1,
+                        'featured' => (int) ($input['featured'] ?? 0) ? 1 : 0,
+                        'position' => 0,
+                    ]);
+                    Cache::clear();
+                    $prod = \Models\ShopProduct::find($pidNew);
+                    $hint = \Core\Shop::enabled() ? '' : ' Hinweis: Der Shop ist noch nicht aktiviert – unter Shop-Einstellungen aktivieren, damit das Produkt auf der Website erscheint.';
+                    $actions[] = [
+                        'type' => 'link',
+                        'label' => 'Produkt „' . $name . '“ angelegt',
+                        'editorUrl' => url('/admin/shop/products/' . $pidNew . '/edit'),
+                        'viewUrl' => \Core\Shop::enabled() ? \Core\Shop::url('produkt/' . ($prod['slug'] ?? '')) : null,
+                    ];
+                    return 'Produkt angelegt: id=' . $pidNew . ', Name=' . $name . ', Preis=' . \Core\Shop::formatPrice((int) $prod['price']) . '.' . $hint;
+
+                case 'update_shop_product':
+                    $prod = \Models\ShopProduct::find((int) ($input['product_id'] ?? 0));
+                    if ($prod === null) {
+                        return 'FEHLER: Produkt nicht gefunden.';
+                    }
+                    $data = [
+                        'name' => trim((string) ($input['name'] ?? '')) ?: $prod['name'],
+                        'slug' => $prod['slug'],
+                        'sku' => $prod['sku'],
+                        'category_id' => array_key_exists('category_id', $input) ? (int) $input['category_id'] : (int) ($prod['category_id'] ?? 0),
+                        'price' => isset($input['price']) ? \Core\Shop::parsePrice((string) $input['price']) : (int) $prod['price'],
+                        'compare_price' => isset($input['compare_price']) ? \Core\Shop::parsePrice((string) $input['compare_price']) : ($prod['compare_price'] ?? null),
+                        'short_desc' => array_key_exists('short_desc', $input) ? (trim((string) $input['short_desc']) ?: null) : ($prod['short_desc'] ?? null),
+                        'description' => array_key_exists('description', $input) ? (trim((string) $input['description']) ?: null) : ($prod['description'] ?? null),
+                        'image' => array_key_exists('image', $input) ? (trim((string) $input['image']) ?: null) : ($prod['image'] ?? null),
+                        'gallery' => $prod['gallery'] ?? null,
+                        'stock' => array_key_exists('stock', $input) && $input['stock'] !== '' ? (int) $input['stock'] : ($prod['stock'] ?? null),
+                        'weight' => $prod['weight'] ?? null,
+                        'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : (int) $prod['active'],
+                        'featured' => array_key_exists('featured', $input) ? ((int) $input['featured'] ? 1 : 0) : (int) $prod['featured'],
+                        'position' => (int) $prod['position'],
+                    ];
+                    \Models\ShopProduct::update((int) $prod['id'], $data);
+                    Cache::clear();
+                    $actions[] = [
+                        'type' => 'link',
+                        'label' => 'Produkt „' . $data['name'] . '“ aktualisiert',
+                        'editorUrl' => url('/admin/shop/products/' . $prod['id'] . '/edit'),
+                        'viewUrl' => \Core\Shop::enabled() ? \Core\Shop::url('produkt/' . $prod['slug']) : null,
+                    ];
+                    return 'Produkt id=' . $prod['id'] . ' aktualisiert.';
+
                 case 'generate_image':
                     $prompt = trim((string) ($input['prompt'] ?? ''));
                     if ($prompt === '') {

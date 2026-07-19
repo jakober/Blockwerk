@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.37.0 – 2026-07-19
+
+- **KI-Assistent kann jetzt den Shop pflegen:** Der KI-Assistent kann **Produkte und Kategorien anlegen** (und Produkte aktualisieren). Beispiele: „Lege eine Kategorie ‚Accessoires' an", „Erstelle 3 Produkte für Kaffee mit Beschreibung und Preis" oder „Erhöhe den Preis von Produkt X auf 24,90 €". Auf Wunsch generiert die KI dabei auch passende Produktbilder und ordnet die Produkte den richtigen Kategorien zu. Neue Werkzeuge: `list_shop_categories`, `create_shop_category`, `list_shop_products`, `create_shop_product`, `update_shop_product`. Hinweis der KI: Der Shop muss unter „Shop-Einstellungen" aktiviert sein, damit die Produkte auf der Website erscheinen.
+
 ## 1.36.0 – 2026-07-18
 
 - **Shop-Funktion (optional zuschaltbar):** Blockwerk Orange kann jetzt einen vollständigen Online-Shop betreiben. Neuer Bereich **„Shop"** im Backend mit:

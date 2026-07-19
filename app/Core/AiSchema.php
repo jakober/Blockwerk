@@ -123,6 +123,7 @@ Regeln für Layout-Änderungen ("überall auf der Website"):
 - **Globale Blöcke** (create_global_block/update_global_block/list_global_blocks): wiederverwendbare Inhaltsbereiche mit demselben Content-JSON wie Seiten. Werden über den „Globaler Block"-Block auf mehreren Seiten eingebettet – eine Änderung wirkt überall.
 - **Templates** (create_template/update_template/list_templates): wiederverwendbare HTML-Bausteine mit Schlüssel (für {{template:schlüssel}}). Das Menü-Template „main-menu" NICHT hier ändern – dafür ist der Menü-Designer zuständig.
 - **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).
+- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen" aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein.
 
 ## Arbeitsweise
 
@@ -343,6 +344,74 @@ PROMPT
                         ],
                     ],
                     'required' => ['layout_id', 'builder'],
+                ],
+            ],
+            [
+                'name' => 'list_shop_categories',
+                'description' => 'Listet die Shop-Kategorien (id, Name, übergeordnete Kategorie). Vor dem Anlegen von Produkten/Unterkategorien aufrufen, um passende category_id/parent_id zu finden.',
+                'input_schema' => ['type' => 'object', 'properties' => (object) []],
+            ],
+            [
+                'name' => 'create_shop_category',
+                'description' => 'Legt eine Shop-Kategorie an. Für eine Unterkategorie parent_id angeben (aus list_shop_categories).',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'name' => ['type' => 'string'],
+                        'parent_id' => ['type' => 'integer', 'description' => 'ID der Oberkategorie (optional)'],
+                        'description' => ['type' => 'string', 'description' => 'Kurztext oben auf der Kategorieseite (optional)'],
+                        'image' => ['type' => 'string', 'description' => 'Bild-URL (optional)'],
+                    ],
+                    'required' => ['name'],
+                ],
+            ],
+            [
+                'name' => 'list_shop_products',
+                'description' => 'Listet Shop-Produkte (id, Name, Preis, Kategorie). Optional mit Suchbegriff.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => ['search' => ['type' => 'string', 'description' => 'Suchbegriff (optional)']],
+                ],
+            ],
+            [
+                'name' => 'create_shop_product',
+                'description' => 'Legt ein Shop-Produkt an (aktiv/sichtbar). Preise in Euro (z. B. 19.90). Der Shop muss in den Shop-Einstellungen aktiviert sein, damit Produkte auf der Website erscheinen.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'name' => ['type' => 'string'],
+                        'price' => ['type' => 'number', 'description' => 'Verkaufspreis in Euro, z. B. 19.90'],
+                        'category_id' => ['type' => 'integer', 'description' => 'Kategorie-ID (aus list_shop_categories, optional)'],
+                        'sku' => ['type' => 'string', 'description' => 'Artikelnummer (optional)'],
+                        'short_desc' => ['type' => 'string', 'description' => 'Kurzbeschreibung für Listen/Kacheln (optional)'],
+                        'description' => ['type' => 'string', 'description' => 'Ausführliche Beschreibung als HTML (<p>, <ul>…) (optional)'],
+                        'image' => ['type' => 'string', 'description' => 'Produktbild-URL (optional, z. B. aus list_media oder generate_image)'],
+                        'compare_price' => ['type' => 'number', 'description' => 'Streichpreis für Angebote in Euro (optional)'],
+                        'stock' => ['type' => 'integer', 'description' => 'Lagerbestand (optional, leer = unbegrenzt)'],
+                        'featured' => ['type' => 'integer', 'description' => '1 = auf der Shop-Startseite empfehlen'],
+                    ],
+                    'required' => ['name', 'price'],
+                ],
+            ],
+            [
+                'name' => 'update_shop_product',
+                'description' => 'Ändert ein bestehendes Produkt (per id aus list_shop_products). Nur übergebene Felder werden geändert; Preise in Euro.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'product_id' => ['type' => 'integer'],
+                        'name' => ['type' => 'string'],
+                        'price' => ['type' => 'number'],
+                        'category_id' => ['type' => 'integer'],
+                        'short_desc' => ['type' => 'string'],
+                        'description' => ['type' => 'string'],
+                        'image' => ['type' => 'string'],
+                        'compare_price' => ['type' => 'number'],
+                        'stock' => ['type' => 'integer'],
+                        'featured' => ['type' => 'integer'],
+                        'active' => ['type' => 'integer', 'description' => '1 = sichtbar, 0 = ausgeblendet'],
+                    ],
+                    'required' => ['product_id'],
                 ],
             ],
             [

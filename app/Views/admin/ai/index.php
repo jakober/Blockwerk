@@ -141,6 +141,19 @@
                 card.querySelector('img').src = action.thumb;
                 card.querySelector('strong').textContent = action.label;
                 card.querySelector('a').href = action.url;
+            } else if (action.type === 'link') {
+                card.innerHTML = '<span>✓ </span><strong></strong>';
+                card.querySelector('strong').textContent = action.label;
+                if (action.editorUrl) {
+                    const a = document.createElement('a');
+                    a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Bearbeiten'; a.href = action.editorUrl;
+                    card.append(' · ', a);
+                }
+                if (action.viewUrl) {
+                    const a = document.createElement('a');
+                    a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Ansehen ↗'; a.href = action.viewUrl;
+                    card.append(' · ', a);
+                }
             }
             wrap.appendChild(card);
         });

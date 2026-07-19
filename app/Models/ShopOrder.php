@@ -7,6 +7,39 @@ use Core\Database;
 
 class ShopOrder
 {
+    /** Fulfillment-Status → Label (Frontend & Admin gemeinsam). */
+    public const STATUS_LABELS = [
+        'new' => 'Neu',
+        'paid' => 'Bezahlt',
+        'shipped' => 'Versendet',
+        'cancelled' => 'Storniert',
+    ];
+
+    public static function statusLabel(string $status): string
+    {
+        return self::STATUS_LABELS[$status] ?? $status;
+    }
+
+    /** CSS-Badge-Klasse zum Status (wie im Admin). */
+    public static function statusBadge(string $status): string
+    {
+        return match ($status) {
+            'paid', 'shipped' => 'badge-green',
+            'new' => 'badge-amber',
+            default => 'badge',
+        };
+    }
+
+    /** Bestellungen eines Kunden – per customer_id ODER (frühere Gastbestellungen) per E-Mail. */
+    public static function forCustomer(int $customerId, string $email): array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT * FROM shop_orders WHERE customer_id = ? OR LOWER(email) = ? ORDER BY created_at DESC'
+        );
+        $stmt->execute([$customerId, mb_strtolower(trim($email))]);
+        return $stmt->fetchAll();
+    }
+
     public static function all(?string $status = null): array
     {
         if ($status !== null && $status !== '') {
@@ -55,8 +88,8 @@ class ShopOrder
         $number = self::nextNumber($pdo);
         $pdo->prepare('INSERT INTO shop_orders
             (number, token, status, email, first_name, last_name, company, street, zip, city, country, phone, note,
-             subtotal, shipping_cost, total, currency, shipping_method, payment_method, payment_status, paypal_order_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+             subtotal, shipping_cost, total, currency, shipping_method, payment_method, payment_status, paypal_order_id, customer_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([
                 $number, $order['token'], $order['status'] ?? 'new', $order['email'],
                 $order['first_name'] ?? null, $order['last_name'] ?? null, $order['company'] ?? null,
@@ -65,6 +98,7 @@ class ShopOrder
                 (int) $order['subtotal'], (int) $order['shipping_cost'], (int) $order['total'],
                 $order['currency'] ?? 'EUR', $order['shipping_method'] ?? null, $order['payment_method'] ?? null,
                 $order['payment_status'] ?? 'pending', $order['paypal_order_id'] ?? null,
+                !empty($order['customer_id']) ? (int) $order['customer_id'] : null,
             ]);
         $orderId = (int) $pdo->lastInsertId();
         $stmt = $pdo->prepare('INSERT INTO shop_order_items (order_id, product_id, name, sku, price, qty) VALUES (?, ?, ?, ?, ?, ?)');

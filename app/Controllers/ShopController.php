@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Core\Cart;
+use Core\CustomerAuth;
+use Core\Mailer;
 use Core\PayPal;
 use Core\Renderer;
 use Core\Shop;
 use Core\View;
+use Models\Customer;
 use Models\Setting;
 use Models\ShopCategory;
 use Models\ShopOrder;
@@ -139,6 +142,16 @@ class ShopController
         $shipCountries = $shipping === []
             ? []
             : ($hasWorldwide ? \Core\Countries::all() : \Core\Countries::sort(ShopShipping::allCountries()));
+        // Eingeloggte Kunden: Formular mit Profildaten vorbefüllen.
+        $customer = \Core\CustomerAuth::current();
+        $form = $_SESSION['shop_checkout'] ?? [];
+        if ($form === [] && $customer !== null) {
+            $form = [
+                'email' => $customer['email'],
+                'first_name' => (string) ($customer['first_name'] ?? ''),
+                'last_name' => (string) ($customer['last_name'] ?? ''),
+            ];
+        }
         $this->render('checkout', 'Kasse', [
             'items' => Cart::items(),
             'subtotal' => Cart::subtotal(),
@@ -146,7 +159,8 @@ class ShopController
             'shipping' => $shipping,
             'shipCountries' => $shipCountries,
             'payments' => Shop::paymentMethods(),
-            'form' => $_SESSION['shop_checkout'] ?? [],
+            'form' => $form,
+            'customer' => $customer,
         ]);
     }
 
@@ -183,6 +197,137 @@ class ShopController
             'items' => ShopOrder::items((int) $order['id']),
             'bankInfo' => Setting::get('shop_bank_info', ''),
         ]);
+    }
+
+    /* ---------- Kundenkonto ---------- */
+
+    public function login(): void
+    {
+        if (CustomerAuth::check()) {
+            redirect($this->path('konto'));
+        }
+        $email = (string) ($_SESSION['shop_login_email'] ?? '');
+        unset($_SESSION['shop_login_email']);
+        $this->render('login', 'Anmelden', ['email' => $email]);
+    }
+
+    public function doLogin(): void
+    {
+        $email = trim($_POST['email'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+        if (CustomerAuth::attempt($email, $password)) {
+            flash('success', 'Willkommen zurück!');
+            redirect($this->path('konto'));
+        }
+        flash('error', 'E-Mail oder Passwort ist falsch.');
+        $_SESSION['shop_login_email'] = $email;
+        redirect($this->path('login'));
+    }
+
+    public function logout(): void
+    {
+        CustomerAuth::logout();
+        flash('success', 'Du wurdest abgemeldet.');
+        redirect('/' . trim(Shop::rootSlug(), '/'));
+    }
+
+    public function register(): void
+    {
+        if (CustomerAuth::check()) {
+            redirect($this->path('konto'));
+        }
+        $form = $_SESSION['shop_register'] ?? [];
+        unset($_SESSION['shop_register']);
+        $this->render('register', 'Konto erstellen', ['form' => $form]);
+    }
+
+    public function doRegister(): void
+    {
+        $email = trim($_POST['email'] ?? '');
+        $first = trim($_POST['first_name'] ?? '');
+        $last = trim($_POST['last_name'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+        $_SESSION['shop_register'] = ['email' => $email, 'first_name' => $first, 'last_name' => $last];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            flash('error', 'Bitte eine gültige E-Mail-Adresse angeben.');
+            redirect($this->path('registrieren'));
+        }
+        if (strlen($password) < 6) {
+            flash('error', 'Das Passwort muss mindestens 6 Zeichen haben.');
+            redirect($this->path('registrieren'));
+        }
+        if (Customer::emailExists($email)) {
+            flash('error', 'Für diese E-Mail gibt es bereits ein Konto. Bitte melde dich an.');
+            redirect($this->path('login'));
+        }
+        $id = Customer::create($email, $password, $first, $last);
+        CustomerAuth::login(Customer::find($id));
+        unset($_SESSION['shop_register']);
+        flash('success', 'Konto erstellt – willkommen!');
+        redirect($this->path('konto'));
+    }
+
+    public function account(): void
+    {
+        CustomerAuth::requireLogin();
+        $customer = CustomerAuth::current();
+        if ($customer === null) {
+            CustomerAuth::logout();
+            redirect($this->path('login'));
+        }
+        $this->render('account', 'Mein Konto', [
+            'customer' => $customer,
+            'orders' => ShopOrder::forCustomer((int) $customer['id'], (string) $customer['email']),
+        ]);
+    }
+
+    public function forgotPassword(): void
+    {
+        $this->render('forgot', 'Passwort vergessen', []);
+    }
+
+    public function sendReset(): void
+    {
+        $email = trim($_POST['email'] ?? '');
+        $customer = Customer::findByEmail($email);
+        if ($customer !== null) {
+            $token = Customer::setResetToken((int) $customer['id']);
+            $body = "Du hast angefordert, das Passwort deines Kundenkontos neu zu setzen.\n\n"
+                . "Setze dein Passwort hier neu (Link ist 1 Stunde gültig):\n"
+                . $this->absoluteUrl('passwort-neu/' . $token) . "\n\n"
+                . "Falls du das nicht warst, kannst du diese E-Mail ignorieren.";
+            Mailer::send((string) $customer['email'], 'Passwort zurücksetzen', $body);
+        }
+        // Immer dieselbe Rückmeldung – verrät nicht, ob die E-Mail existiert.
+        flash('success', 'Falls ein Konto mit dieser E-Mail existiert, haben wir dir einen Link zum Zurücksetzen geschickt.');
+        redirect($this->path('login'));
+    }
+
+    public function resetPassword(string $token): void
+    {
+        if (Customer::findByValidResetToken($token) === null) {
+            flash('error', 'Der Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an.');
+            redirect($this->path('passwort-vergessen'));
+        }
+        $this->render('reset', 'Neues Passwort', ['token' => $token]);
+    }
+
+    public function doResetPassword(string $token): void
+    {
+        $customer = Customer::findByValidResetToken($token);
+        if ($customer === null) {
+            flash('error', 'Der Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an.');
+            redirect($this->path('passwort-vergessen'));
+        }
+        $password = (string) ($_POST['password'] ?? '');
+        if (strlen($password) < 6) {
+            flash('error', 'Das Passwort muss mindestens 6 Zeichen haben.');
+            redirect($this->path('passwort-neu/' . $token));
+        }
+        Customer::updatePassword((int) $customer['id'], $password);
+        CustomerAuth::login(Customer::find((int) $customer['id']));
+        flash('success', 'Dein Passwort wurde geändert – du bist jetzt angemeldet.');
+        redirect($this->path('konto'));
     }
 
     /* ---------- PayPal (AJAX) ---------- */
@@ -311,8 +456,39 @@ class ShopController
             'shipping_method' => $shippingName,
             'payment_method' => $payment,
             'payment_status' => 'pending',
+            'customer_id' => $this->resolveCustomer($form),
         ];
         return [$head, $orderItems, null];
+    }
+
+    /**
+     * Ordnet die Bestellung einem Kundenkonto zu: eingeloggt → dessen ID;
+     * sonst bei „Konto anlegen" (Checkbox + Passwort) ein neues Konto erstellen
+     * und einloggen. Existiert die E-Mail bereits, bleibt es eine Gastbestellung
+     * (taucht nach Login per E-Mail-Zuordnung trotzdem im Konto auf).
+     */
+    private function resolveCustomer(array $form): ?int
+    {
+        if (CustomerAuth::check()) {
+            return CustomerAuth::id();
+        }
+        if (($_POST['create_account'] ?? '') === '' ) {
+            return null;
+        }
+        $password = (string) ($_POST['account_password'] ?? '');
+        $email = $form['email'];
+        if (strlen($password) < 6) {
+            flash('error', 'Für das Kundenkonto bitte ein Passwort mit mindestens 6 Zeichen wählen. Die Bestellung wurde als Gast gespeichert.');
+            return null;
+        }
+        if (Customer::emailExists($email)) {
+            flash('error', 'Es besteht bereits ein Konto mit dieser E-Mail – bitte melde dich an, um die Bestellung deinem Konto zuzuordnen.');
+            return null;
+        }
+        $id = Customer::create($email, $password, $form['first_name'], $form['last_name']);
+        CustomerAuth::login(Customer::find($id));
+        flash('success', 'Kundenkonto angelegt – du bist jetzt angemeldet.');
+        return $id;
     }
 
     private function afterOrder(int $orderId, array $items): void
@@ -322,15 +498,33 @@ class ShopController
                 ShopProduct::decreaseStock((int) $it['product_id'], (int) $it['qty']);
             }
         }
+        $order = ShopOrder::find($orderId);
+        // Benachrichtigung an den Shop-Betreiber.
         $to = Setting::get('shop_email', '');
         if ($to !== '' && filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $order = ShopOrder::find($orderId);
             @mail($to, 'Neue Bestellung ' . $order['number'], 'Es ist eine neue Bestellung eingegangen: ' . $order['number']);
+        }
+        // Bestellbestätigung an den Kunden – mit Link zum Status.
+        if ($order !== null && filter_var($order['email'], FILTER_VALIDATE_EMAIL)) {
+            $link = $this->absoluteUrl('bestellung/' . $order['token']);
+            $siteName = Setting::get('site_name', 'Shop');
+            $body = "Vielen Dank für deine Bestellung " . $order['number'] . " bei " . $siteName . ".\n\n"
+                . "Den Status deiner Bestellung kannst du hier jederzeit einsehen:\n" . $link . "\n\n"
+                . "Herzliche Grüße\n" . $siteName;
+            Mailer::send($order['email'], 'Deine Bestellung ' . $order['number'], $body);
         }
     }
 
     private function path(string $sub): string
     {
         return '/' . trim(Shop::rootSlug(), '/') . '/' . ltrim($sub, '/');
+    }
+
+    /** Voll qualifizierte URL (Schema + Host) für E-Mail-Links. */
+    private function absoluteUrl(string $sub): string
+    {
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        return $scheme . '://' . $host . url($this->path($sub));
     }
 }

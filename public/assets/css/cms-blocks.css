@@ -844,6 +844,18 @@ h1.cms-heading { font-size: 2.3em; }
 .shop-bar-home { font-weight: 600; }
 .shop-bar-cart { font-weight: 600; }
 .shop-cart-count { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--cms-primary); color: #fff; font-size: .8em; text-align: center; }
+.shop-bar-right { display: flex; align-items: center; gap: 16px; }
+.shop-bar-account { font-weight: 600; }
+/* Kundenkonto (Login/Registrierung/Konto) */
+.shop-account-form { max-width: 440px; margin: 0 auto; }
+.shop-account-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.shop-account-note { border: 1px solid color-mix(in srgb, var(--cms-primary) 30%, transparent); background: color-mix(in srgb, var(--cms-primary) 8%, transparent); border-radius: 10px; padding: 10px 14px; }
+.shop-orders-table td { vertical-align: middle; }
+/* Bestellstatus-Badge (Frontend) */
+.shop-status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .82em; font-weight: 700; background: color-mix(in srgb, var(--cms-text) 12%, transparent); color: var(--cms-text); }
+.shop-status.is-new { background: color-mix(in srgb, #f59e0b 22%, transparent); color: #92400e; }
+.shop-status.is-paid, .shop-status.is-shipped { background: color-mix(in srgb, #16a34a 20%, transparent); color: #15803d; }
+.shop-status.is-cancelled { background: color-mix(in srgb, var(--cms-text) 14%, transparent); color: color-mix(in srgb, var(--cms-text) 70%, transparent); }
 .shop-flash { padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 500; }
 .shop-flash-success { background: color-mix(in srgb, #16a34a 14%, transparent); color: #15803d; }
 .shop-flash-error { background: color-mix(in srgb, #dc2626 12%, transparent); color: #b91c1c; }

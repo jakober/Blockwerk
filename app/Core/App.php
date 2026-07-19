@@ -75,6 +75,7 @@ class App
         $cacheable = $installed && $method === 'GET'
             && !str_starts_with($path, '/admin') && $path !== '/login'
             && empty($_SESSION['user_id'])
+            && empty($_SESSION['customer_id'])
             && ($_SERVER['QUERY_STRING'] ?? '') === ''
             && Cache::enabled();
 
@@ -288,6 +289,17 @@ class App
             $router->add('GET', $b . '/bestellung/{token}', [\Controllers\ShopController::class, 'orderConfirm']);
             $router->add('GET', $b . '/produkt/{slug}', [\Controllers\ShopController::class, 'product']);
             $router->add('GET', $b . '/kategorie/{slug}', [\Controllers\ShopController::class, 'category']);
+            // Kundenkonten
+            $router->add('GET', $b . '/login', [\Controllers\ShopController::class, 'login']);
+            $router->add('POST', $b . '/login', [\Controllers\ShopController::class, 'doLogin']);
+            $router->add('POST', $b . '/logout', [\Controllers\ShopController::class, 'logout']);
+            $router->add('GET', $b . '/registrieren', [\Controllers\ShopController::class, 'register']);
+            $router->add('POST', $b . '/registrieren', [\Controllers\ShopController::class, 'doRegister']);
+            $router->add('GET', $b . '/konto', [\Controllers\ShopController::class, 'account']);
+            $router->add('GET', $b . '/passwort-vergessen', [\Controllers\ShopController::class, 'forgotPassword']);
+            $router->add('POST', $b . '/passwort-vergessen', [\Controllers\ShopController::class, 'sendReset']);
+            $router->add('GET', $b . '/passwort-neu/{token}', [\Controllers\ShopController::class, 'resetPassword']);
+            $router->add('POST', $b . '/passwort-neu/{token}', [\Controllers\ShopController::class, 'doResetPassword']);
         }
 
         // Öffentliche Seiten (Catch-all zuletzt)

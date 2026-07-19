@@ -49,6 +49,19 @@ $clientId = \Core\Shop::paypalClientId();
                 <label>Anmerkung (optional)<textarea name="note" rows="2"><?= $val('note') ?></textarea></label>
             </fieldset>
 
+            <?php if (!empty($customer)): ?>
+                <p class="shop-account-note muted small">✓ Angemeldet als <strong><?= e($customer['email']) ?></strong> – die Bestellung wird deinem Konto zugeordnet.</p>
+            <?php else: ?>
+                <fieldset class="shop-fieldset">
+                    <legend>Kundenkonto (optional)</legend>
+                    <label class="shop-option">
+                        <input type="checkbox" name="create_account" id="create-account" value="1">
+                        <span>Kundenkonto anlegen, um meine Bestellungen später einzusehen</span>
+                    </label>
+                    <label id="account-pw-wrap" hidden>Passwort (mindestens 6 Zeichen)<input type="password" name="account_password" minlength="6" autocomplete="new-password"></label>
+                </fieldset>
+            <?php endif; ?>
+
             <?php if (!empty($shipping)): ?>
                 <fieldset class="shop-fieldset">
                     <legend>Versandart</legend>
@@ -200,5 +213,15 @@ $clientId = \Core\Shop::paypalClientId();
     }
     form.querySelectorAll('input[name=payment_method]').forEach(function (el) { el.addEventListener('change', toggleMode); });
     toggleMode();
+
+    // Passwortfeld nur zeigen, wenn „Kundenkonto anlegen" gewählt ist.
+    var acc = document.getElementById('create-account');
+    var pwWrap = document.getElementById('account-pw-wrap');
+    if (acc && pwWrap) {
+        var pw = pwWrap.querySelector('input');
+        function toggleAcc() { pwWrap.hidden = !acc.checked; if (acc.checked) { pw.required = true; } else { pw.required = false; pw.value = ''; } }
+        acc.addEventListener('change', toggleAcc);
+        toggleAcc();
+    }
 })();
 </script>

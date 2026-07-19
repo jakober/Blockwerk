@@ -28,7 +28,13 @@
             </tfoot>
         </table>
 
-        <p class="shop-confirm-meta muted small">Zahlungsart: <?= e($order['payment_method']) ?> · Status: <?= $order['payment_status'] === 'paid' ? 'bezahlt' : 'offen' ?></p>
-        <p><a class="cms-button" href="<?= e(\Core\Shop::url()) ?>">Weiter einkaufen</a></p>
+        <p class="shop-confirm-meta muted small">Zahlungsart: <?= e($order['payment_method']) ?> · Zahlung: <?= $order['payment_status'] === 'paid' ? 'bezahlt' : 'offen' ?>
+            · Status: <span class="shop-status is-<?= e($order['status']) ?>"><?= e(\Models\ShopOrder::statusLabel($order['status'])) ?></span></p>
+        <p>
+            <a class="cms-button" href="<?= e(\Core\Shop::url()) ?>">Weiter einkaufen</a>
+            <?php if (\Core\CustomerAuth::check()): ?>
+                <a class="cms-button cms-button-ghost" href="<?= e(\Core\Shop::url('konto')) ?>">Meine Bestellungen</a>
+            <?php endif; ?>
+        </p>
     </div>
 </div>

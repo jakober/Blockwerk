@@ -248,8 +248,21 @@ class Database
                 payment_method VARCHAR(40) NULL,
                 payment_status VARCHAR(20) NOT NULL DEFAULT \'pending\',
                 paypal_order_id VARCHAR(64) NULL,
+                customer_id INT UNSIGNED NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                INDEX idx_status (status, created_at)
+                INDEX idx_status (status, created_at),
+                INDEX idx_customer (customer_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_customers (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(190) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                first_name VARCHAR(120) NULL,
+                last_name VARCHAR(120) NULL,
+                reset_token VARCHAR(64) NULL,
+                reset_expires DATETIME NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 
             'CREATE TABLE IF NOT EXISTS shop_order_items (
@@ -299,6 +312,7 @@ class Database
         self::ensureColumn($pdo, 'shop_products', 'accessories', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_shipping', 'countries', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_shipping', 'weight_tiers', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'customer_id', 'INT UNSIGNED NULL');
     }
 
     /**

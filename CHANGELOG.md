@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.56.0 – 2026-07-19
+
+- **Kundenkonten im Shop.** Kunden können sich jetzt ein Konto anlegen und im Shop einloggen:
+  - **Bei der Bestellung** optional ein Konto anlegen (Häkchen + Passwort). Wer angemeldet ist, bekommt seine Adresse vorausgefüllt und die Bestellung automatisch zugeordnet.
+  - **Eigene Registrierungs- und Login-Seite** sowie **„Passwort vergessen"** per E-Mail (Link 1 Stunde gültig).
+  - **„Mein Konto"** zeigt alle Bestellungen mit **Status** (Neu / Bezahlt / Versendet / Storniert) und Link zur Bestelldetailseite – **inklusive früherer Gastbestellungen mit derselben E-Mail-Adresse**.
+  - Login-/Konto-Link erscheint im Shop-Kopf. **Gastbestellung bleibt weiterhin möglich** (Konto ist optional).
+  - Nach jeder Bestellung erhält der Kunde eine **Bestellbestätigung per E-Mail** mit Link zum Bestellstatus.
+  - Kundenkonten sind vollständig getrennt von den Admin-Benutzern. Bestehende Installationen erhalten die nötigen Datenbank-Ergänzungen beim Update automatisch.
+
 ## 1.55.1 – 2026-07-19
 
 - **Versandarten: Länder werden beim Bearbeiten wieder gespeichert.** In den Shop-Einstellungen wurden die einer bestehenden Versandart zugeordneten Länder beim Speichern nicht übernommen (nur beim Neu-Anlegen). Grund war eine technische Eigenheit der Bearbeiten-Zeile, durch die das Länder-Auswahlfeld nicht mit abgeschickt wurde. Jetzt werden die ausgewählten Länder korrekt gespeichert – und an der Kasse erscheint dann wie vorgesehen eine Auswahlliste mit ausschließlich den Ländern, für die es eine Versandart gibt.

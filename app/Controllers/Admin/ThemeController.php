@@ -36,11 +36,18 @@ class ThemeController extends AdminController
 
     public function delete(string $key): void
     {
-        if (Themes::isCustom($key)) {
-            Themes::deleteCustom($key);
-            flash('success', 'Eigenes Design gelöscht.');
-        } else {
+        if (!Themes::isCustom($key)) {
             flash('error', 'Mitgelieferte Designs können nicht gelöscht werden.');
+            redirect('/admin/themes');
+        }
+        $wasActive = Themes::activeKey() === $key;
+        Themes::deleteCustom($key);
+        // War es das aktive Design, sauber auf das Hausdesign zurückschalten.
+        if ($wasActive) {
+            Themes::apply('blockwerk');
+            flash('success', 'Eigenes Design gelöscht. Es war aktiv – daher wurde „Blockwerk Orange" aktiviert.');
+        } else {
+            flash('success', 'Eigenes Design gelöscht.');
         }
         redirect('/admin/themes');
     }

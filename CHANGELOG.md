@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.41.1 – 2026-07-19
+
+- **Eigene Designs löschen:** Eigene bzw. von der KI erstellte Designs lassen sich unter **Designs** über den Knopf „Löschen" (nur bei eigenen Designs, mit „Eigenes"-Kennzeichnung) wieder entfernen. Löscht man das gerade aktive Design, wird automatisch sauber auf „Blockwerk Orange" zurückgeschaltet. Mitgelieferte Designs sind nicht löschbar.
+
 ## 1.41.0 – 2026-07-19
 
 - **KI kann online nachschauen & Bilder herunterladen.** Der KI-Assistent kann jetzt eine öffentliche Webseite als **Vorlage** abrufen (Titel, Überschriften, Texte, Bild-Liste) und daraus eine ähnliche Seite mit **eigenen, umformulierten Texten** bauen. Auf Wunsch lädt er einzelne **Bilder herunter** und legt sie in der Mediathek ab, um sie direkt einzubinden. Beispiele: „Schau dir die Seite XY an und bau sie ähnlich nach" oder „lade die Bilder von dort und binde sie ein". Neue Werkzeuge `fetch_url` und `download_image`.

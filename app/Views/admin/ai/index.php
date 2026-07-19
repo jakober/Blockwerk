@@ -27,9 +27,11 @@
             <div class="ai-msg is-assistant">
                 <div class="ai-msg-bubble">Hallo! Ich kenne dein Blockwerk Orange in- und auswendig. Sag mir zum Beispiel:<br>
                 „<em>Erstelle eine Startseite für ein Café mit Hero-Bild, drei Vorteilen und Kontaktformular</em>“ –
-                ich lege die Seite komplett an, inklusive Texten und generierten Bildern.</div>
+                ich lege die Seite komplett an, inklusive Texten und generierten Bildern. Ich kann auch eine
+                Webseite als Vorlage ansehen und Bilder herunterladen.</div>
             </div>
         </div>
+        <p class="ai-copyright-note">⚠️ Wenn ich fremde Webseiten als Vorlage nutze oder Bilder herunterlade, können diese <strong>urheberrechtlich geschützt</strong> sein. Ich formuliere Texte selbst um – die Verantwortung für die Verwendung fremder Inhalte und Bilder liegt jedoch bei dir.</p>
         <div class="ai-status" id="ai-status" hidden>
             <span class="ai-spinner"></span><span id="ai-status-text">Die KI arbeitet …</span>
         </div>

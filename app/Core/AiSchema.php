@@ -128,7 +128,8 @@ Regeln für Layout-Änderungen ("überall auf der Website"):
 - **Globale Blöcke** (create_global_block/update_global_block/list_global_blocks): wiederverwendbare Inhaltsbereiche mit demselben Content-JSON wie Seiten. Werden über den „Globaler Block"-Block auf mehreren Seiten eingebettet – eine Änderung wirkt überall.
 - **Templates** (create_template/update_template/list_templates): wiederverwendbare HTML-Bausteine mit Schlüssel (für {{template:schlüssel}}). Das Menü-Template „main-menu" NICHT hier ändern – dafür ist der Menü-Designer zuständig.
 - **Schriften** (load_font): lädt eine Google-Schrift herunter und speichert sie lokal (DSGVO). Danach kann sie im Layout als Überschriften-/Textschrift gewählt werden (weise den Nutzer darauf hin, dass er sie im Layout zuweisen muss).
-- **Designs** (create_design): erstellt ein individuelles Gesamt-Design nach Beschreibung und aktiviert es. Wähle Farben UND Tokens passend zur Stimmung – nicht nur Farben ändern! Beispiele: „minimalistisch/groß" → radius 0, button „sharp", hero 100, uppercase true, section groß; „verspielt/weich" → radius 24+, button „pill", shadow „strong"; „edel/redaktionell" → heading_font „serif", header_layout „center", schmaler container. Das Design erscheint danach unter „Designs".{$shopSection}
+- **Designs** (create_design): erstellt ein individuelles Gesamt-Design nach Beschreibung und aktiviert es. Wähle Farben UND Tokens passend zur Stimmung – nicht nur Farben ändern! Beispiele: „minimalistisch/groß" → radius 0, button „sharp", hero 100, uppercase true, section groß; „verspielt/weich" → radius 24+, button „pill", shadow „strong"; „edel/redaktionell" → heading_font „serif", header_layout „center", schmaler container. Das Design erscheint danach unter „Designs".
+- **Online-Recherche** (fetch_url, download_image): Du kannst eine öffentliche Webseite abrufen (fetch_url), um sie als Vorlage zu nehmen und eine ähnliche Seite zu bauen, und einzelne Bilder herunterladen (download_image, nur auf ausdrücklichen Wunsch). WICHTIG: Übernimm fremde Texte NIE 1:1 – formuliere alles mit eigenen Worten. Weise den Nutzer aktiv darauf hin, dass fremde Inhalte und Bilder urheberrechtlich geschützt sein können und die Verantwortung für ihre Verwendung bei ihm liegt.{$shopSection}
 
 ## Arbeitsweise
 
@@ -461,6 +462,27 @@ PROMPT
                         ],
                     ],
                     'required' => ['name', 'colors'],
+                ],
+            ],
+            [
+                'name' => 'fetch_url',
+                'description' => 'Ruft eine öffentliche Webseite ab und liefert Titel, Beschreibung, Überschriften, Fließtext und gefundene Bild-URLs zurück – als Vorlage/Recherche, um eine ähnliche Seite zu bauen. Baue Inhalte mit EIGENEN, umformulierten Texten nach (nicht 1:1 kopieren). Weise den Nutzer darauf hin, dass fremde Inhalte urheberrechtlich geschützt sein können und die Verantwortung bei ihm liegt.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => ['url' => ['type' => 'string', 'description' => 'Vollständige Adresse inkl. https://']],
+                    'required' => ['url'],
+                ],
+            ],
+            [
+                'name' => 'download_image',
+                'description' => 'Lädt ein Bild von einer öffentlichen Bild-URL herunter, speichert es in der Mediathek und liefert die lokale Bild-URL zur Verwendung in Blöcken. Nur mit ausdrücklichem Wunsch des Nutzers verwenden. Urheberrecht beachten – die Verantwortung liegt beim Nutzer.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'url' => ['type' => 'string', 'description' => 'Direkte Bild-URL (aus fetch_url)'],
+                        'filename' => ['type' => 'string', 'description' => 'Sprechender Dateiname ohne Endung'],
+                    ],
+                    'required' => ['url'],
                 ],
             ],
             [

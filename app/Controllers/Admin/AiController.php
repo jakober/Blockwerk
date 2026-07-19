@@ -573,6 +573,47 @@ class AiController extends AdminController
                     ];
                     return 'Design „' . $name . '" erstellt, unter Designs gespeichert und aktiviert. Die ganze Website hat jetzt die neue Optik.';
 
+                case 'fetch_url':
+                    $url = trim((string) ($input['url'] ?? ''));
+                    if ($url === '') {
+                        return 'FEHLER: Es fehlt eine URL.';
+                    }
+                    $page = \Core\WebFetch::fetchPage($url);
+                    if (!($page['ok'] ?? false)) {
+                        return 'FEHLER: ' . ($page['error'] ?? 'Seite nicht abrufbar.');
+                    }
+                    $out = "HINWEIS: Fremde Inhalte/Bilder können urheberrechtlich geschützt sein – nur als Vorlage nutzen, Texte selbst umformulieren.\n"
+                        . 'Titel: ' . $page['title'] . "\n"
+                        . 'Beschreibung: ' . $page['description'] . "\n"
+                        . "Überschriften:\n" . implode("\n", $page['headings'] ?? []) . "\n\n"
+                        . "Textauszug:\n" . $page['text'] . "\n\n"
+                        . "Gefundene Bilder (für download_image):\n" . implode("\n", $page['images'] ?? []);
+                    return mb_substr($out, 0, 12000);
+
+                case 'download_image':
+                    $url = trim((string) ($input['url'] ?? ''));
+                    if ($url === '') {
+                        return 'FEHLER: Es fehlt eine Bild-URL.';
+                    }
+                    $img = \Core\WebFetch::fetchImage($url);
+                    if (!($img['ok'] ?? false)) {
+                        return 'FEHLER: ' . ($img['error'] ?? 'Bild nicht abrufbar.');
+                    }
+                    $fname = trim((string) ($input['filename'] ?? '')) ?: 'bild-' . substr(md5($url), 0, 8);
+                    $fname = (slugify($fname) ?: 'bild') . '.' . $img['ext'];
+                    $stored = MediaController::storeBytes($img['bytes'], $fname, $img['mime']);
+                    if ($stored === null) {
+                        return 'FEHLER: Das Bild konnte nicht gespeichert werden.';
+                    }
+                    $actions[] = [
+                        'type' => 'image',
+                        'label' => 'Bild heruntergeladen',
+                        'url' => $stored['url'],
+                        'thumb' => $stored['thumb'],
+                    ];
+                    return 'Bild in der Mediathek gespeichert. URL: ' . $stored['url']
+                        . ' — HINWEIS: Bitte sicherstellen, dass die Nutzungsrechte am Bild bestehen (Urheberrecht).';
+
                 case 'generate_image':
                     $prompt = trim((string) ($input['prompt'] ?? ''));
                     if ($prompt === '') {

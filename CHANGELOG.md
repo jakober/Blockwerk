@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.41.0 – 2026-07-19
+
+- **KI kann online nachschauen & Bilder herunterladen.** Der KI-Assistent kann jetzt eine öffentliche Webseite als **Vorlage** abrufen (Titel, Überschriften, Texte, Bild-Liste) und daraus eine ähnliche Seite mit **eigenen, umformulierten Texten** bauen. Auf Wunsch lädt er einzelne **Bilder herunter** und legt sie in der Mediathek ab, um sie direkt einzubinden. Beispiele: „Schau dir die Seite XY an und bau sie ähnlich nach" oder „lade die Bilder von dort und binde sie ein". Neue Werkzeuge `fetch_url` und `download_image`.
+  - **Urheberrechts-Hinweis:** In der KI-Oberfläche und in jeder Antwort weist die KI darauf hin, dass fremde Inhalte und Bilder urheberrechtlich geschützt sein können und die **Verantwortung für die Verwendung beim Nutzer** liegt. Texte werden grundsätzlich selbst umformuliert, nicht 1:1 kopiert.
+  - **Sicherheit:** Nur öffentliche http/https-Adressen werden abgerufen; interne/private Netzwerkadressen sind gesperrt (SSRF-Schutz), Downloads sind größenbegrenzt und Bilder werden per MIME-Typ geprüft.
+
 ## 1.40.0 – 2026-07-19
 
 - **Designs verändern jetzt die komplette Optik – nicht nur Farben.** Ein Design steuert über neue „Design-Tokens" die gesamte Gestaltung: Eckenrundung, Hero-Höhe, Inhaltsbreite, Abstände, Basis-Schriftgröße, Überschriften-Stil (Stärke, Laufweite, Groß-/Kleinschreibung, Serif/Sans), Button-Form (rund/Pille/kantig) und Schatten. So sehen Designs wirklich grundverschieden aus, aber in sich stimmig.

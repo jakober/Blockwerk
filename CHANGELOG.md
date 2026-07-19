@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.7 – 2026-07-19
+
+- **Update-Anzeige zeigt jetzt auch nach einem Update zuverlässig neue Versionen.** Bisher merkte sich das System die zuletzt online gefundene Version bis zu 6 Stunden. Direkt nach einem Update stand dort die gerade installierte Version – also „aktuell", obwohl es schon eine neuere geben konnte. Neu: Nach jedem Update wird der Prüf-Cache geleert, und sobald sich die installierte Version geändert hat, wird sofort erneut online geprüft. So erscheint ein verfügbares Update ab jetzt automatisch – ohne 6-Stunden-Verzögerung und ohne „Nach Updates suchen".
+- Der System-Block im Dashboard aktualisiert seinen Status („aktuell" ↔ „Update verfügbar") jetzt auch live per Hintergrund-Prüfung.
+
 ## 1.53.6 – 2026-07-19
 
 - **Kleines Testrelease** zur Prüfung der neuen automatischen Update-Anzeige: Dieses Update sollte ab Version 1.53.5 von selbst im Dashboard und am Menüpunkt „Updates" erscheinen – ohne „Nach Updates suchen". (Keine funktionalen Änderungen.)

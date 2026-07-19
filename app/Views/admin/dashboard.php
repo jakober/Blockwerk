@@ -53,12 +53,14 @@ if (isset($counts['shop_products'])) {
         <h2>System</h2>
         <p><strong>Blockwerk Orange</strong> · Version <?= e($currentVersion) ?></p>
         <?php if (\Core\Auth::isAdmin()): ?>
+            <p id="dash-sys-status" data-update-url="<?= e(url('/admin/update')) ?>">
             <?php if (!empty($updateVersion)): ?>
-                <p><span class="badge badge-amber">Update auf <?= e($updateVersion) ?> verfügbar</span>
-                    <a href="<?= e(url('/admin/update')) ?>">Jetzt aktualisieren →</a></p>
+                <span class="badge badge-amber">Update auf <?= e($updateVersion) ?> verfügbar</span>
+                    <a href="<?= e(url('/admin/update')) ?>">Jetzt aktualisieren →</a>
             <?php else: ?>
-                <p><span class="badge badge-green">✓ Auf dem neuesten Stand</span></p>
+                <span class="badge badge-green">✓ Auf dem neuesten Stand</span>
             <?php endif; ?>
+            </p>
             <p class="muted small">PHP <?= e(PHP_VERSION) ?> · vor jedem Update ein <a href="<?= e(url('/admin/update')) ?>">Backup</a> herunterladen.</p>
         <?php endif; ?>
     </div>

@@ -140,6 +140,13 @@ $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : n
                 badge.textContent = '1';
                 link.appendChild(badge);
             }
+            // System-Block im Dashboard live aktualisieren (statt „aktuell").
+            var sys = document.getElementById('dash-sys-status');
+            if (sys) {
+                var uurl = sys.getAttribute('data-update-url') || (base + '/admin/update');
+                sys.innerHTML = '<span class="badge badge-amber">Update auf ' + v + ' verfügbar</span> '
+                    + '<a href="' + uurl + '">Jetzt aktualisieren →</a>';
+            }
             // Banner im Dashboard (nur wenn noch keiner da ist).
             var content = document.querySelector('.content');
             if (content && !document.querySelector('.dash-update') && document.querySelector('.dash-actions')) {

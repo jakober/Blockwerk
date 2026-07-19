@@ -85,6 +85,7 @@ class Updater
         }
         $remote = self::remoteVersion($force ? 20 : 4);
         \Models\Setting::set('update_checked_at', (string) time());
+        \Models\Setting::set('update_checked_version', self::currentVersion());
         if ($remote !== null) {
             \Models\Setting::set('update_remote', $remote);
             return $remote;
@@ -103,11 +104,19 @@ class Updater
     {
         $cached = self::cachedRemote();
         $checkedAt = (int) \Models\Setting::get('update_checked_at', '0');
+        $checkedVer = (string) \Models\Setting::get('update_checked_version', '');
+        $current = self::currentVersion();
         // Mit bekanntem Wert höchstens alle 6 h erneut online sehen; solange noch
         // gar kein Wert bekannt ist, alle 60 s erneut versuchen (bis es klappt).
         $ttl = $cached !== null ? 6 * 3600 : 60;
-        if ((time() - $checkedAt) >= $ttl) {
+        $stale = (time() - $checkedAt) >= $ttl;
+        // Hat sich die installierte Version seit der letzten Prüfung geändert
+        // (z. B. gerade ein Update eingespielt), SOFORT neu prüfen – sonst würde
+        // der alte Cache bis zu 6 h lang „aktuell" behaupten.
+        $versionChanged = $checkedVer !== $current;
+        if ($stale || $versionChanged) {
             \Models\Setting::set('update_checked_at', (string) time());
+            \Models\Setting::set('update_checked_version', $current);
             try {
                 $remote = self::remoteVersion(15);
                 if ($remote !== null) {
@@ -213,6 +222,12 @@ class Updater
 
         // Neue Tabellen anlegen (bestehende bleiben unberührt).
         Database::createSchema(Database::pdo());
+
+        // Update-Cache leeren, damit nach dem Update sofort wieder online geprüft
+        // wird (die neue installierte Version könnte selbst schon veraltet sein).
+        \Models\Setting::set('update_remote', '');
+        \Models\Setting::set('update_checked_at', '0');
+        \Models\Setting::set('update_checked_version', '');
 
         return null;
     }

@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.42.0 – 2026-07-19
+
+- **Designs unterscheiden sich jetzt in JEDEM Element.** Jedes Design hat eine eigene „Stilrichtung", die alle Inhaltselemente prägt – Überschriften, Text/Infoboxen, Buttons, Zitate, Akkordeon, News-/Event-Karten, Preise, Team, Trenner und Hero sehen pro Design komplett anders aus (nicht mehr nur Farbe/Rundung):
+  - **Blockwerk Orange** – klare Karten mit feiner Umrandung und Akzentlinien.
+  - **Kontrast** – blockig & kantig: dicke Rahmen, Versal-Überschriften, harte Kanten, versetzte Schatten.
+  - **Atelier** – weich & rund: große Rundungen, weiche Schatten, Pillen-Datums-Badges.
+  - **Journal** – Magazin/redaktionell: Serifen-Überschriften, feine Linien, Initial-Buchstabe (Drop-Cap), News als Linien-Liste, großes zentriertes Zitat.
+- **Neues Design „Diagonal — schräg & dynamisch":** Hier kommen überall Schrägen vor – farbige Bereiche und der Hero bekommen **automatisch** eine schräge Unterkante, Karten haben angeschnittene Ecken, Buttons und Akzente sind schräg. (Nutzt dieselbe Schräg-Mechanik wie die optionale Zeilen-Form.)
+- **KI wählt die Stilrichtung mit:** Beim Erstellen eines individuellen Designs kann der KI-Assistent jetzt auch die Stilrichtung (weich / kantig / redaktionell / schräg / klar) passend zur Beschreibung wählen – so bekommen auch KI-Designs eine eigene Element-Handschrift.
+
 ## 1.41.1 – 2026-07-19
 
 - **Eigene Designs löschen:** Eigene bzw. von der KI erstellte Designs lassen sich unter **Designs** über den Knopf „Löschen" (nur bei eigenen Designs, mit „Eigenes"-Kennzeichnung) wieder entfernen. Löscht man das gerade aktive Design, wird automatisch sauber auf „Blockwerk Orange" zurückgeschaltet. Mitgelieferte Designs sind nicht löschbar.

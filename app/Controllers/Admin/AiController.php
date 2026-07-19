@@ -561,6 +561,7 @@ class AiController extends AdminController
                         'headingSpacing' => (string) ($si['heading_spacing'] ?? '-.3px'),
                         'uppercase' => (bool) ($si['uppercase'] ?? false),
                         'headingFont' => $enum($si['heading_font'] ?? '', ['sans', 'serif', 'mono'], 'sans'),
+                        'pack' => $enum($si['component_style'] ?? '', ['panel', 'soft', 'bold', 'editorial', 'slant'], 'panel'),
                     ];
                     $key = \Core\Themes::saveCustom($name, trim((string) ($input['description'] ?? '')), $colors, $headerBg, $headerText, $tokens);
                     \Core\Themes::apply($key);

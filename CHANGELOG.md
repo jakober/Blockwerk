@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.49.0 – 2026-07-19
+
+- **Länder-Auswahl mit Suchfeld statt Komma-Liste.** Bei den Versandarten wählst du die Länder jetzt über eine **durchsuchbare Mehrfach-Auswahl** (tippen, anklicken, als Chips hinzufügen/entfernen) statt sie kommagetrennt einzutippen. Auch an der **Kasse** wählt der Kunde sein Land über dasselbe durchsuchbare Feld – **Deutschland ist vorausgewählt**. Die Liste ist alphabetisch, wobei **Deutschland, Österreich, Schweiz** immer oben stehen. Das Feld funktioniert auch ohne JavaScript (normales Mehrfach-/Auswahlfeld). An der Kasse stehen nur Länder zur Wahl, in die tatsächlich geliefert wird (bzw. alle, wenn eine weltweite Versandart existiert).
+
 ## 1.48.0 – 2026-07-19
 
 - **KI-Assistent arbeitet jetzt mit Plan.** Bevor etwas umgesetzt wird, zerlegt die KI deine Anfrage zuerst in einen **Plan aus einzelnen Schritten** (ohne dabei schon etwas zu ändern). Anschließend werden die Schritte **automatisch nacheinander** als jeweils **eigene Anfrage** abgearbeitet. Im Chat erscheint eine **Checkliste**, die live mitläuft: aktueller Schritt mit Ladeanzeige, erledigte mit ✓ – inklusive der Ergebnis-Karten je Schritt (z. B. **generiertes Bild als Vorschau** und „Ansehen"-Link). Bricht ein Schritt ab, kannst du ihn **erneut versuchen** oder **überspringen**. Nebeneffekt: Das frühere „zu viele Arbeitsschritte" tritt praktisch nicht mehr auf, weil jeder Schritt sein eigenes Budget hat.

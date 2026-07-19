@@ -95,11 +95,10 @@ class ShopSettingsController extends ShopAdminController
             flash('error', 'Bitte einen Namen für die Versandart angeben.');
             return null;
         }
-        // Länder (kommagetrennt) → JSON-Liste. Leer = alle Länder.
-        $countries = array_values(array_filter(
-            array_map('trim', explode(',', (string) ($_POST['countries'] ?? ''))),
-            static fn ($c) => $c !== ''
-        ));
+        // Länder → JSON-Liste (Auswahlbox liefert ein Array; Fallback: kommagetrennt). Leer = alle Länder.
+        $countriesInput = $_POST['countries'] ?? [];
+        $countriesRaw = is_array($countriesInput) ? $countriesInput : explode(',', (string) $countriesInput);
+        $countries = array_values(array_filter(array_map('trim', $countriesRaw), static fn ($c) => $c !== ''));
 
         // Gewichtsstaffeln als kompakter Text "kg:€" pro Stufe, mit Semikolon
         // (oder Zeilenumbruch) getrennt – z. B. "5:20; 20:50,50" = bis 5 kg 20 €,

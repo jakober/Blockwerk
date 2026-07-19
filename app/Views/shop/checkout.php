@@ -26,11 +26,16 @@ $clientId = \Core\Shop::paypalClientId();
                     <label>PLZ*<input type="text" name="zip" value="<?= $val('zip') ?>" required></label>
                     <label>Ort*<input type="text" name="city" value="<?= $val('city') ?>" required></label>
                 </div>
-                <?php if (!empty($shipCountries)): $curCountry = (string) ($f['country'] ?? ''); ?>
+                <?php if (!empty($shipCountries)):
+                    $curCountry = (string) ($f['country'] ?? '');
+                    $preselect = $curCountry !== ''
+                        ? $curCountry
+                        : (in_array('Deutschland', $shipCountries, true) ? 'Deutschland' : ($shipCountries[0] ?? ''));
+                ?>
                     <label>Land*
-                        <select name="country" id="ship-country" required>
+                        <select name="country" id="ship-country" required data-country-select data-placeholder="Land wählen …">
                             <?php foreach ($shipCountries as $c): ?>
-                                <option value="<?= e($c) ?>" <?= mb_strtolower($c) === mb_strtolower($curCountry) ? 'selected' : '' ?>><?= e($c) ?></option>
+                                <option value="<?= e($c) ?>" <?= mb_strtolower($c) === mb_strtolower($preselect) ? 'selected' : '' ?>><?= e($c) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </label>
@@ -99,6 +104,7 @@ $clientId = \Core\Shop::paypalClientId();
 <?php if ($paypalOn && $clientId !== ''): ?>
 <script src="https://www.paypal.com/sdk/js?client-id=<?= e(rawurlencode($clientId)) ?>&currency=<?= e(rawurlencode(\Core\Shop::currency())) ?>&intent=capture"></script>
 <?php endif; ?>
+<script src="<?= e(asset('/assets/js/country-select.js')) ?>"></script>
 <script>
 (function () {
     var form = document.getElementById('checkout-form');

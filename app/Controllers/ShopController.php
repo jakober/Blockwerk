@@ -126,12 +126,25 @@ class ShopController
             redirect($this->path('warenkorb'));
         }
         $shipping = ShopShipping::active();
+        // Liefergebiet: gibt es eine weltweite Versandart (ohne Länderliste),
+        // stehen alle Länder zur Wahl; sonst nur die bei den Versandarten
+        // hinterlegten. Deutschland/Österreich/Schweiz stehen oben.
+        $hasWorldwide = false;
+        foreach ($shipping as $m) {
+            if (ShopShipping::countries($m) === []) {
+                $hasWorldwide = true;
+                break;
+            }
+        }
+        $shipCountries = $shipping === []
+            ? []
+            : ($hasWorldwide ? \Core\Countries::all() : \Core\Countries::sort(ShopShipping::allCountries()));
         $this->render('checkout', 'Kasse', [
             'items' => Cart::items(),
             'subtotal' => Cart::subtotal(),
             'weight' => Cart::weight(),
             'shipping' => $shipping,
-            'shipCountries' => ShopShipping::allCountries(),
+            'shipCountries' => $shipCountries,
             'payments' => Shop::paymentMethods(),
             'form' => $_SESSION['shop_checkout'] ?? [],
         ]);

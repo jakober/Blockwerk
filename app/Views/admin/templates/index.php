@@ -13,14 +13,14 @@
             <tbody>
                 <?php foreach ($templates as $template): ?>
                     <tr>
-                        <td>
+                        <td data-label="Name">
                             <a href="<?= e(url('/admin/templates/' . $template['id'] . '/edit')) ?>"><strong><?= e($template['name']) ?></strong></a>
                             <?php if ($template['tkey'] === 'main-menu'): ?>
                                 <span class="badge">wird vom <a href="<?= e(url('/admin/menu')) ?>">Menü-Designer</a> verwaltet</span>
                             <?php endif; ?>
                         </td>
-                        <td><code>{{template:<?= e($template['tkey']) ?>}}</code></td>
-                        <td class="muted"><?= e($template['updated_at']) ?></td>
+                        <td data-label="Schlüssel"><code>{{template:<?= e($template['tkey']) ?>}}</code></td>
+                        <td class="muted" data-label="Zuletzt geändert"><?= e($template['updated_at']) ?></td>
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url('/admin/templates/' . $template['id'] . '/edit')) ?>">Bearbeiten</a>
                             <form method="post" action="<?= e(url('/admin/templates/' . $template['id'] . '/delete')) ?>" class="inline" data-confirm="Template „<?= e($template['name']) ?>“ wirklich löschen?" data-confirm-danger data-confirm-ok="Löschen">

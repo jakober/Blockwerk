@@ -87,9 +87,9 @@ $mask = static fn (string $value): string => $value === '' ? '' : '••••'
                 <tbody>
                 <?php foreach ($licenses as $lic): ?>
                     <tr>
-                        <td><strong><?= e($lic['name']) ?></strong><?= $lic['license_key'] === $ownKey ? ' <span class="badge badge-green">diese Installation</span>' : '' ?></td>
-                        <td><code><?= e($lic['license_key']) ?></code></td>
-                        <td>
+                        <td data-label="Kunde"><strong><?= e($lic['name']) ?></strong><?= $lic['license_key'] === $ownKey ? ' <span class="badge badge-green">diese Installation</span>' : '' ?></td>
+                        <td data-label="Schlüssel"><code><?= e($lic['license_key']) ?></code></td>
+                        <td data-label="System (Domain)">
                             <?php if (!empty($lic['last_domain'])): ?>
                                 <a href="https://<?= e($lic['last_domain']) ?>" target="_blank" rel="noopener"><?= e($lic['last_domain']) ?></a>
                                 <?php if (!empty($lic['last_seen'])): ?>
@@ -99,9 +99,9 @@ $mask = static fn (string $value): string => $value === '' ? '' : '••••'
                                 <span class="muted small">noch nicht gesehen</span>
                             <?php endif; ?>
                         </td>
-                        <td><?= number_format(max(0, $lic['tokens_total'] - $lic['tokens_used']), 0, ',', '.') ?></td>
-                        <td class="muted"><?= number_format((int) $lic['tokens_used'], 0, ',', '.') ?></td>
-                        <td><?= $lic['active'] ? '<span class="badge badge-green">aktiv</span>' : '<span class="badge">gesperrt</span>' ?></td>
+                        <td data-label="Guthaben"><?= number_format(max(0, $lic['tokens_total'] - $lic['tokens_used']), 0, ',', '.') ?></td>
+                        <td class="muted" data-label="Verbraucht"><?= number_format((int) $lic['tokens_used'], 0, ',', '.') ?></td>
+                        <td data-label="Status"><?= $lic['active'] ? '<span class="badge badge-green">aktiv</span>' : '<span class="badge">gesperrt</span>' ?></td>
                         <td class="actions-col">
                             <form method="post" action="<?= e(url('/admin/ai-admin/license')) ?>" class="inline">
                                 <?= csrf_field() ?>

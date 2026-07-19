@@ -10,12 +10,12 @@
                 <?php foreach ($entries as $entry): ?>
                     <?php $data = json_decode((string) $entry['data'], true) ?: []; ?>
                     <tr>
-                        <td class="muted" style="white-space:nowrap">
+                        <td class="muted" style="white-space:nowrap" data-label="Eingegangen">
                             <?= e(format_date_de($entry['created_at'], true)) ?>
                             <?= (int) $entry['is_read'] === 0 ? '<span class="badge badge-amber">Neu</span>' : '' ?>
                         </td>
-                        <td class="muted"><?= e($entry['page_title'] ?? '–') ?></td>
-                        <td>
+                        <td class="muted" data-label="Seite"><?= e($entry['page_title'] ?? '–') ?></td>
+                        <td data-label="Nachricht">
                             <details class="entry-details">
                                 <summary>
                                     <strong><?= e($data['Name'] ?? $data['E-Mail'] ?? 'Einsendung') ?></strong>

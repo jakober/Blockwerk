@@ -20,8 +20,8 @@
             <tbody>
                 <?php foreach ($fonts as $font): ?>
                     <tr>
-                        <td><strong><?= e($font['name']) ?></strong></td>
-                        <td>
+                        <td data-label="Schrift"><strong><?= e($font['name']) ?></strong></td>
+                        <td data-label="Vorschau">
                             <link rel="stylesheet" href="<?= e(url('/uploads/fonts/' . $font['folder'] . '/font.css')) ?>">
                             <span style="font-family:'<?= e($font['family']) ?>',sans-serif;font-size:19px">Zwölf Boxkämpfer jagen Viktor quer über den Sylter Deich 0123</span>
                         </td>

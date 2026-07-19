@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.53.1 – 2026-07-19
+
+- **Alle Admin-Listen jetzt voll mobiltauglich.** Wie bereits die Seitenübersicht werden nun auch **News, Events, Formulare, Produkte, Kategorien, Bestellungen, Layouts, Templates, Schriften** und die **Kunden-Lizenzen** (KI-Verwaltung) auf schmalen Bildschirmen als übersichtliche Karten dargestellt: Statt einer überlaufenden Tabelle steht jede Zeile als eigene Karte, mit der Spaltenüberschrift jeweils über dem Wert. Kein horizontales Scrollen und keine überlappenden Buttons mehr. Am Desktop bleibt die gewohnte Tabellenansicht unverändert.
+
 ## 1.53.0 – 2026-07-19
 
 - **Automatische Update-Prüfung.** Beim Betreten des Backends wird (höchstens alle 6 Stunden, im Hintergrund und mit kurzem Timeout) geprüft, ob eine neue Version verfügbar ist. Ist das der Fall, erscheint im **Dashboard** ein deutlicher Hinweis mit Direktlink zu den Updates, und der Menüpunkt **Updates** bekommt eine kleine Markierung.

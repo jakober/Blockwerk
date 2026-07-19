@@ -19,14 +19,14 @@
             <tbody>
                 <?php foreach ($posts as $post): ?>
                     <tr>
-                        <td><a href="<?= e(url($basePath . '/' . $post['id'] . '/edit')) ?>"><strong><?= e($post['title']) ?></strong></a></td>
-                        <td class="muted">
+                        <td data-label="Titel"><a href="<?= e(url($basePath . '/' . $post['id'] . '/edit')) ?>"><strong><?= e($post['title']) ?></strong></a></td>
+                        <td class="muted" data-label="<?= $type === 'event' ? 'Termin' : 'Datum' ?>">
                             <?= $type === 'event'
                                 ? e(format_date_de($post['start_at'] ?? null, true))
                                 : e(format_date_de($post['published_at'] ?? $post['created_at'] ?? null)) ?>
                         </td>
-                        <?php if ($type === 'event'): ?><td class="muted"><?= e($post['location'] ?? '') ?></td><?php endif; ?>
-                        <td><?= (int) $post['published'] ? '<span class="badge badge-green">Veröffentlicht</span>' : '<span class="badge badge-amber">Entwurf</span>' ?></td>
+                        <?php if ($type === 'event'): ?><td class="muted" data-label="Ort"><?= e($post['location'] ?? '') ?></td><?php endif; ?>
+                        <td data-label="Status"><?= (int) $post['published'] ? '<span class="badge badge-green">Veröffentlicht</span>' : '<span class="badge badge-amber">Entwurf</span>' ?></td>
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url($basePath . '/' . $post['id'] . '/edit')) ?>">Bearbeiten</a>
                             <a class="btn btn-small btn-ghost" href="<?= e(url('/' . ($type === 'event' ? 'events' : 'news') . '/' . $post['slug'])) ?>" target="_blank" rel="noopener">Ansehen ↗</a>

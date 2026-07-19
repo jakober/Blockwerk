@@ -12,12 +12,12 @@
             <tbody>
                 <?php foreach ($categories as $c): ?>
                     <tr>
-                        <td>
+                        <td data-label="Name">
                             <span class="tree-indent" style="--depth:<?= (int) $c['depth'] ?>"></span>
                             <a href="<?= e(url('/admin/shop/categories/' . $c['id'] . '/edit')) ?>"><strong><?= e($c['name']) ?></strong></a>
                         </td>
-                        <td><code>/<?= e($c['slug']) ?></code></td>
-                        <td class="muted"><?= \Models\ShopCategory::productCount((int) $c['id']) ?></td>
+                        <td data-label="Slug"><code>/<?= e($c['slug']) ?></code></td>
+                        <td class="muted" data-label="Produkte"><?= \Models\ShopCategory::productCount((int) $c['id']) ?></td>
                         <td class="actions-col">
                             <a class="btn btn-small" href="<?= e(url('/admin/shop/categories/' . $c['id'] . '/edit')) ?>">Bearbeiten</a>
                             <form method="post" action="<?= e(url('/admin/shop/categories/' . $c['id'] . '/delete')) ?>" class="inline" data-confirm="Kategorie „<?= e($c['name']) ?>“ löschen? Produkte bleiben erhalten." data-confirm-danger data-confirm-ok="Löschen">

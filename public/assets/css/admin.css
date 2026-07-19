@@ -251,6 +251,54 @@ form.inline { display: inline; }
 .tree-indent { display: inline-block; width: calc(var(--depth) * 22px); }
 .tree-indent[style*="--depth:0"] { width: 0; }
 
+/* ---------- Tabellen: mobile Kartenansicht ---------- */
+/* Auf schmalen Screens wird jede Tabellenzeile zu einer Karte; die Spalten-
+   überschrift steht (via data-label) über dem Wert. So bleibt alles lesbar,
+   ohne horizontales Scrollen. Tabellen mit .table-plain sind ausgenommen
+   (z. B. Inline-Formulare, die sich über mehrere Zellen erstrecken). */
+@media (max-width: 720px) {
+    .table:not(.table-plain) thead { display: none; }
+    .table:not(.table-plain),
+    .table:not(.table-plain) tbody,
+    .table:not(.table-plain) tr,
+    .table:not(.table-plain) td { display: block; width: 100%; }
+    .table:not(.table-plain) tr {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface);
+        margin-bottom: 12px;
+        padding: 2px 2px;
+    }
+    .table:not(.table-plain) td {
+        border-bottom: 1px solid var(--border);
+        padding: 9px 12px;
+    }
+    .table:not(.table-plain) tr td:last-child { border-bottom: none; }
+    .table:not(.table-plain) td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: var(--muted);
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+    .table:not(.table-plain) td:not([data-label])::before { display: none; }
+    .table:not(.table-plain) td.actions-col {
+        text-align: left;
+        white-space: normal;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+    }
+    .table:not(.table-plain) td.actions-col .btn { margin-left: 0; }
+    .table:not(.table-plain) td.actions-col .inline { display: inline-flex; }
+    /* Ausgenommene Tabellen scrollen wenigstens horizontal statt zu überlaufen. */
+    .table-plain { display: block; overflow-x: auto; }
+}
+
 /* ---------- Seitenbaum (Drag & Drop) ---------- */
 .pt-hint { margin: 0 0 12px; }
 .page-tree, .pt-children { list-style: none; margin: 0; padding: 0; }

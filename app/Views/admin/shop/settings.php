@@ -92,7 +92,7 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
     ?>
     <p class="muted small">Gewichtsstaffeln als „kg:€" je Stufe, mit <strong>Semikolon</strong> getrennt – z. B. <code>5:20; 20:50</code> = bis 5 kg 20 €, bis 20 kg 50 €. Ohne Staffeln gilt der Pauschalpreis. Das Warenkorbgewicht ergibt sich aus dem Gewicht der Produkte (kein Gewicht = niedrigste Stufe). Länder per Suchfeld auswählen (mehrere möglich; leer = alle Länder); an der Kasse werden nur passende Versandarten angezeigt.</p>
     <?php if (!empty($shipping)): ?>
-        <table class="table">
+        <table class="table table-plain">
             <thead><tr><th>Name</th><th>Preis</th><th>Gratis ab</th><th>Länder</th><th>Staffeln (kg:€)</th><th>Aktiv</th><th class="actions-col"></th></tr></thead>
             <tbody>
                 <?php foreach ($shipping as $sh): ?>

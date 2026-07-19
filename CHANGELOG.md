@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.52.0 – 2026-07-19
+
+- **Plan-Modus wählt das Modell pro Schritt.** Schon bei der Planung entscheidet die KI je Schritt, ob ein **schnelles Modell** ausreicht (kurze Texte, kleine Änderungen) oder das starke Modell nötig ist (ganze Seite, Bilder, komplexe Struktur). Einfache Schritte werden dann automatisch mit dem schnellen Modell umgesetzt – schneller und günstiger. In der Checkliste sind solche Schritte mit einem ⚡ markiert.
+
 ## 1.51.0 – 2026-07-19
 
 - **Hilfe-Knopf im Backend.** Unten rechts gibt es jetzt einen festen ✨-Knopf. Beim Anklicken öffnet sich ein kleines Hilfe-Fenster, das direkt erklärt, was man auf der **aktuellen Seite** tun kann – und in dem man weitere Fragen zur Seite stellen kann. (Sichtbar für Admins, wenn der KI-Assistent eingerichtet ist.)

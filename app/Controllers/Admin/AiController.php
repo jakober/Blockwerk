@@ -81,7 +81,7 @@ class AiController extends AdminController
                     foreach ((array) ($part['input']['steps'] ?? []) as $s) {
                         $title = trim((string) ($s['title'] ?? ''));
                         if ($title !== '') {
-                            $steps[] = ['title' => $title, 'detail' => trim((string) ($s['detail'] ?? ''))];
+                            $steps[] = ['title' => $title, 'detail' => trim((string) ($s['detail'] ?? '')), 'fast' => !empty($s['fast'])];
                         }
                     }
                 }
@@ -284,6 +284,8 @@ class AiController extends AdminController
 
         $userId = (int) ($_SESSION['user_id'] ?? 0);
         $newUserText = (string) (end($messages)['content'] ?? '');
+        // Plan-Modus markiert einfache Schritte: dann das schnelle Modell nutzen.
+        $fast = !empty($input['fast']);
 
         $actions = [];
         $balance = null;
@@ -293,7 +295,7 @@ class AiController extends AdminController
             $tools = AiSchema::tools();
 
             for ($round = 0; $round < 16; $round++) {
-                $response = Ai::chat($messages, $tools, $system);
+                $response = Ai::chat($messages, $tools, $system, $fast);
                 $balance = $response['balance'] ?? $balance;
                 $content = is_array($response['content'] ?? null) ? $response['content'] : [];
                 $messages[] = ['role' => 'assistant', 'content' => $content];

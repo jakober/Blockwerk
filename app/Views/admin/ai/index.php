@@ -130,6 +130,11 @@
                 + '<div class="ai-step-title"></div><div class="ai-step-detail muted small"></div>'
                 + '<div class="ai-step-result"></div></div>';
             li.querySelector('.ai-step-title').textContent = (i + 1) + '. ' + s.title;
+            if (s.fast) {
+                var f = document.createElement('span');
+                f.className = 'ai-step-fast'; f.textContent = '⚡'; f.title = 'schnelles Modell';
+                li.querySelector('.ai-step-title').append(' ', f);
+            }
             li.querySelector('.ai-step-detail').textContent = s.detail || '';
             ol.appendChild(li);
             return { li: li, icon: li.querySelector('.ai-step-icon'), result: li.querySelector('.ai-step-result') };
@@ -154,7 +159,7 @@
         const s = steps[i];
         const stepMsg = 'Setze jetzt NUR diesen Schritt aus dem Plan um: ' + (i + 1) + '. ' + s.title
             + (s.detail ? ' – ' + s.detail : '') + '. Fokussiere dich ausschließlich auf diesen einen Schritt.';
-        const res = await postJson(chatUrl, { messages: history.concat([{ role: 'user', text: stepMsg }]) });
+        const res = await postJson(chatUrl, { messages: history.concat([{ role: 'user', text: stepMsg }]), fast: !!s.fast });
         updateBalance(res.balance);
         if (res.ok) {
             history.push({ role: 'user', text: stepMsg });

@@ -161,7 +161,10 @@ PROMPT
             . 'Zerlege die Anfrage des Nutzers in klare, nacheinander ausführbare Schritte. Jeder Schritt ist '
             . 'eine zusammenhängende Einheit (z. B. „eine Seite anlegen", „ein Bild generieren", „das Menü anpassen", '
             . '„ein Produkt einpflegen"). Halte die Schritte sinnvoll grob – höchstens 8 –, deutsch, mit kurzem Titel '
-            . 'und 1–2 Sätzen Detail. Bei einer sehr kleinen Anfrage genügt ein einziger Schritt. Führe nichts aus; '
+            . 'und 1–2 Sätzen Detail. Markiere je Schritt mit „fast", ob ein schnelles/einfaches Modell genügt: '
+            . 'einfache Schritte (kurze Texte, kleine Änderungen, ein einzelnes Feld setzen) → fast=true; '
+            . 'anspruchsvolle Schritte (ganze Seite gestalten, Bilder generieren, komplexe Struktur/Design) → fast=false. '
+            . 'Bei einer sehr kleinen Anfrage genügt ein einziger Schritt. Führe nichts aus; '
             . 'rufe ausschließlich das Werkzeug propose_plan mit den Schritten auf.';
     }
 
@@ -231,6 +234,7 @@ PROMPT
                             'properties' => [
                                 'title' => ['type' => 'string', 'description' => 'Kurzer Titel des Schritts'],
                                 'detail' => ['type' => 'string', 'description' => 'Was konkret gemacht wird (1–2 Sätze)'],
+                                'fast' => ['type' => 'boolean', 'description' => 'true, wenn für diesen Schritt ein schnelles/einfaches Modell genügt (z. B. kurzer Text, kleine Änderung, ein einzelnes Feld). false bei anspruchsvollen Schritten (ganze Seite gestalten, Bildgenerierung, komplexe Struktur/JSON, Design).'],
                             ],
                             'required' => ['title'],
                         ],

@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.42.3 – 2026-07-19
+
+- **Hinweis für Plesk/cPanel ergänzt:** `nginx.conf.example` und README erklären jetzt, dass bei Verwaltungspanels die nginx-Konfiguration nicht von Hand angelegt werden darf (das Panel erzeugt die vhosts selbst und ignoriert manuelle Blöcke). Empfohlener Weg: in den PHP-Einstellungen der Domain „PHP ausführen als: FPM von Apache" wählen – dann wirkt die mitgelieferte `.htaccess`; bei reinem nginx den Dokumentenstamm auf `public/` setzen und eine `try_files`-Anweisung ergänzen.
+
 ## 1.42.2 – 2026-07-19
 
 - **nginx-Unterstützung dokumentiert:** Neue Beispiel-Konfiguration `nginx.conf.example` im Projektverzeichnis plus Abschnitt „Installation auf nginx" in der README. Hintergrund: nginx wertet keine `.htaccess` aus (die gilt nur für Apache) und führt PHP nur über PHP-FPM aus – fehlt der `location ~ \.php$`-Block, wird `install.php`/`index.php` heruntergeladen statt ausgeführt. Die Vorlage zeigt den korrekten Serverblock (docroot = `public/`, PHP-FPM, Front-Controller) samt Hinweis zum Ein-Datei-Installer bei SSH-Zugang.

@@ -15,6 +15,16 @@
 #   3. Aktivieren:
 #        sudo ln -s /etc/nginx/sites-available/blockwerk-orange.de /etc/nginx/sites-enabled/
 #        sudo nginx -t && sudo systemctl reload nginx
+#
+# PLESK / cPanel & aehnliche Panels:
+#   NICHT von Hand unter /etc/nginx/sites-* eintragen – das Panel erzeugt die
+#   vhost-Konfiguration selbst und ignoriert manuelle Bloecke ("conflicting
+#   server name ... ignored"). Stattdessen im Panel einstellen:
+#     - PHP-Unterstuetzung ein, PHP 8.x, "PHP ausfuehren als: FPM von Apache"
+#       (dann wirkt die mitgelieferte .htaccess und es ist nichts weiter noetig).
+#     - Nur bei reinem nginx (ohne Apache): Dokumentenstamm auf .../public setzen
+#       und als zusaetzliche nginx-Anweisung ergaenzen:
+#         location / { try_files $uri $uri/ /index.php?$args; }
 
 server {
     listen 80;

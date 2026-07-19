@@ -50,6 +50,8 @@ nginx wertet **keine** `.htaccess` aus (die mitgelieferten `.htaccess`-Dateien g
 3. Die mitgelieferte Vorlage [`nginx.conf.example`](nginx.conf.example) als Serverblock übernehmen (Domain und PHP-FPM-Socket anpassen) und einen `location ~ \.php$`-Block an PHP-FPM weiterreichen lassen.
 4. Website öffnen → der Install-Assistent startet. (Der Ein-Datei-Installer `install.php` liegt in der Projektwurzel und ist bei docroot=`public/` bewusst nicht erreichbar; auf einem Server mit SSH das Paket stattdessen direkt entpacken – siehe Kommentar in `nginx.conf.example`.)
 
+> **Plesk / cPanel & ähnliche Panels:** nginx-Configs **nicht** von Hand unter `/etc/nginx/sites-*` anlegen – das Panel erzeugt die vhost-Dateien selbst und ignoriert manuelle Einträge. Stattdessen im Panel bei den **PHP-Einstellungen** der Domain „PHP ausführen als: **FPM von Apache**" wählen; dann wirkt die mitgelieferte `.htaccess` und es ist nichts weiter nötig. Nur bei reinem nginx (ohne Apache) den Dokumentenstamm auf `.../public` setzen und `location / { try_files $uri $uri/ /index.php?$args; }` als zusätzliche nginx-Anweisung ergänzen.
+
 ## Lokale Entwicklung
 
 ```bash

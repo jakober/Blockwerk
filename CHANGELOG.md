@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.55.0 – 2026-07-19
+
+- **Team-Block: E-Mail & Telefon pro Person.** Jedes Team-Mitglied hat jetzt Felder für **E-Mail** (wird als klickbarer Link ausgegeben) und **Telefon** (klickbar, zum direkten Anrufen auf dem Handy). Beide stehen in **eigenen Zeilen** – Telefon nicht mehr neben der E-Mail.
+- **Team-Block: Fotos vergrößerbar (Lightbox).** Neue Option „Fotos per Klick vergrößern": Ist sie aktiv, öffnet ein Klick auf ein Mitarbeiterfoto die Vollbild-Ansicht (mit Blättern durch alle Team-Fotos) – dieselbe Lightbox wie bei der Galerie. Standardmäßig aus, also frei wählbar pro Team-Block.
+- **Aktiver Menüpunkt hervorgehoben.** Der Menüpunkt der aktuell geöffneten Seite (und der zugehörige sichtbare Hauptpunkt) wird jetzt in der **Primärfarbe** dargestellt – so sieht man immer, wo man sich befindet. Wirkt in beiden Menü-Darstellungen.
+
 ## 1.54.0 – 2026-07-19
 
 - **Schutz beim Löschen verwendeter Bilder.** Beim Löschen in der Mediathek prüft das CMS jetzt, ob das Bild noch irgendwo eingebunden ist – in **Seiten, globalen Blöcken, News/Events, Layouts (inkl. Logo), Templates sowie Shop-Produkten und -Kategorien**. Ist das der Fall, listet der Bestätigungsdialog die Fundstellen auf („Seite: Startseite", „Layout: Standard", …) und fragt ausdrücklich nach, bevor gelöscht wird. Zusätzlich verhindert der Server das versehentliche Löschen ohne Bestätigung. (Hinweis zur Beruhigung: **Umbenennen und in Ordner verschieben** ändern nur den Anzeigenamen bzw. die Ordnerzuordnung – sie berühren die Datei nie und können eingebundene Bilder daher nicht brechen. Nur Löschen entfernt die Datei wirklich.)

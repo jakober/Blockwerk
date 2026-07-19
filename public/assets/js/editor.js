@@ -283,18 +283,21 @@
         },
         team: {
             label: 'Team', icon: '☺',
-            defaults: { members: [], columns: 3 },
+            defaults: { members: [], columns: 3, zoom: 0 },
             items: {
                 key: 'members', label: 'Team-Mitglieder', itemLabel: 'Person',
                 fields: [
                     { key: 'src', label: 'Foto', type: 'image' },
                     { key: 'name', label: 'Name', type: 'text' },
                     { key: 'role', label: 'Position', type: 'text' },
+                    { key: 'email', label: 'E-Mail', type: 'text' },
+                    { key: 'phone', label: 'Telefon', type: 'text' },
                     { key: 'text', label: 'Kurzbeschreibung', type: 'textarea' },
                 ],
             },
             fields: [
                 { key: 'columns', label: 'Spalten', type: 'select', options: [['2', '2'], ['3', '3'], ['4', '4']] },
+                { key: 'zoom', label: 'Fotos per Klick vergrößern (Lightbox)', type: 'checkbox' },
             ],
         },
         pricing: {

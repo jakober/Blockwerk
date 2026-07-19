@@ -434,41 +434,77 @@ class Renderer
         }
 
         $byParent = [];
+        $parentOf = [];
         foreach (Page::menuPages(self::lang()) as $page) {
             $byParent[(int) ($page['parent_id'] ?? 0)][] = $page;
+            $parentOf[(int) $page['id']] = (int) ($page['parent_id'] ?? 0);
         }
+        $trail = $this->menuTrail($parentOf);
 
         return match ($style) {
-            'simple' => $this->menuSimple($byParent),
-            'mega' => $this->menuMega($byParent),
-            'vertical' => $this->menuNested($byParent, 0, 'menu cms-menu cms-menu-vertical'),
-            default => $this->menuNested($byParent, 0, 'menu cms-menu cms-menu-dropdown'),
+            'simple' => $this->menuSimple($byParent, $trail),
+            'mega' => $this->menuMega($byParent, $trail),
+            'vertical' => $this->menuNested($byParent, 0, 'menu cms-menu cms-menu-vertical', $trail),
+            default => $this->menuNested($byParent, 0, 'menu cms-menu cms-menu-dropdown', $trail),
         };
     }
 
-    private function menuNested(array $byParent, int $parentId, string $class): string
+    /**
+     * IDs der aktiven Seite und ihrer (im Menü sichtbaren) Elternseiten – damit
+     * sowohl der aktuelle Menüpunkt als auch der sichtbare Oberpunkt markiert
+     * werden. Die aktuelle Seiten-ID steht in BlockRegistry::$pageId.
+     */
+    private function menuTrail(array $parentOf): array
+    {
+        $current = (int) (BlockRegistry::$pageId ?? 0);
+        $trail = [];
+        if ($current <= 0) {
+            return $trail;
+        }
+        $trail[$current] = true;
+        $id = $current;
+        $guard = 0;
+        while (isset($parentOf[$id]) && $parentOf[$id] > 0 && $guard++ < 50) {
+            $id = $parentOf[$id];
+            $trail[$id] = true;
+        }
+        return $trail;
+    }
+
+    /** Baut einen Menü-Link und markiert ihn, wenn er zur aktiven Seite gehört. */
+    private function menuLink(array $page, array $trail, string $cls = ''): string
+    {
+        $id = (int) $page['id'];
+        $isCurrent = $id === (int) (BlockRegistry::$pageId ?? 0);
+        $classes = trim($cls . (isset($trail[$id]) ? ' is-active' : ''));
+        $attr = ($classes !== '' ? ' class="' . $classes . '"' : '')
+            . ($isCurrent ? ' aria-current="page"' : '');
+        return '<a' . $attr . ' href="' . e(page_url($page)) . '">' . e($page['title']) . '</a>';
+    }
+
+    private function menuNested(array $byParent, int $parentId, string $class, array $trail): string
     {
         if (empty($byParent[$parentId])) {
             return '';
         }
         $html = '<ul class="' . $class . '">';
         foreach ($byParent[$parentId] as $page) {
-            $children = $this->menuNested($byParent, (int) $page['id'], 'submenu');
+            $children = $this->menuNested($byParent, (int) $page['id'], 'submenu', $trail);
             $html .= '<li' . ($children !== '' ? ' class="has-children"' : '') . '>';
-            $html .= '<a href="' . e(page_url($page)) . '">' . e($page['title']) . '</a>';
+            $html .= $this->menuLink($page, $trail);
             $html .= $children . '</li>';
         }
         return $html . '</ul>';
     }
 
-    private function menuSimple(array $byParent): string
+    private function menuSimple(array $byParent, array $trail): string
     {
         if (empty($byParent[0])) {
             return '';
         }
         $html = '<ul class="menu cms-menu cms-menu-simple">';
         foreach ($byParent[0] as $page) {
-            $html .= '<li><a href="' . e(page_url($page)) . '">' . e($page['title']) . '</a></li>';
+            $html .= '<li>' . $this->menuLink($page, $trail) . '</li>';
         }
         return $html . '</ul>';
     }
@@ -477,7 +513,7 @@ class Renderer
      * Mega-Menü: Hauptpunkte mit Unterseiten öffnen ein breites Panel,
      * in dem jede Unterseite eine Spalte mit ihren eigenen Unterpunkten ist.
      */
-    private function menuMega(array $byParent): string
+    private function menuMega(array $byParent, array $trail): string
     {
         if (empty($byParent[0])) {
             return '';
@@ -486,18 +522,18 @@ class Renderer
         foreach ($byParent[0] as $page) {
             $children = $byParent[(int) $page['id']] ?? [];
             $html .= '<li' . ($children !== [] ? ' class="has-children"' : '') . '>';
-            $html .= '<a href="' . e(page_url($page)) . '">' . e($page['title']) . '</a>';
+            $html .= $this->menuLink($page, $trail);
 
             if ($children !== []) {
                 $html .= '<div class="cms-mega-panel">';
                 foreach ($children as $child) {
                     $html .= '<div class="cms-mega-col">';
-                    $html .= '<a class="cms-mega-head" href="' . e(page_url($child)) . '">' . e($child['title']) . '</a>';
+                    $html .= $this->menuLink($child, $trail, 'cms-mega-head');
                     $grandchildren = $byParent[(int) $child['id']] ?? [];
                     if ($grandchildren !== []) {
                         $html .= '<ul>';
                         foreach ($grandchildren as $grandchild) {
-                            $html .= '<li><a href="' . e(page_url($grandchild)) . '">' . e($grandchild['title']) . '</a></li>';
+                            $html .= '<li>' . $this->menuLink($grandchild, $trail) . '</li>';
                         }
                         $html .= '</ul>';
                     }

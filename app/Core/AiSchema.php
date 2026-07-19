@@ -92,7 +92,7 @@ Jeder Block: {"type": "...", "data": {...}}. Optional data._style = {"mt","mb","
 - form: recipient (leer = Standard), subject, button_text, success, show_name, show_phone, fields:[{label,type("text","textarea","select","checkbox"),options,required}] — Kontaktformular
 - search: placeholder, button_text
 - map: lat, lon, zoom, height — OpenStreetMap
-- team: members:[{src,name,role,text}], columns (2–4)
+- team: members:[{src,name,role,email,phone,text}], columns (2–4), zoom (0/1: Fotos per Klick in Lightbox vergrößern). email wird als mailto-Link, phone als tel-Link (je eigene Zeile) ausgegeben.
 - pricing: plans:[{title,price,period,features (eine Leistung pro Zeile),button_text,button_url,highlight}]
 - countdown: target ("JJJJ-MM-TT HH:MM"), title, expired_text
 - social: links:[{network("facebook","instagram","x","youtube","linkedin","tiktok","whatsapp","mail","phone"),url}], size

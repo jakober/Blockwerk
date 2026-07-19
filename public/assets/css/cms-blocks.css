@@ -600,6 +600,12 @@ h1.cms-heading { font-size: 2.3em; }
     border: 4px solid color-mix(in srgb, var(--cms-primary) 22%, transparent);
 }
 .cms-team-role { letter-spacing: .8px; text-transform: uppercase; font-size: .76em; margin-bottom: 10px; }
+/* Kontaktzeilen (E-Mail/Telefon) – jeweils eigene Zeile, in der Primärfarbe. */
+.cms-team-contact { margin: 2px 0 0; font-size: .9em; }
+.cms-team-contact a { color: var(--cms-primary); text-decoration: none; }
+.cms-team-contact a:hover { text-decoration: underline; }
+/* Vergrößerbares Foto: Klick-Hinweis. */
+.cms-team-zoom .cms-gl-link { display: inline-block; cursor: zoom-in; }
 
 /* ===== Countdown – Feinschliff ===== */
 .cms-cd-title { font-size: 1.35em; margin-bottom: 16px; }
@@ -663,6 +669,14 @@ h1.cms-heading { font-size: 2.3em; }
     padding: 9px var(--nav-pad, 14px);
     text-transform: var(--nav-tt, none);
     letter-spacing: var(--nav-ls, normal);
+}
+/* Aktiver Menüpunkt (aktuelle Seite + sichtbarer Eltern-Eintrag) – immer klar
+   sichtbar durch die Primärfarbe. Gilt für alle Menü-Darstellungen. */
+.cms-menu a.is-active,
+.cms-menu a[aria-current="page"],
+.cms-mega-head.is-active {
+    color: var(--cms-primary);
+    font-weight: 700;
 }
 
 /* --- Aufklapp-Panels: sanfte Animation statt hart ein/aus --- */

@@ -62,7 +62,7 @@
 
     /* ---------- Galerie-Lightbox ---------- */
 
-    document.querySelectorAll('.cms-gallery[data-lightbox]').forEach(function (gallery) {
+    document.querySelectorAll('.cms-gallery[data-lightbox], .cms-team[data-lightbox]').forEach(function (gallery) {
         const links = Array.from(gallery.querySelectorAll('.cms-gl-link'));
         links.forEach(function (link, i) {
             link.addEventListener('click', function (e) {

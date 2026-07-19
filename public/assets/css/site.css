@@ -58,6 +58,12 @@ img { max-width: 100%; height: auto; }
     background: var(--cms-surface, #f1f5f9);
     color: var(--cms-primary, #4f46e5);
 }
+/* Aktiver Menüpunkt (aktuelle Seite) – in der Primärfarbe hervorgehoben. */
+.main-nav a.is-active,
+.main-nav a[aria-current="page"] {
+    color: var(--cms-primary, #4f46e5);
+    font-weight: 700;
+}
 .main-nav ul.submenu {
     display: none;
     position: absolute;

@@ -652,18 +652,40 @@ class BlockRegistry
             return '';
         }
         $cols = min(4, max(1, (int) ($data['columns'] ?? 3)));
-        $html = '<div class="cms-team" style="--cols:' . $cols . '">';
+        // Optional: Fotos per Klick in der Lightbox vergrößern (nutzt denselben
+        // Mechanismus wie die Galerie – Container mit data-lightbox, Foto als
+        // .cms-gl-link umschlossen).
+        $zoom = !empty($data['zoom']);
+        $html = '<div class="cms-team' . ($zoom ? ' cms-team-zoom' : '') . '" style="--cols:' . $cols . '"' . ($zoom ? ' data-lightbox' : '') . '>';
         foreach ($members as $member) {
+            $name = (string) ($member['name'] ?? '');
             $html .= '<div class="cms-team-card">';
             if (!empty($member['src'])) {
-                $html .= '<img src="' . e((string) $member['src']) . '" alt="' . e((string) ($member['name'] ?? '')) . '" loading="lazy">';
+                $src = e((string) $member['src']);
+                $img = '<img src="' . $src . '" alt="' . e($name) . '" loading="lazy">';
+                if ($zoom) {
+                    $role = (string) ($member['role'] ?? '');
+                    $caption = trim($name . ($role !== '' ? ' – ' . $role : ''));
+                    $img = '<a href="' . $src . '" class="cms-gl-link" data-caption="' . e($caption) . '">' . $img . '</a>';
+                }
+                $html .= $img;
             }
-            $html .= '<h3>' . e((string) ($member['name'] ?? '')) . '</h3>';
+            $html .= '<h3>' . e($name) . '</h3>';
             if (!empty($member['role'])) {
                 $html .= '<div class="cms-team-role">' . e((string) $member['role']) . '</div>';
             }
             if (!empty($member['text'])) {
                 $html .= '<p>' . e((string) $member['text']) . '</p>';
+            }
+            // Kontakt – E-Mail (mailto) und Telefon (tel), jeweils in eigener Zeile.
+            if (!empty($member['email'])) {
+                $email = (string) $member['email'];
+                $html .= '<p class="cms-team-contact"><a href="mailto:' . e($email) . '">' . e($email) . '</a></p>';
+            }
+            if (!empty($member['phone'])) {
+                $phone = (string) $member['phone'];
+                $tel = preg_replace('/[^0-9+]/', '', $phone) ?? '';
+                $html .= '<p class="cms-team-contact"><a href="tel:' . e($tel) . '">' . e($phone) . '</a></p>';
             }
             $html .= '</div>';
         }

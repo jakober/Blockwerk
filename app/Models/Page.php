@@ -100,6 +100,19 @@ class Page
 
     /* ---------- CRUD ---------- */
 
+    /** Nächste freie menu_order für eine neue Seite unter diesem Elternteil (ans Ende). */
+    public static function nextMenuOrder(?int $parentId): int
+    {
+        $pdo = Database::pdo();
+        if ($parentId === null) {
+            $stmt = $pdo->query('SELECT COALESCE(MAX(menu_order), -1) + 1 FROM pages WHERE parent_id IS NULL AND deleted_at IS NULL');
+        } else {
+            $stmt = $pdo->prepare('SELECT COALESCE(MAX(menu_order), -1) + 1 FROM pages WHERE parent_id = ? AND deleted_at IS NULL');
+            $stmt->execute([$parentId]);
+        }
+        return (int) $stmt->fetchColumn();
+    }
+
     public static function create(array $data): int
     {
         $pdo = Database::pdo();

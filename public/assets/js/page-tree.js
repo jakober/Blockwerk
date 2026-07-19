@@ -56,14 +56,20 @@
 
     tree.addEventListener('dragover', function (e) {
         if (!dragItem) return;
-        var row = e.target.closest('.pt-row');
-        if (!row) return;
-        var overItem = row.closest('.pt-item');
-        // Nicht in sich selbst oder eigene Nachfahren ablegen.
-        if (overItem === dragItem || dragItem.contains(overItem)) return;
-
+        // Innerhalb des Baums IMMER Drop zulassen – sonst feuert 'drop' nicht,
+        // z. B. wenn der Zeiger genau über der Einfüge-Linie (Marker) oder in
+        // einer Lücke zwischen Zeilen liegt. Das war der Grund, warum das
+        // Ablegen "manchmal" nichts tat.
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
+
+        var row = e.target.closest('.pt-row');
+        // Nicht über einer Zeile (z. B. über dem Marker): letzten Hinweis behalten.
+        if (!row || !tree.contains(row)) return;
+        var overItem = row.closest('.pt-item');
+        // Nicht in sich selbst oder eigene Nachfahren ablegen – Hinweis behalten.
+        if (overItem === dragItem || dragItem.contains(overItem)) return;
+
         clearHints();
 
         var rect = row.getBoundingClientRect();
@@ -94,15 +100,18 @@
         e.preventDefault();
 
         var insideRow = tree.querySelector('.pt-row.is-inside');
+        var moved = false;
         if (insideRow) {
             var parentItem = insideRow.closest('.pt-item');
             var childList = parentItem.querySelector(':scope > .pt-children');
             childList.appendChild(dragItem); // ans Ende der Unterseiten
+            moved = true;
         } else if (marker && marker.parentNode) {
             marker.parentNode.insertBefore(dragItem, marker);
+            moved = true;
         }
         clearHints();
-        save();
+        if (moved) save();
     });
 
     // --- Struktur serialisieren und speichern ------------------------------

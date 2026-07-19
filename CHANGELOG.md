@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.44.2 – 2026-07-19
+
+- **Seiten per Drag & Drop zuverlässig umsortieren.** Bisher wurde die Einfüge-Linie zwar angezeigt, aber beim Loslassen passierte oft nichts – weil das „Ablegen" genau über der Linie technisch nicht ausgelöst wurde. Jetzt lässt sich überall im Baum sicher ablegen (auch direkt auf der Linie).
+- **Neue Seiten kommen ans Ende.** Eine neu angelegte Seite reiht sich jetzt unten auf ihrer Ebene ein (statt ganz oben).
+
 ## 1.44.1 – 2026-07-19
 
 - **Seitenverwaltung mobil repariert.** Auf schmalen Bildschirmen überlappten in der Seitenliste die Aktions-Buttons (Inhalt/Eigenschaften/Löschen) den Seitentitel. Jetzt stehen Titel/Slug in der ersten Zeile und die Buttons darunter in voller Breite (mit Umbruch) – nichts überlappt mehr.

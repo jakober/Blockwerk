@@ -38,6 +38,8 @@ class PageController extends AdminController
     public function store(): void
     {
         $data = $this->validated();
+        // Neue Seiten hängen sich ans Ende ihrer Ebene (statt vorne einzureihen).
+        $data['menu_order'] = Page::nextMenuOrder($data['parent_id']);
         $id = Page::create($data);
         flash('success', 'Seite angelegt. Jetzt Inhalte hinzufügen!');
         redirect('/admin/pages/' . $id . '/editor');

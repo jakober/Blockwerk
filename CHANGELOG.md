@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.61.1 – 2026-07-20
+
+- **Schräge/Welle schließt sauber an die Sektion darüber an.** Wenn eine Zeile mit oben angeschnittener Kante (Schräge oder Welle) direkt unter einer farbigen Sektion lag, erschien in der angeschnittenen Ecke der weiße Seitenhintergrund – also eine zweite, weiße Schräge. Die Kante überlappt jetzt das Element darüber, sodass dort dessen Farbe durchscheint und ein sauberer, direkter Farbübergang entsteht. (Tipp: Für einen diagonalen Übergang zwischen zwei farbigen Flächen die Schräge **oben** an der unteren Sektion setzen.)
+
 ## 1.61.0 – 2026-07-20
 
 - **Buttons im Editor wie auf der Website.** Mehrere Buttons in derselben Spalte werden im Baukasten jetzt **nebeneinander** dargestellt – genau wie später auf der Seite (statt wie bisher untereinander).

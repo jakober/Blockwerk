@@ -121,6 +121,18 @@
     -webkit-mask: var(--cms-wave-t) top/128px var(--cms-shape-h) repeat-x, linear-gradient(#000 0 0) center/100% calc(100% - 2 * var(--cms-shape-h)) no-repeat, var(--cms-wave-b) bottom/128px var(--cms-shape-h) repeat-x;
             mask: var(--cms-wave-t) top/128px var(--cms-shape-h) repeat-x, linear-gradient(#000 0 0) center/100% calc(100% - 2 * var(--cms-shape-h)) no-repeat, var(--cms-wave-b) bottom/128px var(--cms-shape-h) repeat-x;
 }
+
+/* Anschluss an das Element darüber: Die angeschnittene Oberkante (Schräge/Welle)
+   überlappt das vorherige Element, damit in der freigeschnittenen Lücke DESSEN
+   Farbe erscheint – statt des Seitenhintergrunds, der sonst als zweite (weiße)
+   Schräge sichtbar wäre. Dazu zuerst den Standardabstand davor entfernen … */
+.cms-section:has(+ .cms-section.cms-sec-st-slant),
+.cms-section:has(+ .cms-section.cms-sec-st-wave),
+.cms-row:has(+ .cms-section.cms-sec-st-slant),
+.cms-row:has(+ .cms-section.cms-sec-st-wave) { margin-bottom: 0; }
+/* … dann die Kante um die Formhöhe nach oben ziehen (nicht ganz oben). */
+.cms-section.cms-sec-st-slant:not(:first-child),
+.cms-section.cms-sec-st-wave:not(:first-child) { margin-top: calc(-1 * var(--cms-shape-h)); }
 :root {
     --cms-wave-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 52' preserveAspectRatio='none'%3E%3Cpath d='M0 26 C32 52 96 0 128 26 L128 0 L0 0 Z' fill='%23000'/%3E%3C/svg%3E");
     --cms-wave-t: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 52' preserveAspectRatio='none'%3E%3Cpath d='M0 26 C32 0 96 52 128 26 L128 52 L0 52 Z' fill='%23000'/%3E%3C/svg%3E");

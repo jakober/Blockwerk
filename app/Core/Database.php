@@ -275,6 +275,16 @@ class Database
                 qty INT NOT NULL DEFAULT 1,
                 INDEX idx_order (order_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+            // Rechnungen: fortlaufende Nummer erst bei „Rechnung erstellen".
+            'CREATE TABLE IF NOT EXISTS invoices (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT UNSIGNED NOT NULL,
+                seq INT NOT NULL,
+                number VARCHAR(40) NOT NULL,
+                created_at DATETIME NOT NULL,
+                UNIQUE KEY uniq_order (order_id),
+                UNIQUE KEY uniq_seq (seq)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
         ];
 
         foreach ($statements as $sql) {

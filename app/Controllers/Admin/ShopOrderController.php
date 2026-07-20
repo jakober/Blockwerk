@@ -26,26 +26,43 @@ class ShopOrderController extends ShopAdminController
             'active' => 'shop-orders',
             'order' => $order,
             'items' => ShopOrder::items((int) $order['id']),
+            'invoice' => \Models\Invoice::findByOrder((int) $order['id']),
         ]);
     }
 
-    /** Druckbare Rechnung (eigenständige HTML-Seite, „als PDF speichern" im Browser). */
+    /** Rechnung erstellen: vergibt eine fortlaufende Rechnungsnummer. */
+    public function createInvoice(string $id): void
+    {
+        $order = ShopOrder::find((int) $id) ?? $this->abort();
+        $invoice = \Models\Invoice::createForOrder((int) $order['id']);
+        flash('success', 'Rechnung ' . $invoice['number'] . ' wurde erstellt.');
+        redirect('/admin/shop/orders/' . $order['id']);
+    }
+
+    /** Erstellte Rechnung als PDF ausgeben (Anzeigen/Herunterladen). */
     public function invoice(string $id): void
     {
         $order = ShopOrder::find((int) $id) ?? $this->abort();
-        echo \Core\View::fetch('shop/invoice', [
-            'order' => $order,
-            'items' => ShopOrder::items((int) $order['id']),
-        ]);
+        $invoice = \Models\Invoice::findByOrder((int) $order['id']);
+        if ($invoice === null) {
+            flash('error', 'Für diese Bestellung wurde noch keine Rechnung erstellt. Bitte zuerst „Rechnung erstellen" drücken.');
+            redirect('/admin/shop/orders/' . $order['id']);
+        }
+        $pdf = \Core\InvoicePdf::render($order, ShopOrder::items((int) $order['id']), $invoice);
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . \Core\InvoicePdf::filename($invoice) . '"');
+        header('Content-Length: ' . strlen($pdf));
+        header('Cache-Control: no-store');
+        echo $pdf;
     }
 
-    /** Rechnung als E-Mail an den Kunden senden. */
+    /** Rechnung (PDF im Anhang) an den Kunden senden. Erstellt sie bei Bedarf. */
     public function mailInvoice(string $id): void
     {
         $order = ShopOrder::find((int) $id) ?? $this->abort();
         $err = \Core\ShopMail::invoice($order, ShopOrder::items((int) $order['id']));
         if ($err === null) {
-            flash('success', 'Rechnung wurde an ' . $order['email'] . ' gesendet.');
+            flash('success', 'Rechnung als PDF an ' . $order['email'] . ' gesendet.');
         } else {
             flash('error', 'Rechnung konnte nicht gesendet werden: ' . $err);
         }

@@ -110,6 +110,17 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
             <label for="inv_note">Hinweis / Fußzeile (z. B. Umsatzsteuer-Hinweis)</label>
             <textarea id="inv_note" name="inv_note" rows="2" placeholder="z. B. Gemäß §19 UStG wird keine Umsatzsteuer berechnet."><?= e($s['inv_note']) ?></textarea>
         </div>
+        <div class="form-row" style="display:flex;gap:16px;flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:160px">
+                <label for="inv_prefix">Rechnungsnummer-Präfix</label>
+                <input type="text" id="inv_prefix" name="inv_prefix" value="<?= e($s['inv_prefix']) ?>" placeholder="RE-">
+            </div>
+            <div class="form-group" style="flex:1;min-width:160px">
+                <label for="inv_start">Startnummer (fortlaufend)</label>
+                <input type="number" id="inv_start" name="inv_start" min="1" value="<?= e($s['inv_start']) ?>">
+            </div>
+        </div>
+        <p class="muted small">Eine Rechnungsnummer entsteht erst, wenn du bei einer Bestellung „Rechnung erstellen" drückst – dann fortlaufend (z. B. RE-0001, RE-0002).</p>
     </div>
 
     <div class="form-actions">

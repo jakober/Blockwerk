@@ -72,9 +72,9 @@ class ShopMail
     }
 
     /**
-     * Rechnung als E-Mail an den Kunden (HTML-Rechnung im A4-Layout + Text-
-     * Fallback und Link zur Online-Rechnung). Rückgabe: null bei Erfolg, sonst
-     * eine Fehlermeldung (für die Admin-Rückmeldung).
+     * Rechnung als E-Mail an den Kunden – das PDF liegt im Anhang. Erstellt die
+     * Rechnung (fortlaufende Nummer) falls noch nicht vorhanden. Rückgabe: null
+     * bei Erfolg, sonst eine Fehlermeldung (für die Admin-Rückmeldung).
      */
     public static function invoice(array $order, array $items): ?string
     {
@@ -82,16 +82,20 @@ class ShopMail
             return 'Für diese Bestellung ist keine gültige E-Mail-Adresse hinterlegt.';
         }
         $name = Shop::invoiceName();
-        $html = View::fetch('shop/invoice', ['order' => $order, 'items' => $items, 'mode' => 'email']);
+        $invoice = \Models\Invoice::createForOrder((int) $order['id']);
+        $pdf = \Core\InvoicePdf::render($order, $items, $invoice);
         $text = 'Hallo ' . trim((string) ($order['first_name'] ?? '')) . ",\n\n"
-            . 'anbei deine Rechnung ' . $order['number'] . ' zu deiner Bestellung bei ' . $name . ".\n\n"
+            . 'anbei findest du deine Rechnung ' . $invoice['number'] . ' zu deiner Bestellung ' . $order['number'] . ' bei ' . $name . " als PDF.\n\n"
             . self::itemsBlock($order, $items) . "\n"
             . self::bankBlockIfPrepay($order)
-            . "Die Rechnung kannst du hier auch online ansehen und als PDF speichern:\n"
-            . self::orderUrl((string) $order['token']) . "/rechnung\n\n"
             . "Herzliche Grüße\n" . $name;
+        $attachments = [[
+            'name' => \Core\InvoicePdf::filename($invoice),
+            'mime' => 'application/pdf',
+            'data' => $pdf,
+        ]];
         try {
-            $err = Mailer::send((string) $order['email'], 'Rechnung ' . $order['number'] . ' – ' . $name, $text, null, $html);
+            $err = Mailer::send((string) $order['email'], 'Rechnung ' . $invoice['number'] . ' – ' . $name, $text, null, null, $attachments);
         } catch (\Throwable) {
             $err = 'Der E-Mail-Versand ist fehlgeschlagen.';
         }

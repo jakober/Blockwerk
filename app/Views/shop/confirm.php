@@ -32,7 +32,9 @@
             · Status: <span class="shop-status is-<?= e($order['status']) ?>"><?= e(\Models\ShopOrder::statusLabel($order['status'])) ?></span></p>
         <p>
             <a class="cms-button" href="<?= e(\Core\Shop::url()) ?>">Weiter einkaufen</a>
-            <a class="cms-button cms-button-ghost" href="<?= e(\Core\Shop::url('bestellung/' . $order['token'] . '/rechnung')) ?>" target="_blank" rel="noopener">🧾 Rechnung</a>
+            <?php if (\Models\Invoice::findByOrder((int) $order['id']) !== null): ?>
+                <a class="cms-button cms-button-ghost" href="<?= e(\Core\Shop::url('bestellung/' . $order['token'] . '/rechnung')) ?>" target="_blank" rel="noopener">🧾 Rechnung (PDF)</a>
+            <?php endif; ?>
             <?php if (\Core\CustomerAuth::check()): ?>
                 <a class="cms-button cms-button-ghost" href="<?= e(\Core\Shop::url('konto')) ?>">Meine Bestellungen</a>
             <?php endif; ?>

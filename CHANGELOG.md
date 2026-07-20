@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.64.0 – 2026-07-20
+
+- **Rechnung als echtes PDF.** „Rechnung" erzeugt jetzt ein richtiges **PDF** (statt einer Druckseite) – erstellt mit einem eingebauten, abhängigkeitsfreien PDF-Generator. Logo (falls hinterlegt), Absenderdaten, Positionen, Summen, Hinweis und Bankverbindung sind sauber gesetzt.
+- **Rechnungsnummer nur auf Knopfdruck – fortlaufend.** Bei einer Bestellung wird **keine** Rechnungsnummer mehr automatisch vergeben. Erst über **Bestellung → „Rechnung erstellen (PDF)"** entsteht eine Rechnung mit **fortlaufender Nummer** (z. B. RE-0001, RE-0002). Danach lässt sich das PDF ansehen/herunterladen. Präfix und Startnummer sind in den **Shop-Einstellungen → Rechnungsdaten** einstellbar.
+- **Rechnung per E-Mail mit PDF im Anhang.** „Rechnung per E-Mail senden" verschickt die Rechnung jetzt als **PDF-Anhang** an den Kunden (der eingebaute Mailer unterstützt dafür Anhänge). Ist noch keine Rechnung erstellt, wird sie beim Versand automatisch erzeugt.
+- Bestehende Installationen bekommen die neue Tabelle `invoices` beim Update automatisch (kein manueller Eingriff nötig).
+
 ## 1.63.0 – 2026-07-20
 
 - **Spalten gestalten.** Die Spalte (der „6/12"-Bereich um die Inhalte) lässt sich jetzt selbst auswählen und bearbeiten – über die Spaltenleiste (Klick auf die Leiste oder das neue ⚙-Symbol). Im Eigenschaften-Bereich stellst du für die Spalte ein: **Breite** (1–12), **Hintergrundfarbe** (Palette oder eigene Farbe), **Innenabstand**, **Textausrichtung**, **vertikale Ausrichtung** (bei unterschiedlich hohen Spalten) und **Eckenrundung** – z. B. um eine Spalte als farbige Karte zu gestalten. Die Gestaltung wird live in der Vorschau angezeigt.

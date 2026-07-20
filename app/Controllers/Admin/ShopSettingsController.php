@@ -39,6 +39,8 @@ class ShopSettingsController extends ShopAdminController
                 'inv_bank' => Setting::get('shop_invoice_bank', ''),
                 'inv_logo' => Setting::get('shop_invoice_logo', ''),
                 'inv_note' => Setting::get('shop_invoice_note', ''),
+                'inv_prefix' => Setting::get('shop_invoice_prefix', 'RE-'),
+                'inv_start' => Setting::get('shop_invoice_start', '1'),
             ],
         ]);
     }
@@ -72,6 +74,8 @@ class ShopSettingsController extends ShopAdminController
         Setting::set('shop_invoice_bank', trim($_POST['inv_bank'] ?? ''));
         Setting::set('shop_invoice_logo', trim($_POST['inv_logo'] ?? ''));
         Setting::set('shop_invoice_note', trim($_POST['inv_note'] ?? ''));
+        Setting::set('shop_invoice_prefix', trim($_POST['inv_prefix'] ?? 'RE-'));
+        Setting::set('shop_invoice_start', (string) max(1, (int) ($_POST['inv_start'] ?? 1)));
 
         \Core\Cache::clear();
         flash('success', 'Shop-Einstellungen gespeichert.');

@@ -18,12 +18,12 @@ class Mailer
      * Wird $html gesetzt, geht die Mail als multipart/alternative raus (Text +
      * HTML) – der Text dient als Fallback für Clients ohne HTML.
      */
-    public static function send(string $to, string $subject, string $body, ?string $replyTo = null, ?string $html = null): ?string
+    public static function send(string $to, string $subject, string $body, ?string $replyTo = null, ?string $html = null, ?array $attachments = null): ?string
     {
         if (Setting::get('mail_transport', 'mail') === 'smtp') {
-            return self::sendSmtp($to, $subject, $body, $replyTo, $html);
+            return self::sendSmtp($to, $subject, $body, $replyTo, $html, $attachments);
         }
-        return self::sendPhpMail($to, $subject, $body, $replyTo, $html);
+        return self::sendPhpMail($to, $subject, $body, $replyTo, $html, $attachments);
     }
 
     public static function fromAddress(): string
@@ -64,30 +64,51 @@ class Mailer
 
     /**
      * Baut Body + passende Content-Header. Ohne $html reiner Text; mit $html
-     * eine multipart/alternative-Nachricht (Text-Fallback + HTML-Teil).
+     * multipart/alternative (Text + HTML). Mit $attachments zusätzlich in
+     * multipart/mixed verpackt (jeweils base64-kodiert).
      * @return array{0: string[], 1: string}
      */
-    private static function buildContent(string $body, ?string $html): array
+    private static function buildContent(string $body, ?string $html, ?array $attachments = null): array
     {
+        // Innerer Teil: reiner Text ODER Text+HTML (alternative).
+        $alt = 'bwkalt_' . substr(md5($body . (string) $html), 0, 20);
         if ($html === null) {
-            return [['Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit'], $body];
+            $innerHeader = "Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n";
+            $innerBody = $body;
+        } else {
+            $innerHeader = 'Content-Type: multipart/alternative; boundary="' . $alt . '"' . "\r\n";
+            $innerBody = "--$alt\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n"
+                . $body . "\r\n\r\n"
+                . "--$alt\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n"
+                . $html . "\r\n\r\n--$alt--\r\n";
         }
-        $boundary = 'bwk_' . substr(md5($body . $html . $body), 0, 24);
-        $mime = "--$boundary\r\n"
-            . "Content-Type: text/plain; charset=UTF-8\r\n"
-            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-            . $body . "\r\n\r\n"
-            . "--$boundary\r\n"
-            . "Content-Type: text/html; charset=UTF-8\r\n"
-            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-            . $html . "\r\n\r\n"
-            . "--$boundary--\r\n";
-        return [['Content-Type: multipart/alternative; boundary="' . $boundary . '"'], $mime];
+
+        $atts = array_values(array_filter($attachments ?? [], static fn ($a) => is_array($a) && ($a['data'] ?? '') !== ''));
+        if ($atts === []) {
+            if ($html === null) {
+                return [['Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit'], $body];
+            }
+            return [['Content-Type: multipart/alternative; boundary="' . $alt . '"'], $innerBody];
+        }
+
+        $mix = 'bwkmix_' . substr(md5($body . (string) $html . ($atts[0]['name'] ?? '')), 0, 20);
+        $mime = "--$mix\r\n" . $innerHeader . "\r\n" . $innerBody . "\r\n";
+        foreach ($atts as $a) {
+            $name = preg_replace('/[\r\n"]+/', '', (string) ($a['name'] ?? 'anhang.dat'));
+            $type = preg_replace('/[\r\n]+/', '', (string) ($a['mime'] ?? 'application/octet-stream'));
+            $mime .= "--$mix\r\n"
+                . 'Content-Type: ' . $type . '; name="' . $name . '"' . "\r\n"
+                . "Content-Transfer-Encoding: base64\r\n"
+                . 'Content-Disposition: attachment; filename="' . $name . '"' . "\r\n\r\n"
+                . chunk_split(base64_encode((string) $a['data'])) . "\r\n";
+        }
+        $mime .= "--$mix--\r\n";
+        return [['Content-Type: multipart/mixed; boundary="' . $mix . '"'], $mime];
     }
 
-    private static function sendPhpMail(string $to, string $subject, string $body, ?string $replyTo, ?string $html): ?string
+    private static function sendPhpMail(string $to, string $subject, string $body, ?string $replyTo, ?string $html, ?array $attachments = null): ?string
     {
-        [$contentHeaders, $mimeBody] = self::buildContent($body, $html);
+        [$contentHeaders, $mimeBody] = self::buildContent($body, $html, $attachments);
         // mail() setzt To/Subject selbst – aus den Headern herausfiltern.
         $headers = array_filter(
             self::headerLines($to, $subject, $replyTo, $contentHeaders),
@@ -99,7 +120,7 @@ class Mailer
 
     /* ---------- SMTP-Client ---------- */
 
-    private static function sendSmtp(string $to, string $subject, string $body, ?string $replyTo, ?string $html): ?string
+    private static function sendSmtp(string $to, string $subject, string $body, ?string $replyTo, ?string $html, ?array $attachments = null): ?string
     {
         $host = trim(Setting::get('smtp_host', ''));
         $port = (int) Setting::get('smtp_port', '587');
@@ -182,7 +203,7 @@ class Mailer
                 return $e;
             }
 
-            [$contentHeaders, $mimeBody] = self::buildContent($body, $html);
+            [$contentHeaders, $mimeBody] = self::buildContent($body, $html, $attachments);
             $data = implode("\r\n", self::headerLines($to, $subject, $replyTo, $contentHeaders)) . "\r\n\r\n";
             // Punkt-Stuffing gemäß RFC 5321.
             $data .= preg_replace('/^\./m', '..', str_replace(["\r\n", "\r"], "\n", $mimeBody));

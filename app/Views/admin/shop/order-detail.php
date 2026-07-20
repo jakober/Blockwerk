@@ -4,11 +4,20 @@ $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
 ?>
 <div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <a class="btn btn-ghost" href="<?= e(url('/admin/shop/orders')) ?>">← Alle Bestellungen</a>
-    <a class="btn" href="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice')) ?>" target="_blank" rel="noopener">🧾 Rechnung ansehen</a>
-    <form method="post" action="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice-mail')) ?>" class="inline" data-confirm="Rechnung per E-Mail an <?= e($order['email']) ?> senden?" data-confirm-ok="Senden">
-        <?= csrf_field() ?>
-        <button type="submit" class="btn">✉️ Rechnung per E-Mail senden</button>
-    </form>
+    <?php if (empty($invoice)): ?>
+        <form method="post" action="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice/create')) ?>" class="inline">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-primary">🧾 Rechnung erstellen (PDF)</button>
+        </form>
+        <span class="muted small">Es wird eine fortlaufende Rechnungsnummer vergeben.</span>
+    <?php else: ?>
+        <span class="badge badge-green">Rechnung <?= e($invoice['number']) ?></span>
+        <a class="btn" href="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice')) ?>" target="_blank" rel="noopener">🧾 PDF ansehen</a>
+        <form method="post" action="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice-mail')) ?>" class="inline" data-confirm="Rechnung „<?= e($invoice['number']) ?>“ als PDF an <?= e($order['email']) ?> senden?" data-confirm-ok="Senden">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn">✉️ Rechnung per E-Mail senden</button>
+        </form>
+    <?php endif; ?>
 </div>
 
 <div class="editor-grid">

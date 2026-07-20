@@ -266,6 +266,7 @@ class App
 
         $router->add('GET', '/admin/shop/orders', [\Controllers\Admin\ShopOrderController::class, 'index']);
         $router->add('GET', '/admin/shop/orders/{id}', [\Controllers\Admin\ShopOrderController::class, 'show']);
+        $router->add('POST', '/admin/shop/orders/{id}/invoice/create', [\Controllers\Admin\ShopOrderController::class, 'createInvoice']);
         $router->add('GET', '/admin/shop/orders/{id}/invoice', [\Controllers\Admin\ShopOrderController::class, 'invoice']);
         $router->add('POST', '/admin/shop/orders/{id}/invoice-mail', [\Controllers\Admin\ShopOrderController::class, 'mailInvoice']);
         $router->add('POST', '/admin/shop/orders/{id}/status', [\Controllers\Admin\ShopOrderController::class, 'setStatus']);

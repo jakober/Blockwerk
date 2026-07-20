@@ -199,7 +199,7 @@ class ShopController
         ]);
     }
 
-    /** Druckbare Rechnung für den Kunden (über den Bestell-Token erreichbar). */
+    /** Rechnung als PDF für den Kunden (über den Bestell-Token) – nur wenn erstellt. */
     public function invoice(string $token): void
     {
         $order = ShopOrder::findByToken($token);
@@ -207,10 +207,17 @@ class ShopController
             (new SiteController())->notFound();
             return;
         }
-        echo View::fetch('shop/invoice', [
-            'order' => $order,
-            'items' => ShopOrder::items((int) $order['id']),
-        ]);
+        $invoice = \Models\Invoice::findByOrder((int) $order['id']);
+        if ($invoice === null) {
+            (new SiteController())->notFound();
+            return;
+        }
+        $pdf = \Core\InvoicePdf::render($order, ShopOrder::items((int) $order['id']), $invoice);
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . \Core\InvoicePdf::filename($invoice) . '"');
+        header('Content-Length: ' . strlen($pdf));
+        header('Cache-Control: no-store');
+        echo $pdf;
     }
 
     /* ---------- Kundenkonto ---------- */

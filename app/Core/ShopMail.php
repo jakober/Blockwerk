@@ -71,6 +71,33 @@ class ShopMail
         self::send((string) $order['email'], 'Bestellung ' . $order['number'] . ': ' . $label, $body);
     }
 
+    /**
+     * Rechnung als E-Mail an den Kunden (HTML-Rechnung im A4-Layout + Text-
+     * Fallback und Link zur Online-Rechnung). Rückgabe: null bei Erfolg, sonst
+     * eine Fehlermeldung (für die Admin-Rückmeldung).
+     */
+    public static function invoice(array $order, array $items): ?string
+    {
+        if (!filter_var($order['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+            return 'Für diese Bestellung ist keine gültige E-Mail-Adresse hinterlegt.';
+        }
+        $name = Shop::invoiceName();
+        $html = View::fetch('shop/invoice', ['order' => $order, 'items' => $items, 'mode' => 'email']);
+        $text = 'Hallo ' . trim((string) ($order['first_name'] ?? '')) . ",\n\n"
+            . 'anbei deine Rechnung ' . $order['number'] . ' zu deiner Bestellung bei ' . $name . ".\n\n"
+            . self::itemsBlock($order, $items) . "\n"
+            . self::bankBlockIfPrepay($order)
+            . "Die Rechnung kannst du hier auch online ansehen und als PDF speichern:\n"
+            . self::orderUrl((string) $order['token']) . "/rechnung\n\n"
+            . "Herzliche Grüße\n" . $name;
+        try {
+            $err = Mailer::send((string) $order['email'], 'Rechnung ' . $order['number'] . ' – ' . $name, $text, null, $html);
+        } catch (\Throwable) {
+            $err = 'Der E-Mail-Versand ist fehlgeschlagen.';
+        }
+        return $err;
+    }
+
     private static function itemsBlock(array $order, array $items): string
     {
         $out = "Deine Bestellung:\n";

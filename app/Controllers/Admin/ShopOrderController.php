@@ -39,6 +39,19 @@ class ShopOrderController extends ShopAdminController
         ]);
     }
 
+    /** Rechnung als E-Mail an den Kunden senden. */
+    public function mailInvoice(string $id): void
+    {
+        $order = ShopOrder::find((int) $id) ?? $this->abort();
+        $err = \Core\ShopMail::invoice($order, ShopOrder::items((int) $order['id']));
+        if ($err === null) {
+            flash('success', 'Rechnung wurde an ' . $order['email'] . ' gesendet.');
+        } else {
+            flash('error', 'Rechnung konnte nicht gesendet werden: ' . $err);
+        }
+        redirect('/admin/shop/orders/' . $order['id']);
+    }
+
     public function setStatus(string $id): void
     {
         $order = ShopOrder::find((int) $id) ?? $this->abort();

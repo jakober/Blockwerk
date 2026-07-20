@@ -2,9 +2,13 @@
 $statusLabels = ['new' => 'Neu', 'paid' => 'Bezahlt', 'shipped' => 'Versendet', 'cancelled' => 'Storniert'];
 $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
 ?>
-<div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+<div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <a class="btn btn-ghost" href="<?= e(url('/admin/shop/orders')) ?>">← Alle Bestellungen</a>
-    <a class="btn" href="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice')) ?>" target="_blank" rel="noopener">🧾 Rechnung</a>
+    <a class="btn" href="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice')) ?>" target="_blank" rel="noopener">🧾 Rechnung ansehen</a>
+    <form method="post" action="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice-mail')) ?>" class="inline" data-confirm="Rechnung per E-Mail an <?= e($order['email']) ?> senden?" data-confirm-ok="Senden">
+        <?= csrf_field() ?>
+        <button type="submit" class="btn">✉️ Rechnung per E-Mail senden</button>
+    </form>
 </div>
 
 <div class="editor-grid">

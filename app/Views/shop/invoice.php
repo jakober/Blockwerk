@@ -11,6 +11,8 @@ $tax = $g('shop_invoice_tax');
 $bank = $g('shop_invoice_bank');
 $note = $g('shop_invoice_note');
 $recipient = trim(((string) ($order['first_name'] ?? '')) . ' ' . ((string) ($order['last_name'] ?? '')));
+$mode = $mode ?? 'page';
+$isEmail = $mode === 'email';
 ?>
 <!doctype html>
 <html lang="de">
@@ -21,7 +23,8 @@ $recipient = trim(((string) ($order['first_name'] ?? '')) . ' ' . ((string) ($or
 <style>
     * { box-sizing: border-box; }
     body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #1f2937; margin: 0; background: #f3f4f6; }
-    .sheet { background: #fff; max-width: 800px; margin: 20px auto; padding: 48px 52px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    /* Blattformat A4 (210 × 297 mm) – die Vorschau hat immer die Proportionen einer A4-Seite. */
+    .sheet { background: #fff; width: 210mm; max-width: 100%; <?= $isEmail ? '' : 'min-height: 297mm;' ?> margin: 20px auto; padding: 22mm 20mm; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
     .inv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 40px; }
     .inv-logo img { max-height: 80px; max-width: 260px; }
     .inv-logo .inv-fallback { font-size: 22px; font-weight: 800; }
@@ -46,14 +49,14 @@ $recipient = trim(((string) ($order['first_name'] ?? '')) . ' ' . ((string) ($or
     .inv-actions button { font: inherit; font-weight: 600; padding: 10px 20px; border: 0; border-radius: 8px; background: #ea580c; color: #fff; cursor: pointer; }
     @media print {
         body { background: #fff; }
-        .sheet { box-shadow: none; margin: 0; max-width: none; padding: 0; }
+        .sheet { box-shadow: none; margin: 0; width: auto; max-width: none; min-height: 0; padding: 0; }
         .inv-actions { display: none; }
         @page { margin: 18mm; }
     }
 </style>
 </head>
 <body>
-<div class="inv-actions"><button type="button" onclick="window.print()">Drucken / als PDF speichern</button></div>
+<?php if (!$isEmail): ?><div class="inv-actions"><button type="button" onclick="window.print()">Drucken / als PDF speichern</button></div><?php endif; ?>
 <div class="sheet">
     <div class="inv-top">
         <div class="inv-logo">

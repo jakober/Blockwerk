@@ -13,13 +13,17 @@ use Models\Setting;
  */
 class Mailer
 {
-    /** Sendet eine E-Mail. Rückgabe: null bei Erfolg, sonst Fehlermeldung. */
-    public static function send(string $to, string $subject, string $body, ?string $replyTo = null): ?string
+    /**
+     * Sendet eine E-Mail. Rückgabe: null bei Erfolg, sonst Fehlermeldung.
+     * Wird $html gesetzt, geht die Mail als multipart/alternative raus (Text +
+     * HTML) – der Text dient als Fallback für Clients ohne HTML.
+     */
+    public static function send(string $to, string $subject, string $body, ?string $replyTo = null, ?string $html = null): ?string
     {
         if (Setting::get('mail_transport', 'mail') === 'smtp') {
-            return self::sendSmtp($to, $subject, $body, $replyTo);
+            return self::sendSmtp($to, $subject, $body, $replyTo, $html);
         }
-        return self::sendPhpMail($to, $subject, $body, $replyTo);
+        return self::sendPhpMail($to, $subject, $body, $replyTo, $html);
     }
 
     public static function fromAddress(): string
@@ -39,7 +43,7 @@ class Mailer
         return $name !== '' ? $name : Setting::get('site_name', 'Website');
     }
 
-    private static function headerLines(string $to, string $subject, ?string $replyTo): array
+    private static function headerLines(string $to, string $subject, ?string $replyTo, array $contentHeaders): array
     {
         $clean = static fn (string $v): string => str_replace(["\r", "\n"], '', $v);
         $lines = [
@@ -48,29 +52,54 @@ class Mailer
             'Subject: ' . $clean(mb_encode_mimeheader($subject, 'UTF-8')),
             'Date: ' . date('r'),
             'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
-            'Content-Transfer-Encoding: 8bit',
         ];
+        foreach ($contentHeaders as $h) {
+            $lines[] = $h;
+        }
         if ($replyTo !== null && filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
             $lines[] = 'Reply-To: <' . $clean($replyTo) . '>';
         }
         return $lines;
     }
 
-    private static function sendPhpMail(string $to, string $subject, string $body, ?string $replyTo): ?string
+    /**
+     * Baut Body + passende Content-Header. Ohne $html reiner Text; mit $html
+     * eine multipart/alternative-Nachricht (Text-Fallback + HTML-Teil).
+     * @return array{0: string[], 1: string}
+     */
+    private static function buildContent(string $body, ?string $html): array
     {
+        if ($html === null) {
+            return [['Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: 8bit'], $body];
+        }
+        $boundary = 'bwk_' . substr(md5($body . $html . $body), 0, 24);
+        $mime = "--$boundary\r\n"
+            . "Content-Type: text/plain; charset=UTF-8\r\n"
+            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+            . $body . "\r\n\r\n"
+            . "--$boundary\r\n"
+            . "Content-Type: text/html; charset=UTF-8\r\n"
+            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+            . $html . "\r\n\r\n"
+            . "--$boundary--\r\n";
+        return [['Content-Type: multipart/alternative; boundary="' . $boundary . '"'], $mime];
+    }
+
+    private static function sendPhpMail(string $to, string $subject, string $body, ?string $replyTo, ?string $html): ?string
+    {
+        [$contentHeaders, $mimeBody] = self::buildContent($body, $html);
         // mail() setzt To/Subject selbst – aus den Headern herausfiltern.
         $headers = array_filter(
-            self::headerLines($to, $subject, $replyTo),
+            self::headerLines($to, $subject, $replyTo, $contentHeaders),
             static fn (string $line): bool => !str_starts_with($line, 'To:') && !str_starts_with($line, 'Subject:')
         );
-        $ok = @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $body, implode("\r\n", $headers));
+        $ok = @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $mimeBody, implode("\r\n", $headers));
         return $ok ? null : 'Der Server konnte die E-Mail nicht übergeben (PHP mail() schlug fehl). Prüfe, ob dein Hosting den Mailversand erlaubt, oder richte SMTP ein.';
     }
 
     /* ---------- SMTP-Client ---------- */
 
-    private static function sendSmtp(string $to, string $subject, string $body, ?string $replyTo): ?string
+    private static function sendSmtp(string $to, string $subject, string $body, ?string $replyTo, ?string $html): ?string
     {
         $host = trim(Setting::get('smtp_host', ''));
         $port = (int) Setting::get('smtp_port', '587');
@@ -153,9 +182,10 @@ class Mailer
                 return $e;
             }
 
-            $data = implode("\r\n", self::headerLines($to, $subject, $replyTo)) . "\r\n\r\n";
+            [$contentHeaders, $mimeBody] = self::buildContent($body, $html);
+            $data = implode("\r\n", self::headerLines($to, $subject, $replyTo, $contentHeaders)) . "\r\n\r\n";
             // Punkt-Stuffing gemäß RFC 5321.
-            $data .= preg_replace('/^\./m', '..', str_replace(["\r\n", "\r"], "\n", $body));
+            $data .= preg_replace('/^\./m', '..', str_replace(["\r\n", "\r"], "\n", $mimeBody));
             $data = str_replace("\n", "\r\n", $data);
             if (($e = $cmd($data . "\r\n.", [250])) !== null) {
                 return $e;

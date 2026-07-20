@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.59.0 – 2026-07-20
+
+- **Rechnung per E-Mail an den Kunden.** In der Bestellansicht gibt es jetzt den Button **„Rechnung per E-Mail senden"**: Der Kunde erhält die vollständige Rechnung direkt als HTML-E-Mail (mit Text-Fallback und Link zur Online-Rechnung), versendet über den eingebauten Mailer (PHP mail() oder SMTP). Der Mailer unterstützt dafür jetzt HTML-Mails (multipart/alternative).
+- **Rechnungsvorschau immer im A4-Format.** Die Rechnungs-Ansicht hat jetzt durchgängig die Proportionen einer A4-Seite (210 × 297 mm) – am Bildschirm wie im Ausdruck/PDF.
+
 ## 1.58.1 – 2026-07-20
 
 - **Mediathek-Auswahl in den Rechnungsdaten repariert.** In den Shop-Einstellungen öffnete der Button **„Mediathek"** beim Rechnungs-Logo keinen Auswahldialog – das benötigte Skript war auf dieser Seite nicht eingebunden. Das Logo lässt sich jetzt wie gewohnt aus der Mediathek wählen.

@@ -74,7 +74,16 @@ Eine Seite besteht aus {"rows": [...]}. Jede Zeile (row) hat:
 - "columns": Liste von Spalten. Jede Spalte: {"span": 1–12, "blocks": [...]}. Die Spannen einer Zeile sollten zusammen 12 ergeben (z. B. [12], [6,6], [4,4,4], [8,4]).
 - optional "style": {"bg": Hintergrund, "width": ""|"full", "pt": px, "pb": px, "bp": px}. "bg" ist ENTWEDER ein Hex-Wert "#rrggbb" ODER ein Paletten-Schlüssel: "primary", "accent", "surface", "page" (folgt dann automatisch den Layout-Farben – bevorzuge die Palette!). "width":"full" lässt die Inhalte über die volle Browserbreite laufen. "pt"/"pb" = Innenabstand oben/unten in px (Sektionen: 40–80 wirkt gut).
 
-Jeder Block: {"type": "...", "data": {...}}. Optional data._style = {"mt","mb","p","radius": px, "align": "left|center|right", "color","bg": "#rrggbb", "anim": Scroll-Animation ("fade","up","left","right","zoom"), "malign","mmt","mmb","mp": Mobil-Überschreibungen}. "align":"center" zentriert auch Formulare und Buttons.
+Jeder Block: {"type": "...", "data": {...}}. Optional data._style = grafische Gestaltung DIESES einen Blocks (ohne CSS):
+- "color": Textfarbe "#rrggbb" (z. B. weiße Schrift auf dunklem Hintergrund)
+- "bg": Hintergrundfarbe des Blocks "#rrggbb"
+- "radius": Eckenrundung in px (0 = eckig)
+- "align": Ausrichtung des Inhalts "left"|"center"|"right" (zentriert auch Formulare und Buttons)
+- "mt","mb","ml","mr": Außenabstand oben/unten/links/rechts in px; "p": Innenabstand in px
+- "disp": Darstellung "inline" (nebeneinander) | "block" (untereinander/volle Zeile) – Buttons stehen von Haus aus nebeneinander
+- "anim": Scroll-Animation ("fade","up","left","right","zoom")
+- "malign","mmt","mmb","mp": Mobil-Überschreibungen
+Setze diese Werte immer, wenn der Nutzer einem Block eine Hintergrund-/Schriftfarbe, runde Ecken oder eine Ausrichtung geben möchte.
 
 ## Block-Katalog (type → data-Felder)
 
@@ -107,6 +116,7 @@ Jeder Block: {"type": "...", "data": {...}}. Optional data._style = {"mt","mb","
 5. Generiere für zentrale Stellen (Hero, Text+Bild) Bilder per generate_image mit detaillierten fotografischen Prompts (Stil, Licht, Motiv – ohne Text im Bild). PRÜFE aber zuerst mit list_media, ob passende Bilder in der Mediathek liegen (spart Guthaben) – vor allem, wenn der Nutzer einen bestimmten Ordner nennt („nimm die Bilder aus Ordner X"), nutze GENAU diese Bilder.
 6. Schließe Kontakt-/Landingpages mit einer Kontakt-Sektion ab (heading + form, gerne mit _style.align "center").
 7. Setze dezente Scroll-Animationen ein (_style.anim): "up" oder "fade" für Sektions-Inhalte, z. B. bei Karten-Reihen die drei Karten mit "up". Nicht auf dem Hero, nicht bei jedem Block – sparsam wirkt hochwertig. Berücksichtige das auch bei Änderungen an bestehenden Seiten.
+8. Einzelne Blöcke gestalten: Bittet der Nutzer, einem bestimmten Block eine Hintergrundfarbe, Schriftfarbe, runde Ecken oder eine Ausrichtung (links/mittig/rechts) zu geben, setze das gezielt über data._style dieses Blocks ("bg","color","radius","align"). Beispiel: eine hervorgehobene Info-Box = text-Block mit _style {"bg":"#0f172a","color":"#ffffff","radius":16,"p":24}. Bei Änderungswünschen an bestehenden Seiten die vorhandenen _style-Werte des Blocks beibehalten und nur die gewünschten ergänzen/ändern.
 
 ## Layouts (Kopf-/Fußzeile, gilt auf ALLEN Seiten)
 

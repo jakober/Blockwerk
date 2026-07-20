@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.62.0 – 2026-07-20
+
+- **Block-Gestaltung direkt sichtbar.** Beim Auswählen eines Blocks (in der Inhalts- **und** der Layout-Bearbeitung) ist der Gestaltungsbereich jetzt **automatisch aufgeklappt** und klarer benannt: „🎨 Gestaltung des Blocks – Hintergrund, Textfarbe, Ecken, Ausrichtung, Abstände". So lassen sich pro Block **Hintergrundfarbe, Schriftfarbe, Eckenrundung, Ausrichtung** (links/mittig/rechts) und Abstände einstellen, ohne dass man den Bereich erst suchen muss.
+- **KI versteht Block-Gestaltung.** Der KI-Assistent kann einzelnen Blöcken jetzt gezielt eine Hintergrund-/Schriftfarbe, runde Ecken oder eine Ausrichtung geben (z. B. „mach die Info-Box dunkel mit weißer Schrift und runden Ecken"). Bei Änderungen an bestehenden Seiten bleiben vorhandene Gestaltungswerte erhalten.
+
 ## 1.61.1 – 2026-07-20
 
 - **Schräge/Welle schließt sauber an die Sektion darüber an.** Wenn eine Zeile mit oben angeschnittener Kante (Schräge oder Welle) direkt unter einer farbigen Sektion lag, erschien in der angeschnittenen Ecke der weiße Seitenhintergrund – also eine zweite, weiße Schräge. Die Kante überlappt jetzt das Element darüber, sodass dort dessen Farbe durchscheint und ein sauberer, direkter Farbübergang entsteht. (Tipp: Für einen diagonalen Übergang zwischen zwei farbigen Flächen die Schräge **oben** an der unteren Sektion setzen.)

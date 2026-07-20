@@ -1123,7 +1123,7 @@
         const styleDetails = document.createElement('details');
         styleDetails.className = 'ed-style-details';
         const summary = document.createElement('summary');
-        summary.textContent = 'Gestaltung (Abstände & Farben)';
+        summary.textContent = '🎨 Gestaltung des Blocks – Hintergrund, Textfarbe, Ecken, Ausrichtung, Abstände';
         styleDetails.appendChild(summary);
         if (!block.data._style || typeof block.data._style !== 'object' || Array.isArray(block.data._style)) {
             block.data._style = {};
@@ -1189,7 +1189,9 @@
             }
         }
 
-        if (Object.keys(styleObj).length) styleDetails.open = true;
+        // Standardmäßig geöffnet, damit die Block-Gestaltung (Hintergrund,
+        // Textfarbe, Ecken, Ausrichtung …) direkt sichtbar und auffindbar ist.
+        styleDetails.open = true;
         inspectorBody.appendChild(styleDetails);
 
         const del = document.createElement('button');

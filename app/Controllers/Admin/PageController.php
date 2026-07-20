@@ -9,6 +9,32 @@ use Models\Page;
 
 class PageController extends AdminController
 {
+    /**
+     * JSON-Liste aller verlinkbaren Seiten – für den Seitenwähler, der bei
+     * jedem Link-Ziel-Feld im System zur Verfügung steht.
+     */
+    public function linkList(): void
+    {
+        header('Content-Type: application/json');
+        header('Cache-Control: no-store');
+        $pages = [];
+        foreach (Page::tree() as $p) {
+            if (!empty($p['is_global'])) {
+                continue; // globale Blöcke sind keine eigenständigen Seiten
+            }
+            if (isset($p['published']) && !$p['published']) {
+                continue; // nur veröffentlichte Seiten sind sinnvoll verlinkbar
+            }
+            $pages[] = [
+                'title' => (string) $p['title'],
+                'url' => url('/' . ltrim((string) $p['slug'], '/')),
+                'slug' => (string) $p['slug'],
+                'depth' => (int) ($p['depth'] ?? 0),
+            ];
+        }
+        echo json_encode(['pages' => $pages], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
     public function index(): void
     {
         $layouts = [];

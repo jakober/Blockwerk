@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.60.0 – 2026-07-20
+
+- **Seitenwähler bei Link-Zielen.** Überall dort, wo ein Link-Ziel eingegeben wird (Button, Bild-Verlinkung, Hero-Button, Preistabellen-Button und der Link-Dialog im Fließtext-Editor), gibt es jetzt einen Button **„Seite"** bzw. **„Seite wählen"**: Er öffnet eine durchsuchbare Liste aller bestehenden Seiten (untergeordnete Seiten eingerückt) und trägt die richtige Adresse automatisch ein – man muss den Pfad nicht mehr von Hand kennen. Freie URLs (extern, `mailto:`, `tel:`) bleiben natürlich weiter möglich.
+- **Textfarbe für Blöcke – Hinweis.** Die Textfarbe lässt sich für jeden Block bereits unter **„Gestaltung (Abstände & Farben) → Textfarbe"** einstellen; sie färbt Überschrift und Fließtext des Blocks (z. B. weiße Schrift auf dunklem Hintergrund).
+- **Inhaltsbereich ohne unteren Abstand.** Der Seiten-Inhaltsbereich (`bwl-content`) hat jetzt standardmäßig keinen unteren Innenabstand mehr, damit z. B. ein farbiger Abschluss oder der Footer bündig anschließt.
+
 ## 1.59.0 – 2026-07-20
 
 - **Rechnung per E-Mail an den Kunden.** In der Bestellansicht gibt es jetzt den Button **„Rechnung per E-Mail senden"**: Der Kunde erhält die vollständige Rechnung direkt als HTML-E-Mail (mit Text-Fallback und Link zur Online-Rechnung), versendet über den eingebauten Mailer (PHP mail() oder SMTP). Der Mailer unterstützt dafür jetzt HTML-Mails (multipart/alternative).

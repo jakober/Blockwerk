@@ -109,7 +109,7 @@
                 { key: 'src', label: 'Bild', type: 'image' },
                 { key: 'alt', label: 'Alternativtext', type: 'text' },
                 { key: 'caption', label: 'Bildunterschrift', type: 'text' },
-                { key: 'link', label: 'Verlinkung (optional)', type: 'text' },
+                { key: 'link', label: 'Verlinkung (optional)', type: 'link' },
                 variantField('image'),
             ],
         },
@@ -159,7 +159,7 @@
                     { key: 'title', label: 'Überschrift', type: 'text' },
                     { key: 'text', label: 'Text', type: 'textarea' },
                     { key: 'button_text', label: 'Button-Beschriftung', type: 'text' },
-                    { key: 'button_url', label: 'Button-Ziel', type: 'text' },
+                    { key: 'button_url', label: 'Button-Ziel', type: 'link' },
                 ],
             },
             fields: [
@@ -176,7 +176,7 @@
             defaults: { text: 'Mehr erfahren', url: '#', style: 'primary', size: 'normal' },
             fields: [
                 { key: 'text', label: 'Beschriftung', type: 'text' },
-                { key: 'url', label: 'Link-Ziel', type: 'text' },
+                { key: 'url', label: 'Link-Ziel', type: 'link' },
                 { key: 'style', label: 'Designvorlage', type: 'select', options: [['primary', 'Primärfarbe'], ['accent', 'Akzentfarbe'], ['outline', 'Outline'], ['ghost', 'Dezent']] },
                 { key: 'size', label: 'Größe', type: 'select', options: [['small', 'Klein'], ['normal', 'Normal'], ['large', 'Groß']] },
             ],
@@ -311,7 +311,7 @@
                     { key: 'period', label: 'Zeitraum (z. B. Monat)', type: 'text' },
                     { key: 'features', label: 'Leistungen (eine pro Zeile)', type: 'textarea' },
                     { key: 'button_text', label: 'Button-Beschriftung', type: 'text' },
-                    { key: 'button_url', label: 'Button-Ziel', type: 'text' },
+                    { key: 'button_url', label: 'Button-Ziel', type: 'link' },
                     { key: 'highlight', label: 'Hervorheben (empfohlen)', type: 'checkbox' },
                 ],
             },
@@ -1036,6 +1036,28 @@
             row.appendChild(pick);
             wrap.appendChild(preview);
             wrap.appendChild(row);
+            return wrap;
+        } else if (field.type === 'link') {
+            // Link-Ziel: freies Eingabefeld PLUS Seitenwähler aus bestehenden Seiten.
+            const wrap = document.createElement('div');
+            wrap.className = 'ed-link-row';
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.placeholder = field.placeholder || 'URL oder Seite wählen';
+            inp.value = value != null ? value : '';
+            inp.addEventListener('input', () => onChange(inp.value));
+            const pick = document.createElement('button');
+            pick.type = 'button';
+            pick.className = 'btn btn-small';
+            pick.textContent = 'Seite';
+            pick.title = 'Bestehende Seite wählen';
+            pick.addEventListener('click', () => {
+                if (window.AdminTools && window.AdminTools.openPagePicker) {
+                    window.AdminTools.openPagePicker((url) => { inp.value = url; onChange(url); });
+                }
+            });
+            wrap.appendChild(inp);
+            wrap.appendChild(pick);
             return wrap;
         } else {
             input = document.createElement('input');

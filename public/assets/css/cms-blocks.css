@@ -628,7 +628,7 @@ h1.cms-heading { font-size: 2.3em; }
     padding-left: 20px; padding-right: 20px;
 }
 .bwl-page > .cms-row, .bwl-page .cms-section { margin-bottom: 0; }
-.bwl-content { padding: 24px 0 40px; }
+.bwl-content { padding: 24px 0 40px; padding-bottom: 0 !important; }
 .bwl-brand {
     display: inline-flex; align-items: center; gap: 12px;
     font-size: 21px; font-weight: 800; letter-spacing: -.4px;

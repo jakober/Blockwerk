@@ -149,6 +149,7 @@ class App
 
         $router->add('GET', '/admin/pages', [PageController::class, 'index']);
         $router->add('GET', '/admin/pages/new', [PageController::class, 'create']);
+        $router->add('GET', '/admin/pages/link-list', [PageController::class, 'linkList']);
         $router->add('POST', '/admin/pages', [PageController::class, 'store']);
         $router->add('POST', '/admin/pages/reorder', [PageController::class, 'reorder']);
         $router->add('GET', '/admin/pages/{id}/edit', [PageController::class, 'edit']);

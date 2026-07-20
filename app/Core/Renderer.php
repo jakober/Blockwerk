@@ -157,6 +157,45 @@ class Renderer
         return $this->renderContentData(json_decode((string) $json, true));
     }
 
+    /**
+     * Gestaltung einer einzelnen Spalte (Hintergrund, Innenabstand, Ausrichtung,
+     * vertikale Ausrichtung, Eckenrundung) als Inline-CSS für die .cms-col.
+     */
+    private static function columnStyleCss(array $style): string
+    {
+        $palette = [
+            'primary' => 'var(--cms-primary)',
+            'accent' => 'var(--cms-accent)',
+            'surface' => 'var(--cms-surface)',
+            'page' => 'var(--cms-bg)',
+        ];
+        $css = '';
+        $bgRaw = (string) ($style['bg'] ?? '');
+        if (preg_match('/^#[0-9a-fA-F]{6}$/', $bgRaw)) {
+            $css .= 'background:' . strtolower($bgRaw) . ';';
+        } elseif ($bgRaw !== '' && isset($palette[$bgRaw])) {
+            $css .= 'background:' . $palette[$bgRaw] . ';';
+        }
+        if (isset($style['p']) && $style['p'] !== '' && (int) $style['p'] > 0) {
+            $css .= 'padding:' . min(200, (int) $style['p']) . 'px;';
+        }
+        if (in_array($style['align'] ?? '', ['left', 'center', 'right'], true)) {
+            $css .= 'text-align:' . $style['align'] . ';';
+        }
+        if (isset($style['radius']) && $style['radius'] !== '' && (int) $style['radius'] >= 0) {
+            $css .= 'border-radius:' . min(200, max(0, (int) $style['radius'])) . 'px;';
+        }
+        $valign = (string) ($style['valign'] ?? '');
+        if (in_array($valign, ['top', 'center', 'bottom'], true)) {
+            $map = ['top' => 'flex-start', 'center' => 'center', 'bottom' => 'flex-end'];
+            $css .= 'display:flex;flex-direction:column;justify-content:' . $map[$valign] . ';';
+        }
+        if (str_contains($css, 'background') || str_contains($css, 'border-radius')) {
+            $css .= 'overflow:hidden;';
+        }
+        return $css;
+    }
+
     private function renderContentData(mixed $data): string
     {
         if (!is_array($data) || !is_array($data['rows'] ?? null)) {
@@ -172,7 +211,8 @@ class Renderer
             $inner = '';
             foreach ($row['columns'] as $column) {
                 $span = min(12, max(1, (int) ($column['span'] ?? 12)));
-                $inner .= '<div class="cms-col" style="--span:' . $span . '">';
+                $colCss = self::columnStyleCss(is_array($column['style'] ?? null) ? $column['style'] : []);
+                $inner .= '<div class="cms-col" style="--span:' . $span . ';' . $colCss . '">';
                 foreach (($column['blocks'] ?? []) as $block) {
                     if (is_array($block)) {
                         $inner .= BlockRegistry::render($block);

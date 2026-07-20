@@ -761,9 +761,12 @@ body.is-editor .ed-canvas {
 .ed-cols { gap: 28px; padding: 12px; border-radius: 8px; }
 .ed-col { border: 1px dashed transparent; background: transparent; }
 .ed-row:hover .ed-col { border-color: #e8d8c7; }
-.ed-col-bar { border-bottom: none; opacity: 0; transition: opacity .15s; padding: 2px; }
+.ed-col-bar { border-bottom: none; opacity: 0; transition: opacity .15s; padding: 2px; cursor: pointer; }
 .ed-row:hover .ed-col-bar { opacity: 1; }
 .ed-col-bar button { background: var(--surface); }
+/* Ausgewählte Spalte (der 6/12-Bereich) hervorheben – wie Block/Zeile. */
+.ed-col.is-selected { border-color: var(--primary) !important; border-style: solid; box-shadow: 0 0 0 3px rgba(234, 88, 12, .15); }
+.ed-col.is-selected .ed-col-bar { opacity: 1; }
 .ed-blocks { padding: 4px; min-height: 48px; }
 .ed-blocks.is-over { background: rgba(234, 88, 12, .06); border-radius: 8px; }
 

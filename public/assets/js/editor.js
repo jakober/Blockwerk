@@ -707,14 +707,19 @@
 
                 const colBar = document.createElement('div');
                 colBar.className = 'ed-col-bar';
+                colBar.title = 'Spalte anklicken für Gestaltung (Hintergrund, Breite …)';
                 colBar.innerHTML =
                     '<button type="button" data-act="narrower" title="Schmaler">−</button>' +
                     '<span class="ed-col-width">' + col.span + '/12</span>' +
                     '<button type="button" data-act="wider" title="Breiter">+</button>' +
+                    '<button type="button" data-act="col-cfg" title="Spalte gestalten">⚙</button>' +
                     '<button type="button" data-act="col-del" class="danger" title="Spalte löschen">✕</button>';
                 colBar.addEventListener('click', (e) => {
                     const act = e.target.dataset && e.target.dataset.act;
-                    if (act) colAction(act, r, c);
+                    if (act === 'col-cfg') { selectCol(r, c); return; }
+                    if (act) { colAction(act, r, c); return; }
+                    // Klick auf die Leiste selbst (nicht auf einen Knopf) wählt die Spalte.
+                    selectCol(r, c);
                 });
                 colEl.appendChild(colBar);
 
@@ -773,6 +778,10 @@
                 colEl.appendChild(resizer);
 
                 colEl.appendChild(blocksEl);
+                if (selected && selected.kind === 'col' && selected.r === r && selected.c === c) {
+                    colEl.classList.add('is-selected');
+                }
+                applyColStyleTo(blocksEl, col);
                 colsEl.appendChild(colEl);
             });
 
@@ -812,6 +821,27 @@
         if (!selected || selected.kind !== 'row') return;
         const rowEl = canvas.querySelectorAll('.ed-row')[selected.r];
         if (rowEl) applyRowStyleTo(rowEl, state.rows[selected.r]);
+    }
+
+    // Spalten-Gestaltung in der Editor-Vorschau spiegeln (Hintergrund,
+    // Innenabstand, Ausrichtung, Ecken). Vertikale Ausrichtung wirkt nur im
+    // Frontend (dort haben Spalten einer Zeile gleiche Höhe) und wird hier
+    // ausgelassen.
+    function applyColStyleTo(blocksEl, col) {
+        const style = (col && col.style) || {};
+        const bg = style.bg || '';
+        blocksEl.style.background = /^#/.test(bg) ? bg : (ROW_BG_PALETTE[bg] || '');
+        blocksEl.style.padding = (style.p != null && style.p !== '') ? ((parseInt(style.p, 10) || 0) + 'px') : '';
+        blocksEl.style.textAlign = ['left', 'center', 'right'].includes(style.align) ? style.align : '';
+        blocksEl.style.borderRadius = (style.radius != null && style.radius !== '') ? ((parseInt(style.radius, 10) || 0) + 'px') : '';
+    }
+
+    function applyColStyles() {
+        if (!selected || selected.kind !== 'col') return;
+        const rowEl = canvas.querySelectorAll('.ed-row')[selected.r];
+        const colEl = rowEl && rowEl.querySelectorAll(':scope > .ed-cols > .ed-col')[selected.c];
+        const blocksEl = colEl && colEl.querySelector(':scope > .ed-blocks');
+        if (blocksEl) applyColStyleTo(blocksEl, state.rows[selected.r].columns[selected.c]);
     }
 
     // Steht der Block nebeneinander (inline-block)? Buttons standardmäßig ja
@@ -962,13 +992,22 @@
         buildInspector();
     }
 
+    function selectCol(r, c) {
+        selected = { kind: 'col', r: r, c: c };
+        refreshSelection();
+        buildInspector();
+    }
+
     function refreshSelection() {
-        canvas.querySelectorAll('.ed-block.is-selected, .ed-row.is-selected').forEach((el) => el.classList.remove('is-selected'));
+        canvas.querySelectorAll('.ed-block.is-selected, .ed-row.is-selected, .ed-col.is-selected').forEach((el) => el.classList.remove('is-selected'));
         if (!selected) return;
         const rowEl = canvas.querySelectorAll('.ed-row')[selected.r];
         if (!rowEl) return;
         if (selected.kind === 'row') {
             rowEl.classList.add('is-selected');
+        } else if (selected.kind === 'col') {
+            const colEl = rowEl.querySelectorAll(':scope > .ed-cols > .ed-col')[selected.c];
+            if (colEl) colEl.classList.add('is-selected');
         } else {
             const colEl = rowEl.querySelectorAll(':scope > .ed-cols > .ed-col')[selected.c];
             const blockEl = colEl && colEl.querySelectorAll(':scope > .ed-blocks > .ed-block')[selected.b];
@@ -1126,6 +1165,10 @@
     function buildInspector() {
         if (selected && selected.kind === 'row') {
             buildRowInspector();
+            return;
+        }
+        if (selected && selected.kind === 'col') {
+            buildColInspector();
             return;
         }
         const block = selectedBlock();
@@ -1378,6 +1421,103 @@
         bpHint.className = 'muted small';
         bpHint.textContent = '„Nebeneinander lassen" hält die Spalten auch auf schmalen Handys in einer Reihe. Nutze die Smartphone-Vorschau oben zum Prüfen.';
         inspectorBody.appendChild(bpHint);
+    }
+
+    // Inspektor für eine SPALTE (der 6/12-Block um die Inhalte): Breite +
+    // eigene Gestaltung (Hintergrund, Innenabstand, Ausrichtung, Ecken).
+    function buildColInspector() {
+        const row = state.rows[selected.r];
+        const col = row && row.columns[selected.c];
+        if (!col) { deselect(); return; }
+        inspectorBody.innerHTML = '';
+
+        const heading = document.createElement('div');
+        heading.className = 'ed-insp-type';
+        heading.textContent = 'Spalte ' + (selected.c + 1) + ' – Gestaltung';
+        inspectorBody.appendChild(heading);
+
+        const note = document.createElement('p');
+        note.className = 'muted small';
+        note.textContent = 'Die Spalte ist der Bereich um die Inhalte (Breite 1–12). Hier gibst du ihr Breite, Hintergrund, Innenabstand, Ausrichtung und runde Ecken – z. B. für eine farbige Karte.';
+        inspectorBody.appendChild(note);
+
+        // Breite (Spalten von 12)
+        const widthOpts = [];
+        for (let i = 1; i <= 12; i++) widthOpts.push([String(i), i + ' / 12']);
+        addField(inspectorBody, { key: 'span', label: 'Breite (Spalten von 12)', type: 'select', options: widthOpts }, String(col.span || 12), (v) => {
+            col.span = Math.min(12, Math.max(1, parseInt(v, 10) || 12));
+            markDirty();
+            render();
+            selectCol(selected.r, selected.c);
+        });
+
+        if (!col.style || typeof col.style !== 'object' || Array.isArray(col.style)) col.style = {};
+        const style = col.style;
+
+        // Hintergrund: Layout-Farbe oder eigene Farbe (wie bei der Zeile).
+        const bgModes = [
+            ['', 'Keine'],
+            ['primary', 'Hauptfarbe (aus Gestaltung)'],
+            ['accent', 'Akzentfarbe (aus Gestaltung)'],
+            ['surface', 'Flächenfarbe (aus Gestaltung)'],
+            ['page', 'Seitenhintergrund (aus Gestaltung)'],
+            ['custom', 'Eigene Farbe …'],
+        ];
+        const currentMode = /^#/.test(style.bg || '') ? 'custom' : (style.bg || '');
+        const colorWrap = document.createElement('div');
+        const renderColorField = () => {
+            colorWrap.innerHTML = '';
+            if (!/^#/.test(style.bg || '')) return;
+            addField(colorWrap, { key: 'bg', label: 'Eigene Hintergrundfarbe', type: 'colorclear' }, style.bg, (v) => {
+                if (v === '') delete style.bg; else style.bg = v;
+                markDirty();
+                applyColStyles();
+            });
+        };
+        addField(inspectorBody, { key: 'bgmode', label: 'Hintergrundfarbe', type: 'select', options: bgModes }, currentMode, (v) => {
+            if (v === '') delete style.bg;
+            else if (v === 'custom') style.bg = /^#/.test(style.bg || '') ? style.bg : '#f4ede4';
+            else style.bg = v;
+            markDirty();
+            applyColStyles();
+            renderColorField();
+        });
+        inspectorBody.appendChild(colorWrap);
+        renderColorField();
+
+        addField(inspectorBody, { key: 'p', label: 'Innenabstand (px)', type: 'number' }, style.p, (v) => {
+            if (v === '' || v === 0) delete style.p; else style.p = v;
+            markDirty();
+            applyColStyles();
+        });
+        addField(inspectorBody, { key: 'align', label: 'Textausrichtung', type: 'select', options: [['', 'Standard'], ['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] }, style.align, (v) => {
+            if (v === '') delete style.align; else style.align = v;
+            markDirty();
+            applyColStyles();
+        });
+        addField(inspectorBody, { key: 'valign', label: 'Vertikale Ausrichtung (bei unterschiedlich hohen Spalten)', type: 'select', options: [['', 'Standard (oben)'], ['top', 'Oben'], ['center', 'Mittig'], ['bottom', 'Unten']] }, style.valign, (v) => {
+            if (v === '') delete style.valign; else style.valign = v;
+            markDirty();
+        });
+        addField(inspectorBody, { key: 'radius', label: 'Eckenrundung (px)', type: 'number' }, style.radius, (v) => {
+            if (v === '' || v === 0) delete style.radius; else style.radius = v;
+            markDirty();
+            applyColStyles();
+        });
+
+        const vHint = document.createElement('p');
+        vHint.className = 'muted small';
+        vHint.textContent = 'Die vertikale Ausrichtung wirkt auf der Website, wenn die Spalten einer Zeile unterschiedlich hoch sind (Vorschau über „Website ansehen").';
+        inspectorBody.appendChild(vHint);
+
+        if (row.columns.length > 1) {
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'btn btn-danger btn-block';
+            del.textContent = 'Spalte löschen';
+            del.addEventListener('click', () => colAction('col-del', selected.r, selected.c));
+            inspectorBody.appendChild(del);
+        }
     }
 
     /** Editor für Element-Listen (Galerie-Bilder, Slides, Akkordeon-Abschnitte). */

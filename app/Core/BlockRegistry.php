@@ -57,11 +57,21 @@ class BlockRegistry
                         'data' => self::sanitizeData((array) ($block['data'] ?? [])),
                     ];
                 }
-                $columns[] = [
+                $colOut = [
                     'id' => substr((string) ($column['id'] ?? uniqid('col-')), 0, 40),
                     'span' => min(12, max(1, (int) ($column['span'] ?? 12))),
                     'blocks' => $blocks,
                 ];
+                $colStyle = [];
+                foreach ((array) ($column['style'] ?? []) as $styleKey => $styleValue) {
+                    if (is_scalar($styleValue)) {
+                        $colStyle[(string) $styleKey] = is_bool($styleValue) ? (int) $styleValue : $styleValue;
+                    }
+                }
+                if ($colStyle !== []) {
+                    $colOut['style'] = $colStyle;
+                }
+                $columns[] = $colOut;
             }
             if ($columns !== []) {
                 $rowOut = [

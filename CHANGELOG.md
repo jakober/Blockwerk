@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.63.0 – 2026-07-20
+
+- **Spalten gestalten.** Die Spalte (der „6/12"-Bereich um die Inhalte) lässt sich jetzt selbst auswählen und bearbeiten – über die Spaltenleiste (Klick auf die Leiste oder das neue ⚙-Symbol). Im Eigenschaften-Bereich stellst du für die Spalte ein: **Breite** (1–12), **Hintergrundfarbe** (Palette oder eigene Farbe), **Innenabstand**, **Textausrichtung**, **vertikale Ausrichtung** (bei unterschiedlich hohen Spalten) und **Eckenrundung** – z. B. um eine Spalte als farbige Karte zu gestalten. Die Gestaltung wird live in der Vorschau angezeigt.
+- **KI kann Spalten gestalten.** Der KI-Assistent kennt jetzt die Spalten-Gestaltung (`columns[].style`) und kann Spalten gezielt einfärben, mit Innenabstand versehen oder als Karte gestalten.
+
 ## 1.62.1 – 2026-07-20
 
 - **Blöcke wieder zuverlässig anklickbar.** Seit der Umstellung, dass Buttons im Editor nebeneinander stehen, war ihr klickbarer Bereich sehr schmal – ein Klick daneben markierte versehentlich die ganze Zeile, sodass sich der Block nicht mehr bearbeiten ließ. Jetzt gilt: Ein Klick irgendwo in eine Spalte wählt den **nächstgelegenen Block** aus (auch schmale Buttons sind so leicht zu treffen). Die Zeile wählt man weiterhin über ihre Leiste „⠿ Zeile …" oder den farbigen Bereich um die Spalten.

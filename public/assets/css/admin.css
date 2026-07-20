@@ -120,7 +120,7 @@ textarea.code {
     cursor: pointer;
 }
 .checkbox-group input { width: auto; }
-.form-actions { display: flex; gap: 10px; margin-top: 20px; }
+.form-actions { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 28px; }
 
 /* ===== Buttons ===== */
 .btn {

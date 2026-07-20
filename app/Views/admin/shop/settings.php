@@ -188,3 +188,5 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
 </div>
 
 <script src="<?= e(asset('/assets/js/country-select.js')) ?>" defer></script>
+<!-- Mediathek-Auswahl (data-media-pick) für das Rechnungs-Logo. -->
+<script src="<?= e(asset('/assets/js/admin-tools.js')) ?>"></script>

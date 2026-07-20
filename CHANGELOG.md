@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.58.1 – 2026-07-20
+
+- **Mediathek-Auswahl in den Rechnungsdaten repariert.** In den Shop-Einstellungen öffnete der Button **„Mediathek"** beim Rechnungs-Logo keinen Auswahldialog – das benötigte Skript war auf dieser Seite nicht eingebunden. Das Logo lässt sich jetzt wie gewohnt aus der Mediathek wählen.
+- **Abstand unter „Einstellungen speichern".** Der Speichern-Button lag zu dicht am nächsten Block (Versandarten); es gibt jetzt etwas Luft darunter.
+
 ## 1.58.0 – 2026-07-19
 
 - **Rechnungen.** Für jede Bestellung lässt sich jetzt eine **druckbare Rechnung** erzeugen – im Backend über **Bestellung → „Rechnung"** und für Kunden über die Bestellbestätigung. Die Rechnung öffnet als saubere Seite mit „Drucken / als PDF speichern".

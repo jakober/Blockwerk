@@ -265,6 +265,7 @@ class App
 
         $router->add('GET', '/admin/shop/orders', [\Controllers\Admin\ShopOrderController::class, 'index']);
         $router->add('GET', '/admin/shop/orders/{id}', [\Controllers\Admin\ShopOrderController::class, 'show']);
+        $router->add('GET', '/admin/shop/orders/{id}/invoice', [\Controllers\Admin\ShopOrderController::class, 'invoice']);
         $router->add('POST', '/admin/shop/orders/{id}/status', [\Controllers\Admin\ShopOrderController::class, 'setStatus']);
         $router->add('POST', '/admin/shop/orders/{id}/delete', [\Controllers\Admin\ShopOrderController::class, 'delete']);
 
@@ -293,6 +294,7 @@ class App
             $router->add('POST', $b . '/paypal/create', [\Controllers\ShopController::class, 'paypalCreate']);
             $router->add('POST', $b . '/paypal/capture', [\Controllers\ShopController::class, 'paypalCapture']);
             $router->add('GET', $b . '/bestellung/{token}', [\Controllers\ShopController::class, 'orderConfirm']);
+            $router->add('GET', $b . '/bestellung/{token}/rechnung', [\Controllers\ShopController::class, 'invoice']);
             $router->add('GET', $b . '/produkt/{slug}', [\Controllers\ShopController::class, 'product']);
             $router->add('GET', $b . '/kategorie/{slug}', [\Controllers\ShopController::class, 'category']);
             // Kundenkonten

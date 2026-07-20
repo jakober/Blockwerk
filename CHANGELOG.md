@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.58.0 – 2026-07-19
+
+- **Rechnungen.** Für jede Bestellung lässt sich jetzt eine **druckbare Rechnung** erzeugen – im Backend über **Bestellung → „Rechnung"** und für Kunden über die Bestellbestätigung. Die Rechnung öffnet als saubere Seite mit „Drucken / als PDF speichern".
+- **Rechnungsdaten in den Shop-Einstellungen.** Neuer Bereich für die Absenderangaben auf der Rechnung: Firma, Anschrift, USt-IdNr./Steuernummer, Kontakt (E-Mail/Telefon/Web), Bankverbindung, **Logo** und einen Hinweis-/Fußzeilentext (z. B. Umsatzsteuer-Hinweis). Ist kein eigenes Rechnungs-Logo gesetzt, wird automatisch das **Logo der Website** verwendet.
+- **Bestell-E-Mails.** Bei jeder Bestellung erhält der **Besteller eine Bestätigung** und die im Shop hinterlegte **Kontakt-E-Mail eine Benachrichtigung** – beide mit Bestellübersicht, versendet über den eingebauten Mailer (PHP mail() oder SMTP).
+- **Status-E-Mail an den Kunden.** Setzt ein Admin den Bestellstatus auf **Bezahlt, Versendet oder Storniert**, wird der Kunde automatisch per E-Mail über die Änderung informiert (mit Möglichkeit, die Benachrichtigung im Einzelfall zu unterdrücken).
+
 ## 1.57.0 – 2026-07-19
 
 - **Kundenverwaltung im Backend.** Neuer Menüpunkt **Shop → Kunden**: Übersicht aller Kundenkonten (Name, E-Mail, Registrierdatum, Anzahl Bestellungen). In der Kunden-Detailansicht siehst du **alle Bestellungen des Kunden mit Status** (inkl. früherer Gastbestellungen mit derselben E-Mail), kannst **Name/E-Mail bearbeiten**, ein **neues Passwort setzen** und den **Kunden löschen** (die Bestellungen bleiben dabei erhalten).

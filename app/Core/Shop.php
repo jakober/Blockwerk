@@ -107,4 +107,49 @@ class Shop
         $path = trim($path, '/');
         return url($base . ($path !== '' ? '/' . $path : ''));
     }
+
+    /** Name für Rechnung/Mails: Rechnungs-Firma, sonst Website-Name. */
+    public static function invoiceName(): string
+    {
+        $c = trim((string) \Models\Setting::get('shop_invoice_company', ''));
+        return $c !== '' ? $c : (string) \Models\Setting::get('site_name', 'Shop');
+    }
+
+    /**
+     * Logo für die Rechnung: eigenes Rechnungs-Logo, sonst das Logo der Website
+     * (aus dem l-brand-Block des Standard-Layouts). Leer, wenn keins gefunden.
+     */
+    public static function invoiceLogo(): string
+    {
+        $logo = trim((string) \Models\Setting::get('shop_invoice_logo', ''));
+        if ($logo !== '') {
+            return $logo;
+        }
+        // Fallback: Logo aus dem Standard-Layout (visueller Baukasten, l-brand).
+        try {
+            $layout = \Models\Layout::default();
+            $builder = json_decode((string) ($layout['builder'] ?? ''), true);
+            if (is_array($builder)) {
+                foreach (self::iterateBlocks($builder['rows'] ?? []) as $block) {
+                    if (($block['type'] ?? '') === 'l-brand' && !empty($block['data']['logo'])) {
+                        return (string) $block['data']['logo'];
+                    }
+                }
+            }
+        } catch (\Throwable) {
+        }
+        return '';
+    }
+
+    /** Alle Blöcke einer Zeilen/Spalten-Struktur durchlaufen. */
+    private static function iterateBlocks(array $rows): \Generator
+    {
+        foreach ($rows as $row) {
+            foreach ($row['columns'] ?? [] as $col) {
+                foreach ($col['blocks'] ?? [] as $block) {
+                    yield $block;
+                }
+            }
+        }
+    }
 }

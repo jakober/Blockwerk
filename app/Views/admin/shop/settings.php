@@ -64,6 +64,54 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
         </div>
     </div>
 
+    <div class="card">
+        <h2>Rechnungsdaten</h2>
+        <p class="muted small">Diese Angaben erscheinen als Absender auf den generierten Rechnungen. Ohne Logo wird das Logo der Website verwendet.</p>
+        <div class="form-row">
+            <div class="form-group grow">
+                <label for="inv_company">Firma / Name</label>
+                <input type="text" id="inv_company" name="inv_company" value="<?= e($s['inv_company']) ?>" placeholder="Muster GmbH">
+            </div>
+            <div class="form-group grow">
+                <label for="inv_tax">USt-IdNr. / Steuernummer</label>
+                <input type="text" id="inv_tax" name="inv_tax" value="<?= e($s['inv_tax']) ?>" placeholder="DE123456789">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inv_address">Anschrift</label>
+            <textarea id="inv_address" name="inv_address" rows="3" placeholder="Straße 1&#10;12345 Stadt&#10;Deutschland"><?= e($s['inv_address']) ?></textarea>
+        </div>
+        <div class="form-row">
+            <div class="form-group grow">
+                <label for="inv_email">E-Mail</label>
+                <input type="text" id="inv_email" name="inv_email" value="<?= e($s['inv_email']) ?>" placeholder="info@meinshop.de">
+            </div>
+            <div class="form-group grow">
+                <label for="inv_phone">Telefon</label>
+                <input type="text" id="inv_phone" name="inv_phone" value="<?= e($s['inv_phone']) ?>">
+            </div>
+            <div class="form-group grow">
+                <label for="inv_website">Website</label>
+                <input type="text" id="inv_website" name="inv_website" value="<?= e($s['inv_website']) ?>" placeholder="www.meinshop.de">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inv_bank">Bankverbindung (auf der Rechnung)</label>
+            <textarea id="inv_bank" name="inv_bank" rows="2" placeholder="Bank · IBAN · BIC"><?= e($s['inv_bank']) ?></textarea>
+        </div>
+        <div class="form-group">
+            <label for="inv_logo">Logo (Rechnung)</label>
+            <div class="image-field">
+                <input type="text" id="inv_logo" name="inv_logo" value="<?= e($s['inv_logo']) ?>" placeholder="Bild-URL oder aus der Mediathek wählen – leer = Website-Logo">
+                <button type="button" class="btn" data-media-pick="#inv_logo">Mediathek</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inv_note">Hinweis / Fußzeile (z. B. Umsatzsteuer-Hinweis)</label>
+            <textarea id="inv_note" name="inv_note" rows="2" placeholder="z. B. Gemäß §19 UStG wird keine Umsatzsteuer berechnet."><?= e($s['inv_note']) ?></textarea>
+        </div>
+    </div>
+
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Einstellungen speichern</button>
     </div>

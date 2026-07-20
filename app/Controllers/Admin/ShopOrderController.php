@@ -29,6 +29,16 @@ class ShopOrderController extends ShopAdminController
         ]);
     }
 
+    /** Druckbare Rechnung (eigenständige HTML-Seite, „als PDF speichern" im Browser). */
+    public function invoice(string $id): void
+    {
+        $order = ShopOrder::find((int) $id) ?? $this->abort();
+        echo \Core\View::fetch('shop/invoice', [
+            'order' => $order,
+            'items' => ShopOrder::items((int) $order['id']),
+        ]);
+    }
+
     public function setStatus(string $id): void
     {
         $order = ShopOrder::find((int) $id) ?? $this->abort();
@@ -40,7 +50,16 @@ class ShopOrderController extends ShopAdminController
             } else {
                 ShopOrder::setStatus((int) $order['id'], $status);
             }
-            flash('success', 'Status aktualisiert.');
+            // Den Kunden über die Statusänderung informieren (paid/shipped/cancelled).
+            $mailed = false;
+            if (in_array($status, ['paid', 'shipped', 'cancelled'], true) && empty($_POST['no_mail'])) {
+                $updated = ShopOrder::find((int) $order['id']);
+                if ($updated !== null) {
+                    \Core\ShopMail::statusUpdate($updated);
+                    $mailed = true;
+                }
+            }
+            flash('success', 'Status aktualisiert.' . ($mailed ? ' Der Kunde wurde per E-Mail benachrichtigt.' : ''));
         }
         redirect('/admin/shop/orders/' . $order['id']);
     }

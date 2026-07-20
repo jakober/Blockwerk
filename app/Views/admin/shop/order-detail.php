@@ -2,7 +2,10 @@
 $statusLabels = ['new' => 'Neu', 'paid' => 'Bezahlt', 'shipped' => 'Versendet', 'cancelled' => 'Storniert'];
 $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
 ?>
-<div class="page-actions"><a class="btn btn-ghost" href="<?= e(url('/admin/shop/orders')) ?>">← Alle Bestellungen</a></div>
+<div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn btn-ghost" href="<?= e(url('/admin/shop/orders')) ?>">← Alle Bestellungen</a>
+    <a class="btn" href="<?= e(url('/admin/shop/orders/' . $order['id'] . '/invoice')) ?>" target="_blank" rel="noopener">🧾 Rechnung</a>
+</div>
 
 <div class="editor-grid">
     <div>
@@ -41,6 +44,8 @@ $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
                     <?php endforeach; ?>
                 </select>
             </div>
+            <label class="checkbox-group" style="font-size:13px"><input type="checkbox" name="no_mail" value="1"> Kunde nicht per E-Mail benachrichtigen</label>
+            <p class="muted small" style="margin:4px 0 8px">Bei „Bezahlt", „Versendet" oder „Storniert" erhält der Kunde standardmäßig eine E-Mail mit dem neuen Status.</p>
             <button type="submit" class="btn btn-primary btn-small">Status setzen</button>
         </form>
 

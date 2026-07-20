@@ -30,6 +30,15 @@ class ShopSettingsController extends ShopAdminController
                 'paypal_sandbox' => Setting::get('shop_paypal_sandbox', '1'),
                 'bank_info' => Setting::get('shop_bank_info', ''),
                 'email' => Setting::get('shop_email', ''),
+                'inv_company' => Setting::get('shop_invoice_company', ''),
+                'inv_address' => Setting::get('shop_invoice_address', ''),
+                'inv_email' => Setting::get('shop_invoice_email', ''),
+                'inv_phone' => Setting::get('shop_invoice_phone', ''),
+                'inv_website' => Setting::get('shop_invoice_website', ''),
+                'inv_tax' => Setting::get('shop_invoice_tax', ''),
+                'inv_bank' => Setting::get('shop_invoice_bank', ''),
+                'inv_logo' => Setting::get('shop_invoice_logo', ''),
+                'inv_note' => Setting::get('shop_invoice_note', ''),
             ],
         ]);
     }
@@ -53,6 +62,16 @@ class ShopSettingsController extends ShopAdminController
         Setting::set('shop_paypal_sandbox', isset($_POST['paypal_sandbox']) ? '1' : '0');
         Setting::set('shop_bank_info', trim($_POST['bank_info'] ?? ''));
         Setting::set('shop_email', trim($_POST['email'] ?? ''));
+        // Rechnungsdaten (Absender/Kontakt auf der Rechnung).
+        Setting::set('shop_invoice_company', trim($_POST['inv_company'] ?? ''));
+        Setting::set('shop_invoice_address', trim($_POST['inv_address'] ?? ''));
+        Setting::set('shop_invoice_email', trim($_POST['inv_email'] ?? ''));
+        Setting::set('shop_invoice_phone', trim($_POST['inv_phone'] ?? ''));
+        Setting::set('shop_invoice_website', trim($_POST['inv_website'] ?? ''));
+        Setting::set('shop_invoice_tax', trim($_POST['inv_tax'] ?? ''));
+        Setting::set('shop_invoice_bank', trim($_POST['inv_bank'] ?? ''));
+        Setting::set('shop_invoice_logo', trim($_POST['inv_logo'] ?? ''));
+        Setting::set('shop_invoice_note', trim($_POST['inv_note'] ?? ''));
 
         \Core\Cache::clear();
         flash('success', 'Shop-Einstellungen gespeichert.');

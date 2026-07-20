@@ -199,6 +199,20 @@ class ShopController
         ]);
     }
 
+    /** Druckbare Rechnung für den Kunden (über den Bestell-Token erreichbar). */
+    public function invoice(string $token): void
+    {
+        $order = ShopOrder::findByToken($token);
+        if ($order === null) {
+            (new SiteController())->notFound();
+            return;
+        }
+        echo View::fetch('shop/invoice', [
+            'order' => $order,
+            'items' => ShopOrder::items((int) $order['id']),
+        ]);
+    }
+
     /* ---------- Kundenkonto ---------- */
 
     public function login(): void
@@ -505,24 +519,13 @@ class ShopController
             }
         }
         $order = ShopOrder::find($orderId);
-        // Benachrichtigung an den Shop-Betreiber.
-        $to = Setting::get('shop_email', '');
-        if ($to !== '' && filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            @mail($to, 'Neue Bestellung ' . $order['number'], 'Es ist eine neue Bestellung eingegangen: ' . $order['number']);
+        if ($order === null) {
+            return;
         }
-        // Bestellbestätigung an den Kunden – mit Link zum Status.
-        if ($order !== null && filter_var($order['email'], FILTER_VALIDATE_EMAIL)) {
-            $link = $this->absoluteUrl('bestellung/' . $order['token']);
-            $siteName = Setting::get('site_name', 'Shop');
-            $body = "Vielen Dank für deine Bestellung " . $order['number'] . " bei " . $siteName . ".\n\n"
-                . "Den Status deiner Bestellung kannst du hier jederzeit einsehen:\n" . $link . "\n\n"
-                . "Herzliche Grüße\n" . $siteName;
-            try {
-                Mailer::send($order['email'], 'Deine Bestellung ' . $order['number'], $body);
-            } catch (\Throwable) {
-                // Mailversand darf den Bestellabschluss nie stören.
-            }
-        }
+        $orderItems = ShopOrder::items($orderId);
+        // Bestätigung an den Besteller + Benachrichtigung an die Shop-Kontakt-E-Mail.
+        \Core\ShopMail::confirmation($order, $orderItems);
+        \Core\ShopMail::shopNotification($order, $orderItems);
     }
 
     private function path(string $sub): string

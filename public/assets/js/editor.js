@@ -654,6 +654,14 @@
                 if (e.target.closest('.ed-block, button, input, select, textarea, a, [contenteditable="true"], .ed-add-block, .ed-col-resizer')) {
                     return;
                 }
+                // Klicks INNERHALB einer Spalte (z. B. neben einem schmalen
+                // Block wie einem Button) wählen NICHT die Zeile – sonst ließe
+                // sich der Block nicht mehr treffen. Die Zeile wird über ihre
+                // Leiste („⠿ Zeile") oder den farbigen Bereich außerhalb der
+                // Spalten ausgewählt.
+                if (e.target.closest('.ed-col')) {
+                    return;
+                }
                 selectRow(r);
             });
 
@@ -713,6 +721,27 @@
                 const blocksEl = document.createElement('div');
                 blocksEl.className = 'ed-blocks';
                 bindDropzone(blocksEl, r, c);
+
+                // Klick in den freien Bereich einer Spalte wählt den nächst-
+                // gelegenen Block (macht schmale Blöcke wie Buttons leicht
+                // treffbar). Klicks direkt auf einem Block laufen über dessen
+                // eigenen Handler (stopPropagation).
+                blocksEl.addEventListener('click', (e) => {
+                    if (e.target.closest('.ed-block, .ed-add-block, button, input, select, textarea, a, [contenteditable="true"]')) {
+                        return;
+                    }
+                    const blocks = state.rows[r].columns[c].blocks;
+                    if (!blocks.length) return;
+                    const els = Array.from(blocksEl.querySelectorAll(':scope > .ed-block'));
+                    let bestIdx = 0;
+                    let bestDist = Infinity;
+                    els.forEach((el, i) => {
+                        const rect = el.getBoundingClientRect();
+                        const dist = Math.abs((rect.top + rect.height / 2) - e.clientY);
+                        if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+                    });
+                    selectBlock(r, c, bestIdx);
+                });
 
                 col.blocks.forEach((block, b) => {
                     blocksEl.appendChild(renderBlock(block, r, c, b));

@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.61.0 – 2026-07-20
+
+- **Buttons im Editor wie auf der Website.** Mehrere Buttons in derselben Spalte werden im Baukasten jetzt **nebeneinander** dargestellt – genau wie später auf der Seite (statt wie bisher untereinander).
+- **Darstellung pro Block wählbar.** In „Gestaltung (Abstände & Farben)" gibt es die neue Option **Darstellung**: *Nebeneinander (inline-block)* oder *Untereinander (Block, volle Zeile)*. Buttons stehen standardmäßig nebeneinander; mit „Untereinander" lassen sie sich stapeln. Gilt für jeden Block und wird im Editor sofort so angezeigt.
+- **Abstand links/rechts.** Ebenfalls neu in der Gestaltung: **Abstand links** und **Abstand rechts** (px) – z. B. um Buttons voneinander abzusetzen.
+
 ## 1.60.0 – 2026-07-20
 
 - **Seitenwähler bei Link-Zielen.** Überall dort, wo ein Link-Ziel eingegeben wird (Button, Bild-Verlinkung, Hero-Button, Preistabellen-Button und der Link-Dialog im Fließtext-Editor), gibt es jetzt einen Button **„Seite"** bzw. **„Seite wählen"**: Er öffnet eine durchsuchbare Liste aller bestehenden Seiten (untergeordnete Seiten eingerückt) und trägt die richtige Adresse automatisch ein – man muss den Pfad nicht mehr von Hand kennen. Freie URLs (extern, `mailto:`, `tel:`) bleiben natürlich weiter möglich.

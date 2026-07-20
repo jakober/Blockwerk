@@ -770,6 +770,8 @@ body.is-editor .ed-canvas {
 /* Block-Chrome: unsichtbar bis Hover/Auswahl – Inhalt wirkt wie im Frontend */
 .ed-block { position: relative; background: transparent; border: 1px dashed transparent; border-radius: 8px; margin-bottom: 4px; overflow: visible; }
 .ed-block:hover { border-color: #bfa183; }
+/* Nebeneinander (inline-block) – z. B. Buttons, wie im Frontend. */
+.ed-block-inline { display: inline-block; vertical-align: top; width: auto; margin-right: 4px; }
 .ed-block.is-selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 88, 12, .15); }
 .ed-block-head {
     position: absolute; top: -11px; left: 8px; z-index: 20;

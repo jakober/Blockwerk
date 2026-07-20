@@ -357,7 +357,10 @@
     const STYLE_FIELDS = [
         { key: 'mt', label: 'Abstand oben (px)', type: 'number' },
         { key: 'mb', label: 'Abstand unten (px)', type: 'number' },
+        { key: 'ml', label: 'Abstand links (px)', type: 'number' },
+        { key: 'mr', label: 'Abstand rechts (px)', type: 'number' },
         { key: 'p', label: 'Innenabstand (px)', type: 'number' },
+        { key: 'disp', label: 'Darstellung', type: 'select', options: [['', 'Standard'], ['inline', 'Nebeneinander (inline-block)'], ['block', 'Untereinander (Block, volle Zeile)']] },
         { key: 'align', label: 'Ausrichtung', type: 'select', options: [['', 'Standard'], ['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']] },
         { key: 'color', label: 'Textfarbe', type: 'colorclear' },
         { key: 'bg', label: 'Hintergrundfarbe', type: 'colorclear' },
@@ -782,10 +785,19 @@
         if (rowEl) applyRowStyleTo(rowEl, state.rows[selected.r]);
     }
 
+    // Steht der Block nebeneinander (inline-block)? Buttons standardmäßig ja
+    // (wie im Frontend), sonst nur wenn „Darstellung" auf inline steht.
+    function isInlineBlock(block) {
+        const d = block && block.data && block.data._style && block.data._style.disp;
+        if (d === 'inline') return true;
+        if (d === 'block') return false;
+        return block && block.type === 'button';
+    }
+
     function renderBlock(block, r, c, b) {
         const def = blockDefs[block.type] || { label: block.type, icon: '?' };
         const el = document.createElement('div');
-        el.className = 'ed-block';
+        el.className = 'ed-block' + (isInlineBlock(block) ? ' ed-block-inline' : '');
         el.draggable = true;
         if (selected && selected.kind === 'block' && selected.r === r && selected.c === c && selected.b === b) {
             el.classList.add('is-selected');
@@ -1142,6 +1154,10 @@
                 if (v === '' || v === 0) delete styleObj[key];
                 else styleObj[key] = v;
                 markDirty();
+                if (field.key === 'disp') {
+                    const be = canvas.querySelector('.ed-block.is-selected');
+                    if (be) be.classList.toggle('ed-block-inline', isInlineBlock(block));
+                }
                 scheduleLivePreview();
             });
         });

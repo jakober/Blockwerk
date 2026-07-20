@@ -103,7 +103,9 @@ class BlockRegistry
         // Überschreibungen (malign, mmt, …) brauchen einen Media-Query und
         // werden als kleiner <style>-Block direkt hinter dem Block ausgegeben.
         $styleArr = is_array($data['_style'] ?? null) ? $data['_style'] : [];
-        $style = self::styleAttr($styleArr);
+        // Buttons stehen standardmäßig nebeneinander (inline-block) – der Wrapper
+        // (falls einer entsteht) behält das bei, außer „Darstellung" sagt anderes.
+        $style = self::styleAttr($styleArr, ($block['type'] ?? '') === 'button');
         $mobile = self::mobileStyleCss($styleArr);
         // Scroll-Animation und Ausrichtung zusätzlich als Klassen – die
         // Ausrichtungs-Klasse zentriert auch Block-Elemente wie Formulare.
@@ -196,10 +198,10 @@ class BlockRegistry
         return $clean;
     }
 
-    private static function styleAttr(array $style): string
+    private static function styleAttr(array $style, bool $defaultInline = false): string
     {
         $css = '';
-        foreach (['mt' => 'margin-top', 'mb' => 'margin-bottom', 'p' => 'padding'] as $key => $prop) {
+        foreach (['mt' => 'margin-top', 'mb' => 'margin-bottom', 'p' => 'padding', 'ml' => 'margin-left', 'mr' => 'margin-right'] as $key => $prop) {
             if (isset($style[$key]) && $style[$key] !== '' && (int) $style[$key] > 0) {
                 $css .= $prop . ':' . min(400, (int) $style[$key]) . 'px;';
             }
@@ -225,6 +227,15 @@ class BlockRegistry
         }
         if (in_array($style['align'] ?? '', ['left', 'center', 'right'], true)) {
             $css .= 'text-align:' . $style['align'] . ';';
+        }
+        // Darstellung: „block" erzwingt Umbruch (volle Zeile), „inline" stellt
+        // nebeneinander. Buttons stehen von Haus aus nebeneinander (inline-block),
+        // deshalb bleibt ein Button-Wrapper inline, sofern er überhaupt entsteht.
+        $disp = $style['disp'] ?? '';
+        if ($disp === 'block') {
+            $css .= 'display:block;';
+        } elseif ($disp === 'inline' || ($defaultInline && $css !== '')) {
+            $css .= 'display:inline-block;vertical-align:top;';
         }
         if (str_contains($css, 'border-radius') || $hasBg) {
             $css .= 'overflow:hidden;';

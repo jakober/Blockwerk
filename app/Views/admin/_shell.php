@@ -22,6 +22,7 @@ $navGroups = [
     ],
     'System' => [
         'users' => ['Benutzer', '/admin/users', '◉'],
+        'mode' => ['Website-Modus', '/admin/mode', '✨'],
         'update' => ['Updates', '/admin/update', '⟳'],
         'settings' => ['Einstellungen', '/admin/settings', '⚙'],
     ],

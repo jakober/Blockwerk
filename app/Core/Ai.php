@@ -17,13 +17,54 @@ class Ai
 
     public static function serviceUrl(): string
     {
+        // Im KI-Webseiten-Modus liegt alles in config.php (keine Datenbank).
+        if (Config::mode() === 'ai') {
+            $url = rtrim(trim((string) Config::sub('ai', 'service_url', '')), '/');
+            return $url !== '' ? $url : self::DEFAULT_SERVICE_URL;
+        }
         $url = rtrim(trim(Setting::get('ai_service_url', '')), '/');
         return $url !== '' ? $url : self::DEFAULT_SERVICE_URL;
     }
 
     public static function licenseKey(): string
     {
+        if (Config::mode() === 'ai') {
+            return trim((string) Config::sub('ai', 'license_key', ''));
+        }
         return trim(Setting::get('ai_license_key', ''));
+    }
+
+    /**
+     * Lizenz beim Dienst prüfen (ohne Datenbank – für die KI-Installation).
+     * @return array{ok:bool, reachable:bool, balance:?int, name:?string, error:?string}
+     */
+    public static function checkLicense(string $key, string $serviceUrl = ''): array
+    {
+        $base = rtrim($serviceUrl !== '' ? $serviceUrl : self::DEFAULT_SERVICE_URL, '/');
+        $url = $base . '/v1/balance?license_key=' . rawurlencode($key) . '&domain=' . rawurlencode(self::domain());
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_FOLLOWLOCATION => true,
+        ]);
+        $response = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if (!is_string($response)) {
+            return ['ok' => false, 'reachable' => false, 'balance' => null, 'name' => null, 'error' => 'Dienst nicht erreichbar: ' . $curlErr];
+        }
+        $json = json_decode($response, true);
+        if (!is_array($json)) {
+            return ['ok' => false, 'reachable' => true, 'balance' => null, 'name' => null, 'error' => 'Unerwartete Antwort des Dienstes (HTTP ' . $status . ').'];
+        }
+        if ($status >= 400) {
+            return ['ok' => false, 'reachable' => true, 'balance' => null, 'name' => null, 'error' => is_string($json['error'] ?? null) ? $json['error'] : 'Lizenz ungültig (HTTP ' . $status . ').'];
+        }
+        return ['ok' => true, 'reachable' => true, 'balance' => isset($json['balance']) ? (int) $json['balance'] : null, 'name' => $json['name'] ?? null, 'error' => null];
     }
 
     /** Domain dieser Installation – meldet dem Anbieter-Dienst, wo das CMS läuft. */

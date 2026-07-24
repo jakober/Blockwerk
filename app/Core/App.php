@@ -56,20 +56,35 @@ class App
             redirect('/');
         }
 
-        if ($installed) {
+        // Betriebsmodus (nur relevant, wenn installiert): 'cms' oder 'ai'.
+        $mode = $installed ? Config::mode() : 'cms';
+
+        if ($installed && $mode === 'cms') {
             $this->ensureSchema();
         }
 
         if ($method === 'POST') {
             csrf_check();
-            // Inhaltsänderungen im Admin leeren den Seiten-Cache.
-            if ($installed && str_starts_with($path, '/admin')) {
+            // Inhaltsänderungen im Admin leeren den Seiten-Cache (nur CMS).
+            if ($installed && $mode === 'cms' && str_starts_with($path, '/admin')) {
                 Cache::clear();
             }
         }
 
         $router = new Router();
-        $this->registerRoutes($router, $installed);
+        $this->registerRoutes($router, $installed, $mode);
+
+        // KI-Webseiten-Modus: öffentliche Anfragen liefern die generierten
+        // statischen HTML-Seiten aus; /admin, /login, /logout bleiben Backend.
+        if ($installed && $mode === 'ai') {
+            $isBackend = str_starts_with($path, '/admin') || $path === '/login' || $path === '/logout';
+            if ($method === 'GET' && !$isBackend) {
+                AiSiteRenderer::serve($path);
+                return;
+            }
+            $router->dispatch($method, $path);
+            return;
+        }
 
         // Seiten-Cache: nur anonyme GET-Anfragen ohne Query-String.
         $cacheable = $installed && $method === 'GET'
@@ -131,21 +146,40 @@ class App
         self::$base = $base;
     }
 
-    private function registerRoutes(Router $router, bool $installed = true): void
+    private function registerRoutes(Router $router, bool $installed = true, string $mode = 'cms'): void
     {
-        // Installation
+        // Installation (Modus-Auswahl → CMS- oder KI-Pfad)
         $router->add('GET', '/install', [InstallController::class, 'index']);
+        $router->add('POST', '/install/mode', [InstallController::class, 'mode']);
+        $router->add('GET', '/install/database', [InstallController::class, 'databaseForm']);
         $router->add('POST', '/install/database', [InstallController::class, 'database']);
         $router->add('GET', '/install/site', [InstallController::class, 'site']);
         $router->add('POST', '/install/finish', [InstallController::class, 'finish']);
+        $router->add('GET', '/install/ai', [InstallController::class, 'aiForm']);
+        $router->add('POST', '/install/ai/finish', [InstallController::class, 'aiFinish']);
 
         // Authentifizierung
         $router->add('GET', '/login', [AuthController::class, 'showLogin']);
         $router->add('POST', '/login', [AuthController::class, 'login']);
         $router->add('POST', '/logout', [AuthController::class, 'logout']);
 
+        // KI-Webseiten-Modus: nur das minimale KI-Backend, keine CMS-Routen.
+        if ($installed && $mode === 'ai') {
+            $router->add('GET', '/admin', [\Controllers\Admin\AiSiteController::class, 'index']);
+            $router->add('POST', '/admin/ai-site/generate', [\Controllers\Admin\AiSiteController::class, 'generate']);
+            $router->add('POST', '/admin/ai-site/upload', [\Controllers\Admin\AiSiteController::class, 'upload']);
+            $router->add('POST', '/admin/ai-site/clear', [\Controllers\Admin\AiSiteController::class, 'clearHistory']);
+            $router->add('GET', '/admin/ai-site/setup-cms', [\Controllers\Admin\AiSiteController::class, 'setupCmsForm']);
+            $router->add('POST', '/admin/ai-site/switch-to-cms', [\Controllers\Admin\AiSiteController::class, 'switchToCms']);
+            return;
+        }
+
         // Admin
         $router->add('GET', '/admin', [DashboardController::class, 'index']);
+
+        // Website-Modus (CMS → KI-Webseite umschalten)
+        $router->add('GET', '/admin/mode', [\Controllers\Admin\ModeController::class, 'index']);
+        $router->add('POST', '/admin/mode/ai', [\Controllers\Admin\ModeController::class, 'switchToAi']);
 
         $router->add('GET', '/admin/pages', [PageController::class, 'index']);
         $router->add('GET', '/admin/pages/new', [PageController::class, 'create']);

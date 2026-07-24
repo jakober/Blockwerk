@@ -12,8 +12,10 @@ class Database
     public static function pdo(): PDO
     {
         if (self::$pdo === null) {
-            $config = require CONFIG_FILE;
-            $db = $config['db'];
+            $db = Config::all()['db'] ?? null;
+            if (!is_array($db)) {
+                throw new \RuntimeException('Keine Datenbank-Konfiguration vorhanden (KI-Modus?).');
+            }
             self::$pdo = self::connect($db['host'], (int) $db['port'], $db['name'], $db['user'], $db['pass']);
         }
         return self::$pdo;

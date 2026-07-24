@@ -18,7 +18,7 @@ class Updater
 
     /** Diese Pfade werden beim Update niemals überschrieben. */
     // config/ und uploads/ werden nie überschrieben.
-    private const PROTECTED = ['config/', 'public/uploads/', '.git/'];
+    private const PROTECTED = ['config/', 'public/uploads/', 'public/ai-site/', '.git/'];
 
     // Der zentrale KI-Dienst (ai-server/) wird nur auf den Domains des
     // Anbieters mit ausgeliefert – Kunden-Installationen erhalten ihn nicht.

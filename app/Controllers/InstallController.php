@@ -11,7 +11,21 @@ use PDOException;
 
 class InstallController
 {
+    /** Schritt 0: Modus wählen – klassisches CMS oder reine KI-Webseite. */
     public function index(): void
+    {
+        View::render('install/mode', ['error' => flash()['message'] ?? null]);
+    }
+
+    public function mode(): void
+    {
+        $m = ($_POST['mode'] ?? '') === 'ai' ? 'ai' : 'cms';
+        $_SESSION['install_mode'] = $m;
+        redirect($m === 'ai' ? '/install/ai' : '/install/database');
+    }
+
+    /** CMS-Pfad, Schritt 1: Datenbank-Formular. */
+    public function databaseForm(): void
     {
         View::render('install/database', ['error' => flash()['message'] ?? null]);
     }
@@ -26,7 +40,7 @@ class InstallController
 
         if ($host === '' || $name === '' || $user === '') {
             flash('error', 'Bitte Host, Datenbankname und Benutzer angeben.');
-            redirect('/install');
+            redirect('/install/database');
         }
 
         try {
@@ -46,7 +60,7 @@ class InstallController
             Database::createSchema($pdo);
         } catch (PDOException $e) {
             flash('error', self::friendlyDbError($e, $host, $user));
-            redirect('/install');
+            redirect('/install/database');
         }
 
         $_SESSION['install_db'] = compact('host', 'port', 'name', 'user', 'pass');
@@ -109,7 +123,7 @@ class InstallController
             $pdo = Database::connect($db['host'], (int) $db['port'], $db['name'], $db['user'], $db['pass']);
             Database::createSchema($pdo);
             User::create($pdo, $username, $password);
-            $this->seed($pdo, $siteName);
+            self::seed($pdo, $siteName);
         } catch (PDOException $e) {
             flash('error', 'Installation fehlgeschlagen: ' . $e->getMessage());
             redirect('/install/site');
@@ -127,7 +141,8 @@ class InstallController
 
     private function writeConfig(array $db): bool
     {
-        $config = "<?php\nreturn " . var_export([
+        return \Core\Config::save([
+            'mode' => 'cms',
             'db' => [
                 'host' => $db['host'],
                 'port' => (int) $db['port'],
@@ -135,16 +150,64 @@ class InstallController
                 'user' => $db['user'],
                 'pass' => $db['pass'],
             ],
-        ], true) . ";\n";
-
-        $dir = dirname(CONFIG_FILE);
-        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
-            return false;
-        }
-        return file_put_contents(CONFIG_FILE, $config) !== false;
+        ]);
     }
 
-    private function seed(PDO $pdo, string $siteName): void
+    /* ---------- KI-Webseiten-Modus (ohne Datenbank) ---------- */
+
+    public function aiForm(): void
+    {
+        View::render('install/ai', ['error' => flash()['message'] ?? null]);
+    }
+
+    public function aiFinish(): void
+    {
+        $license = trim($_POST['license'] ?? '');
+        $serviceUrl = rtrim(trim($_POST['service_url'] ?? ''), '/');
+        $siteName = trim($_POST['site_name'] ?? '');
+        $username = trim($_POST['username'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+        $passwordRepeat = (string) ($_POST['password_repeat'] ?? '');
+
+        if ($license === '' || $siteName === '' || $username === '' || strlen($password) < 8) {
+            flash('error', 'Bitte Lizenzschlüssel, Seitenname, Benutzername und ein Passwort (mind. 8 Zeichen) angeben.');
+            redirect('/install/ai');
+        }
+        if ($password !== $passwordRepeat) {
+            flash('error', 'Die Passwörter stimmen nicht überein.');
+            redirect('/install/ai');
+        }
+
+        // Lizenz prüfen – erreichbarer Dienst, der ablehnt, blockiert;
+        // ein reiner Netzfehler blockiert die Installation nicht.
+        $check = \Core\Ai::checkLicense($license, $serviceUrl);
+        if ($check['reachable'] && !$check['ok']) {
+            flash('error', 'Lizenz abgelehnt: ' . ($check['error'] ?? 'ungültig'));
+            redirect('/install/ai');
+        }
+
+        $ai = [
+            'license_key' => $license,
+            'admin_user' => $username,
+            'admin_pass_hash' => password_hash($password, PASSWORD_DEFAULT),
+        ];
+        if ($serviceUrl !== '') {
+            $ai['service_url'] = $serviceUrl;
+        }
+
+        if (!\Core\Config::save(['mode' => 'ai', 'ai' => $ai])) {
+            flash('error', 'Die Konfigurationsdatei konnte nicht geschrieben werden (Schreibrechte für config/?).');
+            redirect('/install/ai');
+        }
+        \Core\AiSite::scaffold($siteName);
+
+        unset($_SESSION['install_mode'], $_SESSION['install_db']);
+        $note = $check['reachable'] ? '' : ' Hinweis: Der KI-Dienst war bei der Prüfung nicht erreichbar – die Lizenz wird beim ersten Auftrag geprüft.';
+        flash('success', 'KI-Webseite installiert! Du kannst dich jetzt anmelden.' . $note);
+        redirect('/login');
+    }
+
+    public static function seed(PDO $pdo, string $siteName): void
     {
         // Nur beim allerersten Durchlauf Beispieldaten anlegen.
         if ((int) $pdo->query('SELECT COUNT(*) FROM pages')->fetchColumn() > 0) {

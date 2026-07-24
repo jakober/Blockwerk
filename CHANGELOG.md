@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.66.0 – 2026-07-20
+
+- **Neuer Installationsmodus: KI-Webseite (ohne Datenbank).** Im Installations-Assistenten wählst du jetzt im ersten Schritt zwischen **Content-Management-System** (wie bisher, mit Datenbank) und **KI-Webseite**. Bei der KI-Webseite gibst du nur deinen Lizenzschlüssel (`bw-…`) und ein Backend-Passwort an – **keine Datenbank nötig**.
+- **Reine HTML/CSS/jQuery-Seiten von der KI.** Im KI-Modus besteht das Backend nur aus einem **Anweisungs-Textfeld** und einem **Bild-Upload**. Die KI erzeugt daraus echte statische Seiten (HTML, CSS, self-hosted jQuery) im Installationspfad und liefert sie direkt aus – volle Design-Freiheit ohne CMS. Sie **merkt sich**, was sie bereits gebaut hat (Dateien + Verlauf), sodass du Änderungen einfach als Folgeauftrag beschreiben kannst. Die KI folgt dabei ausführlichen, modernen Design-Regeln.
+- **Jederzeit umschaltbar – ohne Datenverlust.** Über **System → Website-Modus** wechselst du vom CMS in den KI-Modus und über das KI-Backend wieder zurück. Beide Systeme bleiben unabhängig erhalten: Datenbank-Inhalte und die generierte KI-Seite gehen beim Wechseln nie verloren.
+
 ## 1.65.1 – 2026-07-20
 
 - **Kompakter Editor schon ab 1000 px.** Die platzsparende Editor-Ansicht (ausblendbare Elemente-Liste + Eigenschaften als Pop-up) greift jetzt bereits ab 1000 px Bildschirmbreite statt erst ab 1024 px.

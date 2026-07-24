@@ -2100,7 +2100,7 @@
     /* ---------- Kompakter Editor: Elemente-Schublade + Eigenschaften-Pop-up ----------
        Auf schmalen Screens (Tablet/Handy) ist die Elemente-Liste ausblendbar und
        die Eigenschaften erscheinen als Bottom-Sheet, sobald man etwas anklickt. */
-    const compactMq = window.matchMedia('(max-width: 1024px)');
+    const compactMq = window.matchMedia('(max-width: 1000px)');
     const paletteEl = document.querySelector('.ed-palette');
     const inspectorEl = document.querySelector('.ed-inspector');
     const drawerBackdrop = document.getElementById('ed-drawer-backdrop');

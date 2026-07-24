@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.65.1 – 2026-07-20
+
+- **Kompakter Editor schon ab 1000 px.** Die platzsparende Editor-Ansicht (ausblendbare Elemente-Liste + Eigenschaften als Pop-up) greift jetzt bereits ab 1000 px Bildschirmbreite statt erst ab 1024 px.
+
 ## 1.65.0 – 2026-07-20
 
 - **Editor auf Tablet & Smartphone bedienbar.** In der Inhalts- und der Layout-Bearbeitung gibt es auf kleineren Bildschirmen jetzt ein platzsparendes Layout: Die **Elemente-Liste links ist ausblendbar** (Button „▤ Elemente" oben) und öffnet sich bei Bedarf als Schublade – Blöcke lassen sich ohnehin direkt über „+ Block" einfügen. Die **Eigenschaften rechts erscheinen als Pop-up** (von unten), sobald man ein Element, eine Spalte oder eine Zeile antippt, und schließen über ✕ oder Tippen daneben. So bleibt viel mehr Platz für den eigentlichen Inhalt. Am Desktop bleibt die gewohnte Drei-Spalten-Ansicht unverändert.

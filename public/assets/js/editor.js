@@ -942,6 +942,7 @@
         const blockEl = canvas.querySelector('.ed-block.is-selected');
         const block = selectedBlock();
         if (blockEl && block) enableInlineEdit(blockEl, block);
+        openInspector();
     }
 
     function moveBlock(r, c, b, dir) {
@@ -990,12 +991,14 @@
         selected = { kind: 'row', r: r };
         refreshSelection();
         buildInspector();
+        openInspector();
     }
 
     function selectCol(r, c) {
         selected = { kind: 'col', r: r, c: c };
         refreshSelection();
         buildInspector();
+        openInspector();
     }
 
     function refreshSelection() {
@@ -1019,6 +1022,7 @@
         selected = null;
         refreshSelection();
         inspectorBody.innerHTML = '<p class="muted small">Klicke auf einen Block oder eine Zeilen-Leiste, um Einstellungen zu sehen.</p>';
+        closeInspector();
     }
 
     function selectedBlock() {
@@ -2092,6 +2096,49 @@
     canvas.addEventListener('click', (e) => {
         if (e.target === canvas) deselect();
     });
+
+    /* ---------- Kompakter Editor: Elemente-Schublade + Eigenschaften-Pop-up ----------
+       Auf schmalen Screens (Tablet/Handy) ist die Elemente-Liste ausblendbar und
+       die Eigenschaften erscheinen als Bottom-Sheet, sobald man etwas anklickt. */
+    const compactMq = window.matchMedia('(max-width: 1024px)');
+    const paletteEl = document.querySelector('.ed-palette');
+    const inspectorEl = document.querySelector('.ed-inspector');
+    const drawerBackdrop = document.getElementById('ed-drawer-backdrop');
+
+    function updateBackdrop() {
+        if (!drawerBackdrop) return;
+        const open = compactMq.matches
+            && ((paletteEl && paletteEl.classList.contains('is-open'))
+                || (inspectorEl && inspectorEl.classList.contains('is-open')));
+        drawerBackdrop.hidden = !open;
+    }
+    function closePalette() { if (paletteEl) paletteEl.classList.remove('is-open'); updateBackdrop(); }
+    function openPalette() {
+        if (paletteEl) { if (inspectorEl) inspectorEl.classList.remove('is-open'); paletteEl.classList.add('is-open'); }
+        updateBackdrop();
+    }
+    function closeInspector() { if (inspectorEl) inspectorEl.classList.remove('is-open'); updateBackdrop(); }
+    function openInspector() {
+        if (compactMq.matches && inspectorEl) {
+            if (paletteEl) paletteEl.classList.remove('is-open');
+            inspectorEl.classList.add('is-open');
+            updateBackdrop();
+        }
+    }
+
+    (function wireDrawers() {
+        const toggle = document.getElementById('ed-palette-toggle');
+        const inspClose = document.getElementById('ed-insp-close');
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                if (paletteEl && paletteEl.classList.contains('is-open')) closePalette();
+                else openPalette();
+            });
+        }
+        if (inspClose) inspClose.addEventListener('click', () => { deselect(); });
+        if (drawerBackdrop) drawerBackdrop.addEventListener('click', () => { closePalette(); closeInspector(); });
+        compactMq.addEventListener('change', () => { closePalette(); closeInspector(); });
+    })();
 
     render();
 })();

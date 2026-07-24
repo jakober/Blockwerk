@@ -2,6 +2,10 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 1.65.0 – 2026-07-20
+
+- **Editor auf Tablet & Smartphone bedienbar.** In der Inhalts- und der Layout-Bearbeitung gibt es auf kleineren Bildschirmen jetzt ein platzsparendes Layout: Die **Elemente-Liste links ist ausblendbar** (Button „▤ Elemente" oben) und öffnet sich bei Bedarf als Schublade – Blöcke lassen sich ohnehin direkt über „+ Block" einfügen. Die **Eigenschaften rechts erscheinen als Pop-up** (von unten), sobald man ein Element, eine Spalte oder eine Zeile antippt, und schließen über ✕ oder Tippen daneben. So bleibt viel mehr Platz für den eigentlichen Inhalt. Am Desktop bleibt die gewohnte Drei-Spalten-Ansicht unverändert.
+
 ## 1.64.0 – 2026-07-20
 
 - **Rechnung als echtes PDF.** „Rechnung" erzeugt jetzt ein richtiges **PDF** (statt einer Druckseite) – erstellt mit einem eingebauten, abhängigkeitsfreien PDF-Generator. Logo (falls hinterlegt), Absenderdaten, Positionen, Summen, Hinweis und Bankverbindung sind sauber gesetzt.

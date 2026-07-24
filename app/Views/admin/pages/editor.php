@@ -19,6 +19,7 @@ $mode = $mode ?? 'page';
 
     <div class="ed-topbar">
         <a class="btn btn-ghost" href="<?= e($backUrl) ?>"><?= e($backLabel) ?></a>
+        <button type="button" id="ed-palette-toggle" class="btn btn-ghost ed-compact-only" title="Elemente-Liste ein-/ausblenden">▤ Elemente</button>
         <strong class="ed-title"><?= e($editorTitle) ?></strong>
         <div class="ed-presets" title="Neue Zeile mit Spaltenaufteilung hinzufügen"></div>
         <div class="ed-devices" title="Ansicht: So sieht die Seite auf Desktop, Tablet oder Smartphone aus">
@@ -58,10 +59,14 @@ $mode = $mode ?? 'page';
             <div class="ed-canvas cms-scope"></div>
         </div>
         <aside class="ed-inspector">
-            <h3>Eigenschaften</h3>
+            <div class="ed-insp-head">
+                <h3>Eigenschaften</h3>
+                <button type="button" id="ed-insp-close" class="ed-insp-close ed-compact-only" aria-label="Eigenschaften schließen" title="Schließen">✕</button>
+            </div>
             <div class="ed-inspector-body"><p class="muted small">Klicke auf einen Block, um ihn zu bearbeiten.</p></div>
         </aside>
     </div>
+    <div id="ed-drawer-backdrop" class="ed-drawer-backdrop" hidden></div>
 </div>
 
 <style id="ed-page-css"></style>

@@ -1,0 +1,452 @@
+<?php
+declare(strict_types=1);
+
+namespace Controllers\Admin;
+
+use Models\Media;
+
+class MediaController extends AdminController
+{
+    private const ALLOWED = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/svg+xml' => 'svg',
+        'application/pdf' => 'pdf',
+    ];
+
+    public function index(): void
+    {
+        $this->view('admin/media/index', [
+            'title' => 'Mediathek',
+            'active' => 'media',
+            'media' => Media::all(),
+            'folders' => \Models\MediaFolder::all(),
+            'maxUpload' => ini_get('upload_max_filesize'),
+        ]);
+    }
+
+    /** JSON-Liste für den Medien-Auswahldialog im Editor. */
+    public function list(): void
+    {
+        header('Content-Type: application/json');
+        $folders = [];
+        foreach (\Models\MediaFolder::all() as $folder) {
+            $folders[(int) $folder['id']] = $folder['name'];
+        }
+        $items = array_map(static fn (array $m): array => [
+            'id' => (int) $m['id'],
+            'name' => $m['filename'],
+            'url' => url('/' . $m['path']),
+            'thumb' => self::thumbUrl($m['path']),
+            'isImage' => str_starts_with($m['mime'], 'image/'),
+            'alt' => (string) ($m['alt'] ?? ''),
+            'title' => (string) ($m['title'] ?? ''),
+            'folder' => $folders[(int) ($m['folder_id'] ?? 0)] ?? '',
+        ], Media::all());
+        echo json_encode(['items' => $items, 'folders' => array_values($folders)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /** Metadaten bearbeiten: Anzeigename, Alt-Text, Titel, Ordner. */
+    public function updateMeta(string $id): void
+    {
+        header('Content-Type: application/json');
+        $item = Media::find((int) $id);
+        if ($item === null) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => 'Datei nicht gefunden.']);
+            return;
+        }
+        $data = json_decode(file_get_contents('php://input') ?: '', true) ?: [];
+        $filename = trim((string) ($data['filename'] ?? '')) ?: $item['filename'];
+        $folderId = (int) ($data['folder_id'] ?? 0);
+        Media::updateMeta(
+            (int) $item['id'],
+            mb_substr($filename, 0, 255),
+            mb_substr(trim((string) ($data['alt'] ?? '')), 0, 255) ?: null,
+            mb_substr(trim((string) ($data['title'] ?? '')), 0, 255) ?: null,
+            $folderId > 0 && \Models\MediaFolder::find($folderId) !== null ? $folderId : null
+        );
+        echo json_encode(['ok' => true]);
+    }
+
+    public function folderCreate(): void
+    {
+        $name = mb_substr(trim($_POST['name'] ?? ''), 0, 100);
+        if ($name === '') {
+            flash('error', 'Bitte einen Ordnernamen angeben.');
+        } elseif (\Models\MediaFolder::findByName($name) !== null) {
+            flash('error', 'Diesen Ordner gibt es schon.');
+        } else {
+            \Models\MediaFolder::create($name);
+            flash('success', 'Ordner „' . $name . '“ angelegt.');
+        }
+        redirect('/admin/media');
+    }
+
+    public function folderRename(string $id): void
+    {
+        $folder = \Models\MediaFolder::find((int) $id);
+        $name = mb_substr(trim($_POST['name'] ?? ''), 0, 100);
+        if ($folder !== null && $name !== '') {
+            \Models\MediaFolder::rename((int) $folder['id'], $name);
+            flash('success', 'Ordner umbenannt.');
+        }
+        redirect('/admin/media');
+    }
+
+    public function folderDelete(string $id): void
+    {
+        $folder = \Models\MediaFolder::find((int) $id);
+        if ($folder !== null) {
+            \Models\MediaFolder::delete((int) $folder['id']);
+            flash('success', 'Ordner „' . $folder['name'] . '“ gelöscht – die Dateien sind weiterhin unter „Alle Dateien“.');
+        }
+        redirect('/admin/media');
+    }
+
+    public function upload(): void
+    {
+        // Moderner Drag-&-Drop-Upload schickt die Dateien per fetch/XHR und
+        // erwartet JSON; das klassische Formular bleibt als Fallback.
+        $wantsJson = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+
+        $files = $_FILES['files'] ?? null;
+        if ($files === null || !is_array($files['name'] ?? null)) {
+            if ($wantsJson) {
+                $this->json(['ok' => false, 'uploaded' => 0, 'errors' => ['Keine Dateien ausgewählt.'], 'items' => []]);
+            }
+            flash('error', 'Keine Dateien ausgewählt.');
+            redirect('/admin/media');
+        }
+
+        $dir = self::uploadsDir();
+        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+            if ($wantsJson) {
+                $this->json(['ok' => false, 'uploaded' => 0, 'errors' => ['Das Upload-Verzeichnis konnte nicht angelegt werden.'], 'items' => []]);
+            }
+            flash('error', 'Das Upload-Verzeichnis konnte nicht angelegt werden.');
+            redirect('/admin/media');
+        }
+
+        $uploaded = 0;
+        $errors = [];
+        $items = [];
+        $folderId = (int) ($_POST['folder_id'] ?? 0);
+        if ($folderId > 0 && \Models\MediaFolder::find($folderId) === null) {
+            $folderId = 0;
+        }
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+        foreach ($files['name'] as $i => $name) {
+            if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                if ($files['error'][$i] !== UPLOAD_ERR_NO_FILE) {
+                    $errors[] = $name . ' (Upload-Fehler, evtl. zu groß)';
+                }
+                continue;
+            }
+            $tmp = $files['tmp_name'][$i];
+            $mime = finfo_file($finfo, $tmp) ?: '';
+            if (!isset(self::ALLOWED[$mime])) {
+                $errors[] = $name . ' (Dateityp nicht erlaubt)';
+                continue;
+            }
+
+            $base = slugify(pathinfo((string) $name, PATHINFO_FILENAME)) ?: 'datei';
+            $filename = $base . '-' . substr(bin2hex(random_bytes(4)), 0, 6) . '.' . self::ALLOWED[$mime];
+
+            if (!move_uploaded_file($tmp, $dir . '/' . $filename)) {
+                $errors[] = $name . ' (konnte nicht gespeichert werden)';
+                continue;
+            }
+
+            // Große Bilder automatisch verkleinern und Thumbnail erzeugen.
+            self::optimizeImage($dir . '/' . $filename, $mime);
+
+            $width = $height = null;
+            if (str_starts_with($mime, 'image/') && $mime !== 'image/svg+xml') {
+                $info = @getimagesize($dir . '/' . $filename);
+                if ($info !== false) {
+                    [$width, $height] = $info;
+                }
+            }
+
+            $id = Media::create((string) $name, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
+            if ($folderId > 0) {
+                Media::setFolder($id, $folderId);
+            }
+            $items[] = [
+                'folderId' => $folderId,
+                'id' => $id,
+                'name' => (string) $name,
+                'url' => url('/uploads/' . $filename),
+                'thumb' => self::thumbUrl('uploads/' . $filename),
+                'isImage' => str_starts_with($mime, 'image/'),
+                'width' => $width,
+                'height' => $height,
+                'size' => (int) filesize($dir . '/' . $filename),
+                'deleteUrl' => url('/admin/media/' . $id . '/delete'),
+            ];
+            $uploaded++;
+        }
+        finfo_close($finfo);
+
+        if ($wantsJson) {
+            $this->json(['ok' => $uploaded > 0, 'uploaded' => $uploaded, 'errors' => $errors, 'items' => $items]);
+        }
+
+        if ($uploaded > 0) {
+            flash('success', $uploaded . ' Datei(en) hochgeladen.' . ($errors ? ' Übersprungen: ' . implode(', ', $errors) : ''));
+        } else {
+            flash('error', $errors ? 'Nichts hochgeladen. ' . implode(', ', $errors) : 'Nichts hochgeladen.');
+        }
+        redirect('/admin/media');
+    }
+
+    private function json(array $data): never
+    {
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * Liefert als JSON, wo dieses Medium noch eingebunden ist – wird vom
+     * Löschen-Dialog abgefragt, damit man nicht versehentlich ein Bild löscht,
+     * das noch auf der Website verwendet wird.
+     */
+    public function usage(string $id): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        $item = Media::find((int) $id);
+        if ($item === null) {
+            http_response_code(404);
+            echo json_encode(['uses' => [], 'count' => 0]);
+            return;
+        }
+        $uses = self::findUsages((string) $item['path']);
+        echo json_encode(['uses' => $uses, 'count' => count($uses)], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Sucht den Dateipfad (z. B. "uploads/bild-a1b2c3.jpg") als Teilstring in
+     * allen Inhalten, in denen Bild-URLs gespeichert werden, und gibt lesbare
+     * Fundstellen zurück (z. B. "Seite: Startseite", "Layout: Standard").
+     * Jede Abfrage ist defensiv gekapselt, damit eine fehlende Tabelle/Spalte
+     * die Prüfung nicht abbricht.
+     */
+    private static function findUsages(string $path): array
+    {
+        $pdo = \Core\Database::pdo();
+        $needle = '%' . $path . '%';
+        $uses = [];
+
+        // Seiten & globale Blöcke (beide in der pages-Tabelle).
+        try {
+            $st = $pdo->prepare('SELECT title, is_global FROM pages WHERE content LIKE ? AND deleted_at IS NULL ORDER BY title');
+            $st->execute([$needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = ((int) ($r['is_global'] ?? 0) === 1 ? 'Globaler Block: ' : 'Seite: ') . $r['title'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // News & Events.
+        try {
+            $st = $pdo->prepare('SELECT title, type FROM posts WHERE image LIKE ? OR body LIKE ? ORDER BY title');
+            $st->execute([$needle, $needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = (($r['type'] ?? '') === 'event' ? 'Event: ' : 'News: ') . $r['title'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // Layouts – deckt auch das Logo (l-brand-Block im builder) ab.
+        try {
+            foreach ($pdo->query('SELECT * FROM layouts')->fetchAll() as $r) {
+                $hay = (string) ($r['html'] ?? '') . (string) ($r['design'] ?? '') . (string) ($r['builder'] ?? '');
+                if (str_contains($hay, $path)) {
+                    $uses[] = 'Layout: ' . $r['name'];
+                }
+            }
+        } catch (\Throwable) {
+        }
+
+        // Templates.
+        try {
+            $st = $pdo->prepare('SELECT name FROM templates WHERE html LIKE ? ORDER BY name');
+            $st->execute([$needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = 'Template: ' . $r['name'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // Shop-Produkte (Hauptbild, Galerie, Beschreibung).
+        try {
+            $st = $pdo->prepare('SELECT name FROM shop_products WHERE image LIKE ? OR gallery LIKE ? OR description LIKE ? ORDER BY name');
+            $st->execute([$needle, $needle, $needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = 'Produkt: ' . $r['name'];
+            }
+        } catch (\Throwable) {
+        }
+
+        // Shop-Kategorien.
+        try {
+            $st = $pdo->prepare('SELECT name FROM shop_categories WHERE image LIKE ? ORDER BY name');
+            $st->execute([$needle]);
+            foreach ($st->fetchAll() as $r) {
+                $uses[] = 'Kategorie: ' . $r['name'];
+            }
+        } catch (\Throwable) {
+        }
+
+        return $uses;
+    }
+
+    public function delete(string $id): void
+    {
+        $item = Media::find((int) $id);
+        if ($item !== null) {
+            // Schutz: Ist das Bild noch eingebunden, nur nach ausdrücklicher
+            // Bestätigung löschen (der Dialog schickt confirm=1 mit).
+            $uses = self::findUsages((string) $item['path']);
+            if ($uses !== [] && ($_POST['confirm'] ?? '') !== '1') {
+                $shown = array_slice($uses, 0, 8);
+                flash('error', 'Nicht gelöscht: „' . $item['filename'] . '“ wird noch verwendet in ' . implode(', ', $shown) . (count($uses) > 8 ? ' …' : '') . '.');
+                redirect('/admin/media');
+            }
+            $file = BASE_PATH . '/public/' . $item['path'];
+            if (is_file($file)) {
+                unlink($file);
+            }
+            $thumb = BASE_PATH . '/public/' . self::thumbPath($item['path']);
+            if (is_file($thumb)) {
+                unlink($thumb);
+            }
+            Media::delete((int) $item['id']);
+            flash('success', 'Datei gelöscht.');
+        }
+        redirect('/admin/media');
+    }
+
+    /** Zielordner für hochgeladene Dateien. */
+    private static function uploadsDir(): string
+    {
+        return BASE_PATH . '/public/uploads';
+    }
+
+    /**
+     * Speichert rohe Bilddaten als Mediathek-Eintrag (inkl. Verkleinerung
+     * und Thumbnail) – genutzt vom KI-Assistenten für generierte Bilder.
+     * Liefert null bei nicht erlaubtem Typ oder Schreibfehler.
+     */
+    public static function storeBytes(string $bytes, string $niceName, string $mime): ?array
+    {
+        if (!isset(self::ALLOWED[$mime])) {
+            return null;
+        }
+        $dir = self::uploadsDir();
+        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+            return null;
+        }
+        $base = slugify(pathinfo($niceName, PATHINFO_FILENAME)) ?: 'datei';
+        $filename = $base . '-' . substr(bin2hex(random_bytes(4)), 0, 6) . '.' . self::ALLOWED[$mime];
+        if (file_put_contents($dir . '/' . $filename, $bytes) === false) {
+            return null;
+        }
+        self::optimizeImage($dir . '/' . $filename, $mime);
+
+        $width = $height = null;
+        if (str_starts_with($mime, 'image/') && $mime !== 'image/svg+xml') {
+            $info = @getimagesize($dir . '/' . $filename);
+            if ($info !== false) {
+                [$width, $height] = $info;
+            }
+        }
+        $id = \Models\Media::create($niceName, 'uploads/' . $filename, $mime, (int) filesize($dir . '/' . $filename), $width, $height);
+
+        return [
+            'id' => $id,
+            'url' => url('/uploads/' . $filename),
+            'thumb' => self::thumbUrl('uploads/' . $filename),
+            'path' => 'uploads/' . $filename,
+        ];
+    }
+
+    /** Pfad des Thumbnails zu einem Medienpfad ("bild.jpg" → "bild-thumb.jpg"). */
+    public static function thumbPath(string $path): string
+    {
+        $dot = strrpos($path, '.');
+        return $dot === false ? $path . '-thumb' : substr($path, 0, $dot) . '-thumb' . substr($path, $dot);
+    }
+
+    /** Thumbnail-URL, falls vorhanden – sonst das Original. */
+    public static function thumbUrl(string $path): string
+    {
+        $thumb = self::thumbPath($path);
+        return url('/' . (is_file(BASE_PATH . '/public/' . $thumb) ? $thumb : $path));
+    }
+
+    private const MAX_WIDTH = 1920;
+    private const THUMB_WIDTH = 480;
+
+    /**
+     * Verkleinert zu große Bilder auf max. 1920px Breite (schnellere Website)
+     * und legt ein Thumbnail für Mediathek/Auswahldialog an. Ohne GD-Erweiterung
+     * oder bei GIF/SVG/PDF passiert nichts.
+     */
+    private static function optimizeImage(string $file, string $mime): void
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            return;
+        }
+        $loaders = [
+            'image/jpeg' => 'imagecreatefromjpeg',
+            'image/png' => 'imagecreatefrompng',
+            'image/webp' => 'imagecreatefromwebp',
+        ];
+        if (!isset($loaders[$mime]) || !function_exists($loaders[$mime])) {
+            return;
+        }
+        $image = @$loaders[$mime]($file);
+        if ($image === false) {
+            return;
+        }
+
+        $save = static function ($img, string $target) use ($mime): void {
+            match ($mime) {
+                'image/jpeg' => imagejpeg($img, $target, 85),
+                'image/png' => imagepng($img, $target, 6),
+                'image/webp' => imagewebp($img, $target, 82),
+            };
+        };
+
+        if (imagesx($image) > self::MAX_WIDTH) {
+            $resized = imagescale($image, self::MAX_WIDTH, -1, IMG_BICUBIC);
+            if ($resized !== false) {
+                imagedestroy($image);
+                $image = $resized;
+                if ($mime === 'image/png') {
+                    imagesavealpha($image, true);
+                }
+                $save($image, $file);
+            }
+        }
+
+        if (imagesx($image) > self::THUMB_WIDTH) {
+            $thumb = imagescale($image, self::THUMB_WIDTH, -1, IMG_BICUBIC);
+            if ($thumb !== false) {
+                if ($mime === 'image/png') {
+                    imagesavealpha($thumb, true);
+                }
+                $save($thumb, dirname($file) . '/' . basename(self::thumbPath($file)));
+                imagedestroy($thumb);
+            }
+        }
+        imagedestroy($image);
+    }
+}

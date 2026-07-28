@@ -1,0 +1,6 @@
+# Vom Install-Assistenten erzeugte Konfiguration (Zugangsdaten)
+/config/config.php
+
+# Hochgeladene Dateien und Zwischenspeicher
+/public/uploads/
+/cache/

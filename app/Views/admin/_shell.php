@@ -1,0 +1,166 @@
+<?php
+// Navigation in Gruppen ('' = ohne Überschrift, ganz oben).
+$navGroups = [
+    '' => [
+        'dashboard' => ['Dashboard', '/admin', '◈'],
+    ],
+    'Inhalte' => [
+        'ai' => ['KI-Assistent', '/admin/ai', '✨'],
+        'pages' => ['Seiten', '/admin/pages', '▤'],
+        'news' => ['News', '/admin/news', '❑'],
+        'events' => ['Events', '/admin/events', '◷'],
+        'forms' => ['Formulare', '/admin/forms', '✉'],
+        'media' => ['Mediathek', '/admin/media', '▧'],
+        'globals' => ['Globale Blöcke', '/admin/globals', '∞'],
+    ],
+    'Gestaltung' => [
+        'themes' => ['Designs', '/admin/themes', '✦'],
+        'menu' => ['Menü', '/admin/menu', '☰'],
+        'layouts' => ['Layouts', '/admin/layouts', '▦'],
+        'templates' => ['Templates', '/admin/templates', '⧉'],
+        'fonts' => ['Schriften', '/admin/fonts', 'Aa'],
+    ],
+    'System' => [
+        'users' => ['Benutzer', '/admin/users', '◉'],
+        'update' => ['Updates', '/admin/update', '⟳'],
+        'settings' => ['Einstellungen', '/admin/settings', '⚙'],
+    ],
+];
+// Shop-Bereich nur zeigen, wenn der Shop in den Einstellungen aktiviert ist –
+// direkt nach „Inhalte" einsortiert.
+if (\Core\Shop::enabled()) {
+    $shopGroup = ['Shop' => [
+        'shop-products' => ['Produkte', '/admin/shop/products', '◰'],
+        'shop-categories' => ['Kategorien', '/admin/shop/categories', '≡'],
+        'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
+        'shop-customers' => ['Kunden', '/admin/shop/customers', '👤'],
+        'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
+    ]];
+    $pos = array_search('Inhalte', array_keys($navGroups), true);
+    $navGroups = array_slice($navGroups, 0, $pos + 1, true) + $shopGroup + array_slice($navGroups, $pos + 1, null, true);
+}
+// Redakteure sehen nur die Inhalts-Bereiche (und keinen KI-Assistenten).
+if (!\Core\Auth::isAdmin()) {
+    unset($navGroups['Gestaltung'], $navGroups['System'], $navGroups['Inhalte']['ai']);
+}
+// Verfügbares Update (nur Cache-Lesen) – markiert den „Updates"-Menüpunkt.
+$navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : null;
+?>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= e($title ?? 'Admin') ?> – Blockwerk Orange</title>
+<link rel="icon" type="image/svg+xml" href="<?= e(url('/assets/img/logo.svg')) ?>">
+<link rel="stylesheet" href="<?= e(asset('/assets/css/admin.css')) ?>">
+<script>window.CMS_BASE = <?= json_encode(\Core\App::base()) ?>;</script>
+<script defer src="<?= e(asset('/assets/js/admin-dialog.js')) ?>"></script>
+</head>
+<body class="<?= e($bodyClass ?? '') ?>">
+<div class="admin">
+    <aside class="sidebar">
+        <div class="sidebar-brand"><?php include APP_PATH . '/Views/_logo.php'; ?><span class="brand-text">Blockwerk<span class="brand-orange">Orange</span></span></div>
+        <button type="button" class="admin-burger" aria-label="Menü öffnen" aria-expanded="false"><span></span><span></span><span></span></button>
+        <div class="sidebar-drawer">
+            <nav class="sidebar-nav">
+                <?php foreach ($navGroups as $groupLabel => $items): ?>
+                    <?php if ($groupLabel !== ''): ?>
+                        <div class="nav-group"><?= e($groupLabel) ?></div>
+                    <?php endif; ?>
+                    <?php foreach ($items as $key => [$label, $href, $icon]): ?>
+                        <a href="<?= e(url($href)) ?>" data-nav-key="<?= e($key) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
+                            <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
+                            <?php if ($key === 'update' && $navUpdateVersion !== null): ?><span class="nav-badge" title="Update auf <?= e($navUpdateVersion) ?> verfügbar">1</span><?php endif; ?>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="<?= e(url('/')) ?>" target="_blank" rel="noopener">Website ansehen ↗</a>
+            </div>
+        </div>
+    </aside>
+    <div class="nav-backdrop"></div>
+    <div class="main">
+        <header class="topbar">
+            <h1><?= e($title ?? '') ?></h1>
+            <div class="topbar-right">
+                <a class="muted" href="<?= e(url('/admin/users/' . (int) ($_SESSION['user_id'] ?? 0) . '/edit')) ?>" title="Profil &amp; Passwort ändern"><?= e($_SESSION['username'] ?? '') ?></a>
+                <form method="post" action="<?= e(url('/logout')) ?>">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-ghost">Abmelden</button>
+                </form>
+            </div>
+        </header>
+        <?php if (!empty($flash)): ?>
+            <div class="flash-wrap"><div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div></div>
+        <?php endif; ?>
+        <div class="content">
+            <?= $content ?>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var burger = document.querySelector('.admin-burger');
+    var backdrop = document.querySelector('.nav-backdrop');
+    var brand = document.querySelector('.sidebar-brand');
+    if (!burger) { return; }
+    function toggle(open) {
+        document.body.classList.toggle('nav-open', open);
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function flip() { toggle(!document.body.classList.contains('nav-open')); }
+    burger.addEventListener('click', flip);
+    // Auch ein Klick auf das Logo öffnet/schließt das Menü (Mobil).
+    if (brand) { brand.addEventListener('click', flip); }
+    if (backdrop) { backdrop.addEventListener('click', function () { toggle(false); }); }
+})();
+<?php if (\Core\Auth::isAdmin()): ?>
+// Update-Prüfung im Hintergrund (blockiert den Seitenaufbau nicht). Zeigt ein
+// verfügbares Update sofort an – ohne die Seite neu zu laden.
+(function () {
+    var base = window.CMS_BASE || '';
+    // Cache-Buster + no-store: die Prüfung darf nie aus dem Browser-Cache kommen.
+    fetch(base + '/admin/update/status?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store', headers: { 'X-Requested-With': 'fetch' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+            if (!d || !d.available) { return; }
+            var v = String(d.available).replace(/[^0-9.]/g, '');
+            if (!v) { return; }
+            // Menü-Markierung am Punkt „Updates".
+            var link = document.querySelector('[data-nav-key="update"]');
+            if (link && !link.querySelector('.nav-badge')) {
+                var badge = document.createElement('span');
+                badge.className = 'nav-badge';
+                badge.title = 'Update auf ' + v + ' verfügbar';
+                badge.textContent = '1';
+                link.appendChild(badge);
+            }
+            // System-Block im Dashboard live aktualisieren (statt „aktuell").
+            var sys = document.getElementById('dash-sys-status');
+            if (sys) {
+                var uurl = sys.getAttribute('data-update-url') || (base + '/admin/update');
+                sys.innerHTML = '<span class="badge badge-amber">Update auf ' + v + ' verfügbar</span> '
+                    + '<a href="' + uurl + '">Jetzt aktualisieren →</a>';
+            }
+            // Banner im Dashboard (nur wenn noch keiner da ist).
+            var content = document.querySelector('.content');
+            if (content && !document.querySelector('.dash-update') && document.querySelector('.dash-actions')) {
+                var a = document.createElement('a');
+                a.className = 'card dash-update';
+                a.href = base + '/admin/update';
+                a.innerHTML = '<span class="dash-update-icon">⟳</span>'
+                    + '<span class="dash-update-text"><strong>Update verfügbar: Version ' + v + '</strong>'
+                    + '<span class="muted small">Jetzt aktualisieren.</span></span>'
+                    + '<span class="btn btn-primary btn-small dash-update-btn">Zu den Updates →</span>';
+                content.insertBefore(a, content.firstChild);
+            }
+        })
+        .catch(function () {});
+})();
+<?php endif; ?>
+</script>
+</body>
+</html>

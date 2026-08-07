@@ -105,7 +105,34 @@ class Shop
         if (Setting::get('shop_pay_paypal', '0') === '1' && self::paypalClientId() !== '') {
             $methods['paypal'] = 'PayPal';
         }
+        if (Setting::get('shop_pay_sepa', '0') === '1' && self::sepaCreditorId() !== '' && self::sepaIban() !== '') {
+            $methods['sepa'] = 'SEPA-Lastschrift';
+        }
         return $methods;
+    }
+
+    /* ---------- SEPA-Lastschrift (ohne Zahlungsdienstleister) ---------- */
+
+    public static function sepaCreditorId(): string
+    {
+        return trim((string) Setting::get('shop_sepa_creditor_id', ''));
+    }
+
+    /** Gläubiger-Name für das Mandat – eigener Wert, sonst Firma aus den Rechnungsdaten. */
+    public static function sepaCreditorName(): string
+    {
+        $name = trim((string) Setting::get('shop_sepa_creditor_name', ''));
+        return $name !== '' ? $name : self::invoiceName();
+    }
+
+    public static function sepaIban(): string
+    {
+        return Iban::normalize((string) Setting::get('shop_sepa_iban', ''));
+    }
+
+    public static function sepaBic(): string
+    {
+        return trim((string) Setting::get('shop_sepa_bic', ''));
     }
 
     public static function paypalClientId(): string

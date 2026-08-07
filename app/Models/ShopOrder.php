@@ -163,6 +163,20 @@ class ShopOrder
             $order['payment_status'] ?? 'pending', $order['paypal_order_id'] ?? null,
             $order['coupon_code'] ?? null, (int) ($order['discount_cents'] ?? 0),
         ];
+        // SEPA-Mandat: Referenz an die (erst hier bekannte) Bestellnummer knüpfen,
+        // damit sie eindeutig und für den Kunden nachvollziehbar ist.
+        if (($order['payment_method'] ?? '') === 'sepa') {
+            $cols[] = 'sepa_iban';
+            $vals[] = $order['sepa_iban'] ?? null;
+            $cols[] = 'sepa_bic';
+            $vals[] = $order['sepa_bic'] ?? null;
+            $cols[] = 'sepa_account_holder';
+            $vals[] = $order['sepa_account_holder'] ?? null;
+            $cols[] = 'sepa_mandate_ref';
+            $vals[] = 'M' . preg_replace('/[^A-Za-z0-9]/', '', $number);
+            $cols[] = 'sepa_mandate_date';
+            $vals[] = date('Y-m-d');
+        }
         // customer_id nur mitschreiben, wenn die Spalte existiert (Selbstheilung).
         if ($hasCustomer) {
             $cols[] = 'customer_id';
@@ -195,6 +209,25 @@ class ShopOrder
     {
         Database::pdo()->prepare('UPDATE shop_orders SET tracking_number = ?, tracking_url = ? WHERE id = ?')
             ->execute([$number, $url, $id]);
+    }
+
+    /** Noch nicht eingereichte SEPA-Lastschriften (payment_status noch offen). */
+    public static function pendingSepa(): array
+    {
+        return Database::pdo()
+            ->query("SELECT * FROM shop_orders WHERE payment_method = 'sepa' AND payment_status = 'pending' ORDER BY created_at")
+            ->fetchAll();
+    }
+
+    /** Markiert Bestellungen als in einer SEPA-Sammeldatei eingereicht. */
+    public static function markSepaSubmitted(array $ids): void
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if ($ids === []) {
+            return;
+        }
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        Database::pdo()->prepare("UPDATE shop_orders SET sepa_submitted_at = NOW() WHERE id IN ($placeholders)")->execute($ids);
     }
 
     public static function setPaid(int $id, ?string $paypalId = null): void

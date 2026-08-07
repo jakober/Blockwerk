@@ -315,6 +315,9 @@ class App
         $router->add('POST', '/admin/shop/categories/{id}', [\Controllers\Admin\ShopCategoryController::class, 'update']);
         $router->add('POST', '/admin/shop/categories/{id}/delete', [\Controllers\Admin\ShopCategoryController::class, 'delete']);
 
+        $router->add('GET', '/admin/shop/sepa', [\Controllers\Admin\ShopSepaController::class, 'index']);
+        $router->add('POST', '/admin/shop/sepa/export', [\Controllers\Admin\ShopSepaController::class, 'export']);
+
         $router->add('GET', '/admin/shop/reviews', [\Controllers\Admin\ShopReviewController::class, 'index']);
         $router->add('POST', '/admin/shop/reviews/{id}/approve', [\Controllers\Admin\ShopReviewController::class, 'approve']);
         $router->add('POST', '/admin/shop/reviews/{id}/delete', [\Controllers\Admin\ShopReviewController::class, 'delete']);

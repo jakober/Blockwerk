@@ -35,6 +35,7 @@ if (\Core\Shop::enabled()) {
         'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
         'shop-reviews' => ['Bewertungen', '/admin/shop/reviews', '★'],
         'shop-coupons' => ['Gutscheine', '/admin/shop/coupons', '🏷'],
+        'shop-sepa' => ['Lastschriften', '/admin/shop/sepa', '🏦'],
         'shop-customers' => ['Kunden', '/admin/shop/customers', '👤'],
         'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
     ]];

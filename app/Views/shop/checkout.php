@@ -112,6 +112,24 @@ $clientId = \Core\Shop::paypalClientId();
                 <?php if (empty($payments)): ?><p class="muted">Es ist keine Zahlungsart konfiguriert.</p><?php endif; ?>
             </fieldset>
 
+            <?php if (isset($payments['sepa'])): ?>
+                <fieldset class="shop-fieldset" id="sepa-fields" hidden>
+                    <legend>SEPA-Lastschriftmandat</legend>
+                    <div class="shop-form-row">
+                        <label>Kontoinhaber*<input type="text" name="sepa_account_holder" id="sepa-holder" value="<?= e(trim(($f['first_name'] ?? '') . ' ' . ($f['last_name'] ?? ''))) ?>"></label>
+                        <label>IBAN*<input type="text" name="sepa_iban" id="sepa-iban" placeholder="DE02 1203 0000 0000 2020 51" autocomplete="off"></label>
+                    </div>
+                    <label>BIC (optional)<input type="text" name="sepa_bic" autocomplete="off"></label>
+                    <label class="shop-option">
+                        <input type="checkbox" name="sepa_mandate" id="sepa-mandate" value="1">
+                        <span>Ich ermächtige <?= e(\Core\Shop::sepaCreditorName()) ?> (Gläubiger-ID <?= e(\Core\Shop::sepaCreditorId()) ?>), Zahlungen von meinem Konto mittels Lastschrift
+                            einzuziehen. Zugleich weise ich mein Kreditinstitut an, die von <?= e(\Core\Shop::sepaCreditorName()) ?> auf mein Konto gezogenen Lastschriften einzulösen.
+                            Hinweis: Ich kann innerhalb von acht Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrages verlangen. Es gelten dabei die mit
+                            meinem Kreditinstitut vereinbarten Bedingungen.*</span>
+                    </label>
+                </fieldset>
+            <?php endif; ?>
+
             <fieldset class="shop-fieldset">
                 <label class="shop-option">
                     <input type="checkbox" name="accept_terms" id="accept-terms" value="1" required>
@@ -266,11 +284,20 @@ $clientId = \Core\Shop::paypalClientId();
             }
         }).render('#paypal-buttons');
     }
+    var sepaWrap = document.getElementById('sepa-fields');
     function toggleMode() {
-        var isPP = currentPayment() === 'paypal';
+        var payment = currentPayment();
+        var isPP = payment === 'paypal';
+        var isSepa = payment === 'sepa';
         ppWrap.hidden = !isPP;
         placeBtn.hidden = isPP;
         if (isPP) renderPayPal();
+        if (sepaWrap) {
+            sepaWrap.hidden = !isSepa;
+            sepaWrap.querySelectorAll('#sepa-holder, #sepa-iban, #sepa-mandate').forEach(function (el) {
+                if (isSepa) { el.setAttribute('required', 'required'); } else { el.removeAttribute('required'); }
+            });
+        }
     }
     form.querySelectorAll('input[name=payment_method]').forEach(function (el) { el.addEventListener('change', toggleMode); });
     toggleMode();

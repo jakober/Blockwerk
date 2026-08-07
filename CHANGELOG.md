@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 2.5.0 – 2026-08-07
+
+Neue Zahlungsart: SEPA-Lastschrift ganz ohne Zahlungsdienstleister.
+
+- **SEPA-Lastschrift.** Kund:innen zahlen per Lastschriftmandat (Kontoinhaber + IBAN, mit Prüfsummen-Validierung); die Bestellung merkt sich Mandatsreferenz und -datum. Unter „Shop → Lastschriften" sammelst du die offenen Lastschriften und lädst sie als SEPA-Sammeldatei (pain.008) herunter, die du direkt bei deiner Bank einreichst – ganz ohne Prozent-Gebühren eines Zahlungsdienstleisters. Voraussetzung: Gläubiger-ID und eigene IBAN in den Shop-Einstellungen hinterlegen.
+
 ## 2.4.0 – 2026-08-07
 
 Dritter Teil des Shop-Ausbaus: Umsatz & Komfort (Gutscheine, Wunschliste, Bewertungen, Adressbuch, geräteübergreifender Warenkorb).

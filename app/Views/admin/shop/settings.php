@@ -58,6 +58,7 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
             <label><input type="checkbox" name="pay_invoice" <?= $s['pay_invoice'] === '1' ? 'checked' : '' ?>> Kauf auf Rechnung</label>
             <label><input type="checkbox" name="pay_prepay" <?= $s['pay_prepay'] === '1' ? 'checked' : '' ?>> Vorkasse (Überweisung)</label>
             <label><input type="checkbox" name="pay_paypal" <?= $s['pay_paypal'] === '1' ? 'checked' : '' ?>> PayPal</label>
+            <label><input type="checkbox" name="pay_sepa" <?= $s['pay_sepa'] === '1' ? 'checked' : '' ?>> SEPA-Lastschrift</label>
         </div>
         <div class="form-group">
             <label for="bank_info">Bankverbindung (wird bei Vorkasse angezeigt)</label>
@@ -77,6 +78,29 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
             <div class="form-group grow">
                 <label for="paypal_secret">PayPal Secret <?= $s['paypal_secret'] !== '' ? '<span class="badge badge-green">hinterlegt</span>' : '' ?></label>
                 <input type="password" id="paypal_secret" name="paypal_secret" value="<?= $s['paypal_secret'] !== '' ? '••••••••••' : '' ?>" autocomplete="off">
+            </div>
+        </div>
+
+        <h3>SEPA-Lastschrift</h3>
+        <p class="muted small">Läuft ohne Zahlungsdienstleister – der Kunde erteilt beim Bestellen ein Mandat, du reichst die Lastschriften als SEPA-Sammeldatei (pain.008) direkt bei deiner Bank ein (unter „Shop → Lastschriften"). Alle Angaben stehen auf <a href="https://www.bundesbank.de/de/aufgaben/unbarer-zahlungsverkehr/serviceangebot/sepa/gläubiger-id" target="_blank" rel="noopener">deiner Gläubiger-ID-Bestätigung</a> bzw. deinem Kontoauszug.</p>
+        <div class="form-row">
+            <div class="form-group grow">
+                <label for="sepa_creditor_id">Gläubiger-ID</label>
+                <input type="text" id="sepa_creditor_id" name="sepa_creditor_id" value="<?= e($s['sepa_creditor_id']) ?>" placeholder="DE98ZZZ09999999999" autocomplete="off">
+            </div>
+            <div class="form-group grow">
+                <label for="sepa_creditor_name">Gläubiger-Name (leer = Firma aus den Rechnungsdaten)</label>
+                <input type="text" id="sepa_creditor_name" name="sepa_creditor_name" value="<?= e($s['sepa_creditor_name']) ?>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group grow">
+                <label for="sepa_iban">Deine IBAN (Empfängerkonto)</label>
+                <input type="text" id="sepa_iban" name="sepa_iban" value="<?= e($s['sepa_iban']) ?>" placeholder="DE02120300000000202051" autocomplete="off">
+            </div>
+            <div class="form-group grow">
+                <label for="sepa_bic">Deine BIC (optional)</label>
+                <input type="text" id="sepa_bic" name="sepa_bic" value="<?= e($s['sepa_bic']) ?>" autocomplete="off">
             </div>
         </div>
     </div>

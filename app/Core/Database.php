@@ -409,6 +409,12 @@ class Database
         self::ensureColumn($pdo, 'shop_categories', 'meta_description', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_orders', 'coupon_code', 'VARCHAR(60) NULL');
         self::ensureColumn($pdo, 'shop_orders', 'discount_cents', 'INT NOT NULL DEFAULT 0');
+        self::ensureColumn($pdo, 'shop_orders', 'sepa_iban', 'VARCHAR(42) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'sepa_bic', 'VARCHAR(20) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'sepa_account_holder', 'VARCHAR(160) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'sepa_mandate_ref', 'VARCHAR(40) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'sepa_mandate_date', 'DATE NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'sepa_submitted_at', 'DATETIME NULL');
     }
 
     /**

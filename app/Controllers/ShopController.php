@@ -655,6 +655,23 @@ class ShopController
             return [[], [], 'Bitte eine Zahlungsart wählen.'];
         }
 
+        $sepaFields = [];
+        if ($payment === 'sepa') {
+            $holder = trim($_POST['sepa_account_holder'] ?? '');
+            $iban = \Core\Iban::normalize($_POST['sepa_iban'] ?? '');
+            if ($holder === '' || $iban === '' || !\Core\Iban::isValid($iban)) {
+                return [[], [], 'Bitte Kontoinhaber und eine gültige IBAN für die SEPA-Lastschrift angeben.'];
+            }
+            if (($_POST['sepa_mandate'] ?? '') === '') {
+                return [[], [], 'Bitte dem SEPA-Lastschriftmandat zustimmen, um per Lastschrift zu bezahlen.'];
+            }
+            $sepaFields = [
+                'sepa_account_holder' => $holder,
+                'sepa_iban' => $iban,
+                'sepa_bic' => trim($_POST['sepa_bic'] ?? '') ?: null,
+            ];
+        }
+
         $subtotal = 0;
         $orderItems = [];
         foreach ($items as $it) {
@@ -697,7 +714,7 @@ class ShopController
         $coupon = Cart::coupon();
         $discount = $coupon !== null ? \Models\ShopCoupon::discountFor($coupon, $subtotal) : 0;
 
-        $head = $form + [
+        $head = $form + $sepaFields + [
             'token' => bin2hex(random_bytes(16)),
             'status' => 'new',
             'subtotal' => $subtotal,

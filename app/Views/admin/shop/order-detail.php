@@ -97,6 +97,16 @@ $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
             <?= $order['payment_status'] === 'paid' ? '<span class="badge badge-green">bezahlt</span>' : '<span class="badge badge-amber">offen</span>' ?>
             <?php if (!empty($order['paypal_order_id'])): ?><br><span class="muted small">PayPal: <?= e($order['paypal_order_id']) ?></span><?php endif; ?>
         </p>
+        <?php if (($order['payment_method'] ?? '') === 'sepa'): ?>
+            <p class="small">
+                <?= e($order['sepa_account_holder'] ?? '') ?><br>
+                <code><?= e(\Core\Iban::mask((string) ($order['sepa_iban'] ?? ''))) ?></code><br>
+                <span class="muted small">Mandat <?= e($order['sepa_mandate_ref'] ?? '') ?> vom <?= e(format_date_de($order['sepa_mandate_date'] ?? null)) ?></span><br>
+                <?= !empty($order['sepa_submitted_at'])
+                    ? '<span class="badge badge-green">Lastschrift eingereicht ' . e(format_date_de($order['sepa_submitted_at'])) . '</span>'
+                    : '<span class="badge badge-amber">Lastschrift noch nicht eingereicht</span>' ?>
+            </p>
+        <?php endif; ?>
         <?php if (!empty($order['tracking_number'])): ?>
             <h3 style="margin-top:20px">Versand</h3>
             <p class="small">Sendungsnummer: <?= e($order['tracking_number']) ?>

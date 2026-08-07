@@ -28,6 +28,11 @@ class ShopSettingsController extends ShopAdminController
                 'paypal_client_id' => Setting::get('shop_paypal_client_id', ''),
                 'paypal_secret' => Setting::get('shop_paypal_secret', ''),
                 'paypal_sandbox' => Setting::get('shop_paypal_sandbox', '1'),
+                'pay_sepa' => Setting::get('shop_pay_sepa', '0'),
+                'sepa_creditor_id' => Setting::get('shop_sepa_creditor_id', ''),
+                'sepa_creditor_name' => Setting::get('shop_sepa_creditor_name', ''),
+                'sepa_iban' => Setting::get('shop_sepa_iban', ''),
+                'sepa_bic' => Setting::get('shop_sepa_bic', ''),
                 'bank_info' => Setting::get('shop_bank_info', ''),
                 'email' => Setting::get('shop_email', ''),
                 'inv_company' => Setting::get('shop_invoice_company', ''),
@@ -72,6 +77,11 @@ class ShopSettingsController extends ShopAdminController
             Setting::set('shop_paypal_secret', $secret);
         }
         Setting::set('shop_paypal_sandbox', isset($_POST['paypal_sandbox']) ? '1' : '0');
+        Setting::set('shop_pay_sepa', isset($_POST['pay_sepa']) ? '1' : '0');
+        Setting::set('shop_sepa_creditor_id', trim($_POST['sepa_creditor_id'] ?? ''));
+        Setting::set('shop_sepa_creditor_name', trim($_POST['sepa_creditor_name'] ?? ''));
+        Setting::set('shop_sepa_iban', strtoupper(str_replace(' ', '', trim($_POST['sepa_iban'] ?? ''))));
+        Setting::set('shop_sepa_bic', strtoupper(trim($_POST['sepa_bic'] ?? '')));
         Setting::set('shop_bank_info', trim($_POST['bank_info'] ?? ''));
         Setting::set('shop_email', trim($_POST['email'] ?? ''));
         // Rechnungsdaten (Absender/Kontakt auf der Rechnung).

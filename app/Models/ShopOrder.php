@@ -158,9 +158,9 @@ class ShopOrder
         $pdo->prepare('INSERT INTO shop_orders (' . implode(', ', $cols) . ') VALUES ('
             . implode(', ', array_fill(0, count($cols), '?')) . ')')->execute($vals);
         $orderId = (int) $pdo->lastInsertId();
-        $stmt = $pdo->prepare('INSERT INTO shop_order_items (order_id, product_id, name, sku, price, qty) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt = $pdo->prepare('INSERT INTO shop_order_items (order_id, product_id, name, sku, price, qty, tax_rate) VALUES (?, ?, ?, ?, ?, ?, ?)');
         foreach ($items as $it) {
-            $stmt->execute([$orderId, $it['product_id'] ?: null, $it['name'], $it['sku'] ?? null, (int) $it['price'], (int) $it['qty']]);
+            $stmt->execute([$orderId, $it['product_id'] ?: null, $it['name'], $it['sku'] ?? null, (int) $it['price'], (int) $it['qty'], $it['tax_rate'] ?? null]);
         }
         $pdo->commit();
         return $orderId;

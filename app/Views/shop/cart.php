@@ -34,7 +34,10 @@
                     <tr><td colspan="3" style="text-align:right"><strong>Zwischensumme</strong></td><td><strong><?= e($fmt($subtotal)) ?></strong></td></tr>
                 </tfoot>
             </table>
-            <p class="muted small">Versandkosten werden im nächsten Schritt berechnet.</p>
+            <p class="muted small">
+                <?= \Core\Shop::taxMode() === 'inclusive' ? 'Preise inkl. MwSt., zzgl. Versandkosten.' : '' ?>
+                Versandkosten werden im nächsten Schritt berechnet.
+            </p>
             <div class="shop-cart-actions">
                 <button type="submit" class="cms-button cms-button-ghost">Warenkorb aktualisieren</button>
                 <a class="cms-button" href="<?= e(\Core\Shop::url('kasse')) ?>">Zur Kasse →</a>

@@ -41,6 +41,8 @@ class ShopSettingsController extends ShopAdminController
                 'inv_note' => Setting::get('shop_invoice_note', ''),
                 'inv_prefix' => Setting::get('shop_invoice_prefix', 'RE-'),
                 'inv_start' => Setting::get('shop_invoice_start', '1'),
+                'tax_mode' => Shop::taxMode(),
+                'tax_rate' => Setting::get('shop_default_tax_rate', '19'),
             ],
         ]);
     }
@@ -50,6 +52,14 @@ class ShopSettingsController extends ShopAdminController
         // Der Ein/Aus-Schalter liegt in den allgemeinen Einstellungen –
         // hier NICHT anfassen (sonst würde Speichern den Shop abschalten).
         Setting::set('shop_root_page', (string) (int) ($_POST['root_page'] ?? 0));
+
+        // Steuern: Modus + Standardsatz.
+        $taxMode = ($_POST['tax_mode'] ?? '') === 'inclusive' ? 'inclusive' : 'none';
+        Setting::set('shop_tax_mode', $taxMode);
+        $taxRate = (float) str_replace(',', '.', (string) ($_POST['tax_rate'] ?? '19'));
+        if ($taxRate < 0) { $taxRate = 0; }
+        if ($taxRate > 100) { $taxRate = 100; }
+        Setting::set('shop_default_tax_rate', rtrim(rtrim(number_format($taxRate, 2, '.', ''), '0'), '.') ?: '0');
         Setting::set('shop_currency', trim($_POST['currency'] ?? 'EUR') ?: 'EUR');
         Setting::set('shop_currency_symbol', trim($_POST['symbol'] ?? '€') ?: '€');
         Setting::set('shop_pay_invoice', isset($_POST['pay_invoice']) ? '1' : '0');
@@ -73,7 +83,13 @@ class ShopSettingsController extends ShopAdminController
         Setting::set('shop_invoice_tax', trim($_POST['inv_tax'] ?? ''));
         Setting::set('shop_invoice_bank', trim($_POST['inv_bank'] ?? ''));
         Setting::set('shop_invoice_logo', trim($_POST['inv_logo'] ?? ''));
-        Setting::set('shop_invoice_note', trim($_POST['inv_note'] ?? ''));
+        $invNote = trim($_POST['inv_note'] ?? '');
+        if ($invNote === '' && $taxMode === 'none') {
+            // Kleinunternehmer nach §19 UStG weisen keine Umsatzsteuer aus – ohne
+            // eigenen Hinweistext wird der gesetzlich übliche Satz vorbefüllt.
+            $invNote = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.';
+        }
+        Setting::set('shop_invoice_note', $invNote);
         Setting::set('shop_invoice_prefix', trim($_POST['inv_prefix'] ?? 'RE-'));
         Setting::set('shop_invoice_start', (string) max(1, (int) ($_POST['inv_start'] ?? 1)));
 

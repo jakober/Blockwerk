@@ -80,8 +80,8 @@ class ShopProduct
     public static function create(array $d): int
     {
         $pdo = Database::pdo();
-        $pdo->prepare('INSERT INTO shop_products (category_id, name, slug, sku, price, compare_price, description, short_desc, image, gallery, tier_prices, options, cross_sell, accessories, stock, weight, active, featured, position)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        $pdo->prepare('INSERT INTO shop_products (category_id, name, slug, sku, price, compare_price, description, short_desc, image, gallery, tier_prices, options, cross_sell, accessories, stock, weight, tax_rate, active, featured, position)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([
                 $d['category_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name']), $d['sku'] ?? null,
                 (int) $d['price'], $d['compare_price'] !== '' && $d['compare_price'] !== null ? (int) $d['compare_price'] : null,
@@ -89,6 +89,7 @@ class ShopProduct
                 $d['tier_prices'] ?? null, $d['options'] ?? null, $d['cross_sell'] ?? null, $d['accessories'] ?? null,
                 $d['stock'] !== '' && $d['stock'] !== null ? (int) $d['stock'] : null,
                 $d['weight'] !== '' && $d['weight'] !== null ? (int) $d['weight'] : null,
+                $d['tax_rate'] !== '' && $d['tax_rate'] !== null ? (float) $d['tax_rate'] : null,
                 (int) ($d['active'] ?? 1), (int) ($d['featured'] ?? 0), (int) ($d['position'] ?? 0),
             ]);
         return (int) $pdo->lastInsertId();
@@ -96,7 +97,7 @@ class ShopProduct
 
     public static function update(int $id, array $d): void
     {
-        Database::pdo()->prepare('UPDATE shop_products SET category_id = ?, name = ?, slug = ?, sku = ?, price = ?, compare_price = ?, description = ?, short_desc = ?, image = ?, gallery = ?, tier_prices = ?, options = ?, cross_sell = ?, accessories = ?, stock = ?, weight = ?, active = ?, featured = ?, position = ? WHERE id = ?')
+        Database::pdo()->prepare('UPDATE shop_products SET category_id = ?, name = ?, slug = ?, sku = ?, price = ?, compare_price = ?, description = ?, short_desc = ?, image = ?, gallery = ?, tier_prices = ?, options = ?, cross_sell = ?, accessories = ?, stock = ?, weight = ?, tax_rate = ?, active = ?, featured = ?, position = ? WHERE id = ?')
             ->execute([
                 $d['category_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name'], $id), $d['sku'] ?? null,
                 (int) $d['price'], $d['compare_price'] !== '' && $d['compare_price'] !== null ? (int) $d['compare_price'] : null,
@@ -104,6 +105,7 @@ class ShopProduct
                 $d['tier_prices'] ?? null, $d['options'] ?? null, $d['cross_sell'] ?? null, $d['accessories'] ?? null,
                 $d['stock'] !== '' && $d['stock'] !== null ? (int) $d['stock'] : null,
                 $d['weight'] !== '' && $d['weight'] !== null ? (int) $d['weight'] : null,
+                $d['tax_rate'] !== '' && $d['tax_rate'] !== null ? (float) $d['tax_rate'] : null,
                 (int) ($d['active'] ?? 1), (int) ($d['featured'] ?? 0), (int) ($d['position'] ?? 0), $id,
             ]);
     }

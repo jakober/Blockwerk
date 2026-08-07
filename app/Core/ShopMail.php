@@ -14,8 +14,12 @@ use Models\ShopOrder;
  */
 class ShopMail
 {
-    /** Bestellbestätigung an den Besteller. */
-    public static function confirmation(array $order, array $items): void
+    /**
+     * Bestellbestätigung an den Besteller – bei übergebener Rechnung liegt das
+     * PDF als Anhang bei (siehe ShopController::afterOrder(), das die Rechnung
+     * automatisch bei jeder Bestellung erzeugt).
+     */
+    public static function confirmation(array $order, array $items, ?string $invoicePdf = null, ?array $invoice = null): void
     {
         if (!filter_var($order['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
             return;
@@ -25,9 +29,21 @@ class ShopMail
             . 'vielen Dank für deine Bestellung ' . $order['number'] . ' bei ' . $name . ".\n\n"
             . self::itemsBlock($order, $items) . "\n"
             . self::bankBlockIfPrepay($order)
+            . ($invoicePdf !== null ? "Deine Rechnung findest du im Anhang als PDF.\n\n" : '')
             . "Den Status deiner Bestellung kannst du hier jederzeit einsehen:\n" . self::orderUrl((string) $order['token']) . "\n\n"
             . "Herzliche Grüße\n" . $name;
-        self::send((string) $order['email'], 'Bestellbestätigung ' . $order['number'] . ' – ' . $name, $body);
+        $attachments = null;
+        if ($invoicePdf !== null && $invoice !== null) {
+            $attachments = [[
+                'name' => \Core\InvoicePdf::filename($invoice),
+                'mime' => 'application/pdf',
+                'data' => $invoicePdf,
+            ]];
+        }
+        try {
+            Mailer::send((string) $order['email'], 'Bestellbestätigung ' . $order['number'] . ' – ' . $name, $body, null, null, $attachments);
+        } catch (\Throwable) {
+        }
     }
 
     /** Benachrichtigung an die im Shop hinterlegte Kontakt-E-Mail. */

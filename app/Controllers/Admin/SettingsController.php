@@ -61,7 +61,14 @@ class SettingsController extends AdminController
         Setting::set('languages', $langs !== [] ? implode(',', $langs) : 'de');
 
         Setting::set('cache_enabled', isset($_POST['cache_enabled']) ? '1' : '0');
-        Setting::set('shop_enabled', isset($_POST['shop_enabled']) ? '1' : '0');
+        $shopWasEnabled = Setting::get('shop_enabled', '0') === '1';
+        $shopEnabled = isset($_POST['shop_enabled']);
+        Setting::set('shop_enabled', $shopEnabled ? '1' : '0');
+        if ($shopEnabled && !$shopWasEnabled) {
+            // AGB + Widerrufsbelehrung nur einmalig anlegen, wenn der Shop
+            // aktiviert wird (nicht bei jeder Installation).
+            \Controllers\InstallController::seedShopLegalPages();
+        }
         \Core\Cache::clear();
 
         // KI-Assistent: Dienst-URL + Lizenzschlüssel.

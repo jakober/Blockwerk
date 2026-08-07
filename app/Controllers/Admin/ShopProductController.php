@@ -98,6 +98,7 @@ class ShopProductController extends ShopAdminController
             'gallery' => trim($_POST['gallery'] ?? '') ?: null,
             'stock' => ($_POST['stock'] ?? '') !== '' ? (int) $_POST['stock'] : null,
             'weight' => ($_POST['weight'] ?? '') !== '' ? (int) round(((float) str_replace(',', '.', (string) $_POST['weight'])) * 1000) : null,
+            'tax_rate' => ($_POST['tax_rate'] ?? '') !== '' ? (float) str_replace(',', '.', (string) $_POST['tax_rate']) : null,
             'active' => isset($_POST['active']) ? 1 : 0,
             'featured' => isset($_POST['featured']) ? 1 : 0,
             'position' => (int) ($_POST['position'] ?? 0),

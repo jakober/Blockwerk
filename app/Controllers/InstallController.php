@@ -5,6 +5,9 @@ namespace Controllers;
 
 use Core\Database;
 use Core\View;
+use Models\Layout;
+use Models\Page;
+use Models\Setting;
 use Models\User;
 use PDO;
 use PDOException;
@@ -340,6 +343,113 @@ HTML;
         $stmt = $pdo->prepare('INSERT INTO pages (title, slug, layout_id, in_menu, menu_order, published, content) VALUES (?, ?, ?, ?, ?, 1, ?)');
         foreach ($pages as [$title, $slug, $inMenu, $order, $content]) {
             $stmt->execute([$title, $slug, $layoutId, $inMenu, $order, json_encode($content, JSON_UNESCAPED_UNICODE)]);
+        }
+    }
+
+    /**
+     * AGB + Widerrufsbelehrung anlegen – nicht bei jeder Installation, sondern
+     * erst wenn der Shop aktiviert wird (Aufruf aus SettingsController::save()).
+     * Legt eine Seite nur an, wenn noch keine mit diesem Slug existiert.
+     */
+    public static function seedShopLegalPages(): void
+    {
+        $layout = Layout::default();
+        $layoutId = (int) ($layout['id'] ?? 0);
+        if ($layoutId === 0) {
+            return;
+        }
+        $ph = '<p><strong>[Bitte ergänzen]</strong> ';
+        if (Page::findBySlug('agb') === null) {
+            Page::create([
+                'parent_id' => null,
+                'title' => 'AGB',
+                'slug' => 'agb',
+                'layout_id' => $layoutId,
+                'in_menu' => 0,
+                'menu_order' => 90,
+                'published' => 1,
+                'lang' => cms_default_lang(),
+                'content' => json_encode(['rows' => [
+                    self::row('agb', self::textBlocks('agb', 'Allgemeine Geschäftsbedingungen', 'h1',
+                        $ph . 'Diese Muster-AGB sind ein Ausgangspunkt und ersetzen keine Rechtsberatung – '
+                            . 'bitte vor Veröffentlichung durch eine Anwältin/einen Anwalt prüfen lassen.</p>'
+                        . '<h3>§ 1 Geltungsbereich</h3>'
+                        . '<p>Diese Allgemeinen Geschäftsbedingungen gelten für alle Bestellungen über diesen '
+                            . 'Online-Shop.</p>'
+                        . '<h3>§ 2 Vertragsschluss</h3>'
+                        . '<p>Die Darstellung der Produkte im Shop stellt kein rechtlich bindendes Angebot dar, '
+                            . 'sondern einen unverbindlichen Online-Katalog. Mit dem Absenden der Bestellung gibt '
+                            . 'die Kundin/der Kunde ein verbindliches Angebot zum Kauf ab. Der Vertrag kommt mit '
+                            . 'Zugang der Bestellbestätigung zustande.</p>'
+                        . '<h3>§ 3 Preise und Versandkosten</h3>'
+                        . $ph . 'Angabe, ob Preise Endpreise inkl. gesetzlicher Umsatzsteuer sind, zzgl. der '
+                            . 'jeweils angezeigten Versandkosten.</p>'
+                        . '<h3>§ 4 Zahlung</h3>'
+                        . $ph . 'Angebotene Zahlungsarten benennen.</p>'
+                        . '<h3>§ 5 Lieferung</h3>'
+                        . $ph . 'Liefergebiet und übliche Lieferzeit angeben.</p>'
+                        . '<h3>§ 6 Eigentumsvorbehalt</h3>'
+                        . '<p>Die gelieferte Ware bleibt bis zur vollständigen Bezahlung Eigentum des Verkäufers.</p>'
+                        . '<h3>§ 7 Widerrufsrecht</h3>'
+                        . '<p>Für Verbraucherinnen und Verbraucher besteht ein gesetzliches Widerrufsrecht gemäß '
+                            . 'der gesonderten Widerrufsbelehrung.</p>'
+                        . '<h3>§ 8 Gewährleistung</h3>'
+                        . '<p>Es gilt die gesetzliche Mängelhaftung.</p>'
+                        . '<h3>§ 9 Streitbeilegung</h3>'
+                        . '<p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) '
+                            . 'bereit: <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">'
+                            . 'ec.europa.eu/consumers/odr</a>. Zur Teilnahme an einem Streitbeilegungsverfahren vor '
+                            . 'einer Verbraucherschlichtungsstelle sind wir nicht verpflichtet und nicht bereit.</p>')),
+                ]], JSON_UNESCAPED_UNICODE),
+            ]);
+        }
+        if (Page::findBySlug('widerrufsbelehrung') === null) {
+            Page::create([
+                'parent_id' => null,
+                'title' => 'Widerrufsbelehrung',
+                'slug' => 'widerrufsbelehrung',
+                'layout_id' => $layoutId,
+                'in_menu' => 0,
+                'menu_order' => 91,
+                'published' => 1,
+                'lang' => cms_default_lang(),
+                'content' => json_encode(['rows' => [
+                    self::row('wid', self::textBlocks('wid', 'Widerrufsbelehrung', 'h1',
+                        '<h3>Widerrufsrecht</h3>'
+                        . '<p>Verbraucherinnen und Verbraucher haben das Recht, binnen vierzehn Tagen ohne Angabe '
+                            . 'von Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab '
+                            . 'dem Tag, an dem du oder ein von dir benannter Dritter, der nicht der Beförderer ist, '
+                            . 'die Waren in Besitz genommen hat bzw. haben.</p>'
+                        . '<p>Um dein Widerrufsrecht auszuüben, musst du uns – <strong>[Bitte ergänzen: Name, '
+                            . 'Anschrift, Telefonnummer, E-Mail-Adresse eintragen]</strong> – mittels einer '
+                            . 'eindeutigen Erklärung (z. B. ein mit der Post versandter Brief oder E-Mail) über '
+                            . 'deinen Entschluss, diesen Vertrag zu widerrufen, informieren. Zur Wahrung der '
+                            . 'Widerrufsfrist reicht es aus, dass du die Mitteilung über die Ausübung des '
+                            . 'Widerrufsrechts vor Ablauf der Widerrufsfrist absendest.</p>'
+                        . '<h3>Folgen des Widerrufs</h3>'
+                        . '<p>Wenn du diesen Vertrag widerrufst, haben wir dir alle Zahlungen, die wir von dir '
+                            . 'erhalten haben, einschließlich der Lieferkosten (mit Ausnahme der zusätzlichen '
+                            . 'Kosten, die sich daraus ergeben, dass du eine andere Art der Lieferung als die von '
+                            . 'uns angebotene, günstigste Standardlieferung gewählt hast), unverzüglich und '
+                            . 'spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung '
+                            . 'über deinen Widerruf dieses Vertrags bei uns eingegangen ist. Für diese Rückzahlung '
+                            . 'verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen Transaktion '
+                            . 'eingesetzt hast, es sei denn, mit dir wurde ausdrücklich etwas anderes vereinbart; '
+                            . 'in keinem Fall werden dir wegen dieser Rückzahlung Entgelte berechnet. Wir können '
+                            . 'die Rückzahlung verweigern, bis wir die Waren wieder zurückerhalten haben oder bis '
+                            . 'du den Nachweis erbracht hast, dass du die Waren zurückgesandt hast, je nachdem, '
+                            . 'welches der frühere Zeitpunkt ist.</p>'
+                        . '<p>Du hast die Waren unverzüglich und in jedem Fall spätestens binnen vierzehn Tagen ab '
+                            . 'dem Tag, an dem du uns über den Widerruf dieses Vertrags unterrichtest, an uns '
+                            . 'zurückzusenden. Die Frist ist gewahrt, wenn du die Waren vor Ablauf der Frist von '
+                            . 'vierzehn Tagen absendest. Du trägst die unmittelbaren Kosten der Rücksendung der '
+                            . 'Waren. <strong>[Bitte ergänzen: ggf. abweichende Regelung zu den '
+                            . 'Rücksendekosten.]</strong></p>'
+                        . '<p>Du musst für einen etwaigen Wertverlust der Waren nur aufkommen, wenn dieser '
+                            . 'Wertverlust auf einen zur Prüfung der Beschaffenheit, Eigenschaften und '
+                            . 'Funktionsweise der Waren nicht notwendigen Umgang mit ihnen zurückzuführen ist.</p>')),
+                ]], JSON_UNESCAPED_UNICODE),
+            ]);
         }
     }
 }

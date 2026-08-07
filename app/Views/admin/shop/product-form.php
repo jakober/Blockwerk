@@ -52,6 +52,16 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
                 <label for="weight">Gewicht in kg (optional, für gewichtsabhängigen Versand)</label>
                 <input type="number" step="0.01" id="weight" name="weight" value="<?= e(!empty($product['weight']) ? rtrim(rtrim(number_format((int) $product['weight'] / 1000, 3, '.', ''), '0'), '.') : '') ?>" min="0">
             </div>
+            <div class="form-group">
+                <label for="tax_rate">Steuersatz</label>
+                <?php $curTax = $product['tax_rate'] ?? null; ?>
+                <select id="tax_rate" name="tax_rate">
+                    <option value="" <?= $curTax === null ? 'selected' : '' ?>>Standard (<?= e(rtrim(rtrim(number_format((float) \Core\Shop::defaultTaxRate(), 2, ',', ''), '0'), ',')) ?> %)</option>
+                    <option value="19" <?= $curTax !== null && (float) $curTax === 19.0 ? 'selected' : '' ?>>19 %</option>
+                    <option value="7" <?= $curTax !== null && (float) $curTax === 7.0 ? 'selected' : '' ?>>7 %</option>
+                    <option value="0" <?= $curTax !== null && (float) $curTax === 0.0 ? 'selected' : '' ?>>0 %</option>
+                </select>
+            </div>
         </div>
 
         <div class="form-group">

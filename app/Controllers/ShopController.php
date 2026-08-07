@@ -152,6 +152,8 @@ class ShopController
                 'last_name' => (string) ($customer['last_name'] ?? ''),
             ];
         }
+        $agbPage = \Models\Page::findBySlug('agb');
+        $widerrufPage = \Models\Page::findBySlug('widerrufsbelehrung');
         $this->render('checkout', 'Kasse', [
             'items' => Cart::items(),
             'subtotal' => Cart::subtotal(),
@@ -161,6 +163,8 @@ class ShopController
             'payments' => Shop::paymentMethods(),
             'form' => $form,
             'customer' => $customer,
+            'agbUrl' => $agbPage !== null ? url('/' . $agbPage['slug']) : url('/agb'),
+            'widerrufUrl' => $widerrufPage !== null ? url('/' . $widerrufPage['slug']) : url('/widerrufsbelehrung'),
         ]);
     }
 
@@ -424,6 +428,9 @@ class ShopController
         if (!filter_var($form['email'], FILTER_VALIDATE_EMAIL)) {
             return [[], [], 'Bitte eine gültige E-Mail-Adresse angeben.'];
         }
+        if (($_POST['accept_terms'] ?? '') === '') {
+            return [[], [], 'Bitte die AGB und die Widerrufsbelehrung akzeptieren, um die Bestellung abzuschließen.'];
+        }
 
         $payments = Shop::paymentMethods();
         $payment = $_POST['payment_method'] ?? '';
@@ -441,6 +448,9 @@ class ShopController
                 'sku' => $it['product']['sku'] ?? null,
                 'price' => (int) $it['unit'],
                 'qty' => $it['qty'],
+                // Steuersatz zum Bestellzeitpunkt einfrieren – spätere Änderungen
+                // am Produkt oder am Standardsatz dürfen bestehende Rechnungen nicht verändern.
+                'tax_rate' => Shop::productTaxRate($it['product']),
             ];
         }
 
@@ -530,8 +540,20 @@ class ShopController
             return;
         }
         $orderItems = ShopOrder::items($orderId);
+        // Rechnung sofort erzeugen (fortlaufende Nummer) und als PDF an die
+        // Bestätigung anhängen – bei Vorkasse/Rechnung ist das zugleich die
+        // Zahlungsaufforderung, bei sofort bezahlter PayPal-Order die fällige Rechnung.
+        $pdf = null;
+        $invoice = null;
+        try {
+            $invoice = \Models\Invoice::createForOrder($orderId);
+            $pdf = \Core\InvoicePdf::render($order, $orderItems, $invoice);
+        } catch (\Throwable) {
+            // Rechnungserzeugung darf die Bestellung nie verhindern – im Backend
+            // kann die Rechnung jederzeit nachträglich erstellt werden.
+        }
         // Bestätigung an den Besteller + Benachrichtigung an die Shop-Kontakt-E-Mail.
-        \Core\ShopMail::confirmation($order, $orderItems);
+        \Core\ShopMail::confirmation($order, $orderItems, $pdf, $invoice);
         \Core\ShopMail::shopNotification($order, $orderItems);
     }
 

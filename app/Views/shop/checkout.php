@@ -94,6 +94,14 @@ $clientId = \Core\Shop::paypalClientId();
                 <?php if (empty($payments)): ?><p class="muted">Es ist keine Zahlungsart konfiguriert.</p><?php endif; ?>
             </fieldset>
 
+            <fieldset class="shop-fieldset">
+                <label class="shop-option">
+                    <input type="checkbox" name="accept_terms" id="accept-terms" value="1" required>
+                    <span>Ich habe die <a href="<?= e($agbUrl) ?>" target="_blank" rel="noopener">AGB</a> und die
+                        <a href="<?= e($widerrufUrl) ?>" target="_blank" rel="noopener">Widerrufsbelehrung</a> gelesen und akzeptiere sie.*</span>
+                </label>
+            </fieldset>
+
             <div class="shop-checkout-submit">
                 <button type="submit" class="cms-button shop-place-order" id="place-order">Kostenpflichtig bestellen</button>
                 <div id="paypal-buttons" hidden></div>
@@ -110,6 +118,7 @@ $clientId = \Core\Shop::paypalClientId();
             <div class="shop-summary-row"><span>Zwischensumme</span><span id="sum-subtotal"><?= e($fmt($subtotal)) ?></span></div>
             <div class="shop-summary-row"><span>Versand</span><span id="sum-shipping">–</span></div>
             <div class="shop-summary-row shop-summary-total"><span>Gesamt</span><span id="sum-total"><?= e($fmt($subtotal)) ?></span></div>
+            <?php if (\Core\Shop::taxMode() === 'inclusive'): ?><p class="shop-tax-note muted small">inkl. MwSt.</p><?php endif; ?>
         </aside>
     </div>
 </div>

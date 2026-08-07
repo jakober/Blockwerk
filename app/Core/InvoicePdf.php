@@ -151,6 +151,29 @@ class InvoicePdf
         if ((int) ($order['shipping_cost'] ?? 0) > 0) {
             $rows[] = ['Versand' . (!empty($order['shipping_method']) ? ' (' . $order['shipping_method'] . ')' : ''), $fmt($order['shipping_cost'])];
         }
+        // Enthaltene MwSt. je Satz ausweisen (Bruttopreise) – gruppiert nach den zum
+        // Bestellzeitpunkt eingefrorenen Steuersätzen der Positionen. Versand wird
+        // vereinfachend mit dem Standardsatz besteuert.
+        if (!$isCredit && Shop::taxMode() === 'inclusive') {
+            $taxGroups = [];
+            foreach ($items as $it) {
+                $rate = ($it['tax_rate'] ?? null) !== null && $it['tax_rate'] !== '' ? (float) $it['tax_rate'] : Shop::defaultTaxRate();
+                $lineGross = (int) $it['price'] * (int) $it['qty'];
+                $taxGroups[$rate] = ($taxGroups[$rate] ?? 0) + Shop::taxAmount($lineGross, $rate);
+            }
+            if ((int) ($order['shipping_cost'] ?? 0) > 0) {
+                $shipRate = Shop::defaultTaxRate();
+                $taxGroups[$shipRate] = ($taxGroups[$shipRate] ?? 0) + Shop::taxAmount((int) $order['shipping_cost'], $shipRate);
+            }
+            ksort($taxGroups);
+            foreach ($taxGroups as $rate => $amount) {
+                if ($amount <= 0) {
+                    continue;
+                }
+                $rateLabel = rtrim(rtrim(number_format((float) $rate, 2, ',', ''), '0'), ',');
+                $rows[] = ['enthaltene MwSt. (' . $rateLabel . ' %)', $fmt($amount)];
+            }
+        }
         $blockH = count($rows) * 16 + 40;
         $pdf->rect($labelX - 14, $y - 14, self::R - $labelX + 14, $blockH, [248, 250, 252]);
         foreach ($rows as [$label, $val]) {

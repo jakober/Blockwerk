@@ -335,6 +335,8 @@ class Database
         self::ensureColumn($pdo, 'shop_shipping', 'countries', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_shipping', 'weight_tiers', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_orders', 'customer_id', 'INT UNSIGNED NULL');
+        self::ensureColumn($pdo, 'shop_products', 'tax_rate', 'DECIMAL(4,2) NULL');
+        self::ensureColumn($pdo, 'shop_order_items', 'tax_rate', 'DECIMAL(4,2) NULL');
     }
 
     /**

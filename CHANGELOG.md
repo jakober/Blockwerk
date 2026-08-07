@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 2.2.0 – 2026-08-07
+
+Erster Teil des Shop-Ausbaus: Rechtssicherheit (Steuern, AGB/Widerruf, automatische Rechnung).
+
+- **Mehrwertsteuer.** Neue Shop-Einstellung „Steuern": entweder keine Umsatzsteuer (Kleinunternehmer, § 19 UStG) oder Bruttopreise inkl. Mehrwertsteuer mit einstellbarem Standard-Steuersatz. Produkte können einen eigenen Steuersatz bekommen (sonst gilt der Standardsatz). Bei „inkl. MwSt." steht der Hinweis „inkl. MwSt., zzgl. Versandkosten" an Produkt, Warenkorb und Kasse, und die Rechnung weist den enthaltenen Steuerbetrag je Satz aus. Der Steuersatz einer Bestellung wird beim Kauf eingefroren – spätere Änderungen wirken sich nicht auf bereits ausgestellte Rechnungen aus. Wechselt der Shop zu „Kleinunternehmer" und es steht noch kein eigener Rechnungshinweis, wird der gesetzliche Hinweistext automatisch vorbefüllt.
+- **AGB und Widerrufsbelehrung.** Wird der Shop aktiviert, legt das CMS automatisch zwei Beispielseiten mit Muster-Rechtstexten an (nach dem Vorbild von Impressum/Datenschutz, mit „[Bitte ergänzen]"-Markierungen). Die Kasse verlangt jetzt zwingend die Zustimmung zu AGB und Widerrufsbelehrung, bevor eine Bestellung abgeschickt werden kann.
+- **Automatische Rechnung.** Jede Bestellung erhält ab sofort direkt eine fortlaufende Rechnungsnummer, und die Bestellbestätigung wird automatisch mit der Rechnung als PDF-Anhang verschickt – ganz ohne manuellen Klick im Backend.
+
 ## 2.1.0 – 2026-07-28
 
 - **Zeilen-Vorlagen per Drag & Drop.** Die Spalten-Layouts oben in der Werkzeugleiste (1 Spalte, 2 gleiche, 3 gleiche, Breit/Schmal …) lassen sich jetzt genau wie Inhalts-Blöcke direkt an die gewünschte Stelle im Editor ziehen – zwischen zwei Zeilen oder auf eine bestehende Zeile (oberer/unterer Bereich entscheidet, ob davor oder danach eingefügt wird). Der Klick zum Anhängen am Ende bleibt weiterhin möglich.

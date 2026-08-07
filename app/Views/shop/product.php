@@ -28,6 +28,7 @@ $soldOut = $product['stock'] !== null && (int) $product['stock'] <= 0;
                 <?php if ($hasCompare): ?><span class="shop-price-old"><?= e($fmt($product['compare_price'])) ?></span><?php endif; ?>
                 <span class="shop-price-big" id="shop-live-price"><?= e($fmt($product['price'])) ?></span>
             </div>
+            <?php if (\Core\Shop::taxMode() === 'inclusive'): ?><p class="shop-tax-note muted small">inkl. MwSt., zzgl. Versandkosten</p><?php endif; ?>
             <?php if (!empty($product['short_desc'])): ?><p class="shop-product-short"><?= e($product['short_desc']) ?></p><?php endif; ?>
 
             <?php if (!empty($tiers)): ?>

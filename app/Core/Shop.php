@@ -63,6 +63,36 @@ class Shop
         return (int) round(((float) $input) * 100);
     }
 
+    /** 'none' = Kleinunternehmer §19 UStG (keine MwSt.-Ausweisung), 'inclusive' = Bruttopreise inkl. MwSt. */
+    public static function taxMode(): string
+    {
+        $mode = Setting::get('shop_tax_mode', 'none');
+        return $mode === 'inclusive' ? 'inclusive' : 'none';
+    }
+
+    /** Standard-Steuersatz in Prozent (greift, wenn ein Produkt keinen eigenen hat). */
+    public static function defaultTaxRate(): float
+    {
+        $rate = (float) str_replace(',', '.', (string) Setting::get('shop_default_tax_rate', '19'));
+        return $rate >= 0 && $rate <= 100 ? $rate : 19.0;
+    }
+
+    /** Steuersatz eines Produkts – eigener Satz, sonst der Standardsatz. */
+    public static function productTaxRate(array $product): float
+    {
+        $own = $product['tax_rate'] ?? null;
+        return $own !== null && $own !== '' ? (float) $own : self::defaultTaxRate();
+    }
+
+    /** In einem Bruttobetrag enthaltene Steuer (Cent), bei gegebenem Prozentsatz. */
+    public static function taxAmount(int $grossCents, float $rate): int
+    {
+        if ($rate <= 0) {
+            return 0;
+        }
+        return (int) round($grossCents - $grossCents / (1 + $rate / 100));
+    }
+
     public static function paymentMethods(): array
     {
         $methods = [];

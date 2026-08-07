@@ -36,6 +36,23 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
     </div>
 
     <div class="card">
+        <h2>Steuern</h2>
+        <p class="muted small">Bestimmt, ob und wie Mehrwertsteuer auf Preisen, in der Kasse und auf Rechnungen ausgewiesen wird.</p>
+        <div class="form-group">
+            <label for="tax_mode">Besteuerung</label>
+            <select id="tax_mode" name="tax_mode">
+                <option value="none" <?= $s['tax_mode'] === 'none' ? 'selected' : '' ?>>Keine Umsatzsteuer (Kleinunternehmer, § 19 UStG)</option>
+                <option value="inclusive" <?= $s['tax_mode'] === 'inclusive' ? 'selected' : '' ?>>Bruttopreise inkl. Mehrwertsteuer</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tax_rate">Standard-Steuersatz (%)</label>
+            <input type="text" id="tax_rate" name="tax_rate" value="<?= e($s['tax_rate']) ?>" style="max-width:90px" inputmode="decimal">
+            <p class="muted small">Gilt, wenn ein Produkt keinen eigenen Steuersatz hat. Die Produktpreise selbst ändern sich nicht – bei „inkl. MwSt." wird nur der enthaltene Steuerbetrag ausgewiesen.</p>
+        </div>
+    </div>
+
+    <div class="card">
         <h2>Zahlungsarten</h2>
         <div class="form-group checkbox-group">
             <label><input type="checkbox" name="pay_invoice" <?= $s['pay_invoice'] === '1' ? 'checked' : '' ?>> Kauf auf Rechnung</label>

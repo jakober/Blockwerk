@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 2.3.0 – 2026-08-07
+
+Zweiter Teil des Shop-Ausbaus: Kernfunktionen vervollständigt (Bestand, Rückerstattung, Versand, SEO, Paginierung).
+
+- **Überverkaufsschutz.** Die Kasse prüft jetzt den Lagerbestand vor dem Anlegen einer Bestellung und lehnt mit klarer Fehlermeldung ab, wenn nicht genug auf Lager ist. Bei niedrigem Bestand (1–5 Stück) zeigen Produktseite und Kachel „nur noch N auf Lager" an. Wird eine Bestellung storniert, wird der Bestand automatisch zurückgebucht – wird die Stornierung rückgängig gemacht, wieder abgezogen.
+- **Rückerstattung.** Neuer Bestellstatus „Erstattet" mit eigener Aktion im Bestelldetail: Bei PayPal-Zahlungen läuft die Rückerstattung direkt über die PayPal-API (ganz oder teilweise), bei Rechnung/Vorkasse ist es eine reine Status-Änderung. In beiden Fällen wird der Lagerbestand zurückgebucht und der Kunde per E-Mail informiert.
+- **Versand-Tracking.** Sendungsnummer und Tracking-Link lassen sich im Bestelldetail hinterlegen; beim Wechsel auf „Versendet" bekommt der Kunde sie automatisch in der Status-E-Mail mitgeschickt.
+- **SEO für Produkte und Kategorien.** Eigene SEO-Titel und Meta-Beschreibungen wie bei Seiten, inklusive Sitemap-Einträgen für alle aktiven Produkte und Kategorien.
+- **Paginierung im Katalog.** Kategorieseiten mit vielen Produkten zeigen jetzt eine Seiten-Navigation statt alles auf einmal zu laden (Seitengröße einstellbar).
+
 ## 2.2.0 – 2026-08-07
 
 Erster Teil des Shop-Ausbaus: Rechtssicherheit (Steuern, AGB/Widerruf, automatische Rechnung).

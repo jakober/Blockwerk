@@ -32,5 +32,18 @@
                 <?= \Core\View::fetch('shop/_card', ['p' => $p, 'fmt' => $fmt]) ?>
             <?php endforeach; ?>
         </div>
+        <?php if (($pages ?? 1) > 1):
+            $pageUrl = static function (int $n) {
+                $params = $_GET;
+                $params['seite'] = $n;
+                return \Core\Shop::url('kategorie/' . $category['slug']) . '?' . http_build_query($params);
+            };
+        ?>
+            <nav class="shop-pagination">
+                <?php if ($page > 1): ?><a class="cms-button cms-button-ghost" href="<?= e($pageUrl($page - 1)) ?>">← Zurück</a><?php endif; ?>
+                <span class="muted small">Seite <?= (int) $page ?> von <?= (int) $pages ?></span>
+                <?php if ($page < $pages): ?><a class="cms-button cms-button-ghost" href="<?= e($pageUrl($page + 1)) ?>">Weiter →</a><?php endif; ?>
+            </nav>
+        <?php endif; ?>
     <?php endif; ?>
 </div>

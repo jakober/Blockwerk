@@ -74,14 +74,25 @@ class ShopMail
             'paid' => 'deine Zahlung ist bei uns eingegangen – vielen Dank!',
             'shipped' => 'deine Bestellung wurde versendet und ist auf dem Weg zu dir.',
             'cancelled' => 'deine Bestellung wurde storniert.',
+            'refunded' => 'wir haben den Betrag deiner Bestellung erstattet.',
             default => 'der Status deiner Bestellung hat sich geändert.',
         };
         $name = Shop::invoiceName();
         $label = ShopOrder::statusLabel($status);
+        $tracking = '';
+        if ($status === 'shipped' && trim((string) ($order['tracking_number'] ?? '')) !== '') {
+            $tracking = 'Sendungsnummer: ' . trim((string) $order['tracking_number']) . "\n";
+            $url = trim((string) ($order['tracking_url'] ?? ''));
+            if ($url !== '') {
+                $tracking .= 'Sendung verfolgen: ' . $url . "\n";
+            }
+            $tracking .= "\n";
+        }
         $body = 'Hallo ' . trim((string) ($order['first_name'] ?? '')) . ",\n\n"
             . $intro . "\n\n"
             . 'Bestellung: ' . $order['number'] . "\n"
             . 'Neuer Status: ' . $label . "\n\n"
+            . $tracking
             . "Details ansehen:\n" . self::orderUrl((string) $order['token']) . "\n\n"
             . "Herzliche Grüße\n" . $name;
         self::send((string) $order['email'], 'Bestellung ' . $order['number'] . ': ' . $label, $body);

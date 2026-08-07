@@ -37,7 +37,36 @@ class ShopProduct
      * Produkte einer Kategorie (inkl. Unterkategorien) mit Filtern.
      * @param int[] $categoryIds  leer = alle
      */
-    public static function query(array $categoryIds = [], array $opts = []): array
+    public static function query(array $categoryIds = [], array $opts = [], int $limit = 0, int $offset = 0): array
+    {
+        [$where, $params] = self::queryWhere($categoryIds, $opts);
+        $order = match ($opts['sort'] ?? '') {
+            'price_asc' => 'price ASC',
+            'price_desc' => 'price DESC',
+            'name' => 'name ASC',
+            'newest' => 'created_at DESC',
+            default => 'position ASC, name ASC',
+        };
+        $sql = 'SELECT * FROM shop_products WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $order;
+        if ($limit > 0) {
+            $sql .= ' LIMIT ' . $limit . ' OFFSET ' . max(0, $offset);
+        }
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /** Gesamtanzahl für dieselben Filter wie query() – für die Paginierung. */
+    public static function queryCount(array $categoryIds = [], array $opts = []): int
+    {
+        [$where, $params] = self::queryWhere($categoryIds, $opts);
+        $stmt = Database::pdo()->prepare('SELECT COUNT(*) FROM shop_products WHERE ' . implode(' AND ', $where));
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** @return array{0:string[],1:array} [WHERE-Bedingungen, Parameter] */
+    private static function queryWhere(array $categoryIds, array $opts): array
     {
         $where = ['active = 1'];
         $params = [];
@@ -58,17 +87,7 @@ class ShopProduct
             $where[] = 'price <= ?';
             $params[] = (int) $opts['max'];
         }
-        $order = match ($opts['sort'] ?? '') {
-            'price_asc' => 'price ASC',
-            'price_desc' => 'price DESC',
-            'name' => 'name ASC',
-            'newest' => 'created_at DESC',
-            default => 'position ASC, name ASC',
-        };
-        $sql = 'SELECT * FROM shop_products WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $order;
-        $stmt = Database::pdo()->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll();
+        return [$where, $params];
     }
 
     public static function priceRange(): array
@@ -80,8 +99,8 @@ class ShopProduct
     public static function create(array $d): int
     {
         $pdo = Database::pdo();
-        $pdo->prepare('INSERT INTO shop_products (category_id, name, slug, sku, price, compare_price, description, short_desc, image, gallery, tier_prices, options, cross_sell, accessories, stock, weight, tax_rate, active, featured, position)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        $pdo->prepare('INSERT INTO shop_products (category_id, name, slug, sku, price, compare_price, description, short_desc, image, gallery, tier_prices, options, cross_sell, accessories, stock, weight, tax_rate, meta_title, meta_description, active, featured, position)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([
                 $d['category_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name']), $d['sku'] ?? null,
                 (int) $d['price'], $d['compare_price'] !== '' && $d['compare_price'] !== null ? (int) $d['compare_price'] : null,
@@ -90,6 +109,7 @@ class ShopProduct
                 $d['stock'] !== '' && $d['stock'] !== null ? (int) $d['stock'] : null,
                 $d['weight'] !== '' && $d['weight'] !== null ? (int) $d['weight'] : null,
                 $d['tax_rate'] !== '' && $d['tax_rate'] !== null ? (float) $d['tax_rate'] : null,
+                $d['meta_title'] ?? null, $d['meta_description'] ?? null,
                 (int) ($d['active'] ?? 1), (int) ($d['featured'] ?? 0), (int) ($d['position'] ?? 0),
             ]);
         return (int) $pdo->lastInsertId();
@@ -97,7 +117,7 @@ class ShopProduct
 
     public static function update(int $id, array $d): void
     {
-        Database::pdo()->prepare('UPDATE shop_products SET category_id = ?, name = ?, slug = ?, sku = ?, price = ?, compare_price = ?, description = ?, short_desc = ?, image = ?, gallery = ?, tier_prices = ?, options = ?, cross_sell = ?, accessories = ?, stock = ?, weight = ?, tax_rate = ?, active = ?, featured = ?, position = ? WHERE id = ?')
+        Database::pdo()->prepare('UPDATE shop_products SET category_id = ?, name = ?, slug = ?, sku = ?, price = ?, compare_price = ?, description = ?, short_desc = ?, image = ?, gallery = ?, tier_prices = ?, options = ?, cross_sell = ?, accessories = ?, stock = ?, weight = ?, tax_rate = ?, meta_title = ?, meta_description = ?, active = ?, featured = ?, position = ? WHERE id = ?')
             ->execute([
                 $d['category_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name'], $id), $d['sku'] ?? null,
                 (int) $d['price'], $d['compare_price'] !== '' && $d['compare_price'] !== null ? (int) $d['compare_price'] : null,
@@ -106,6 +126,7 @@ class ShopProduct
                 $d['stock'] !== '' && $d['stock'] !== null ? (int) $d['stock'] : null,
                 $d['weight'] !== '' && $d['weight'] !== null ? (int) $d['weight'] : null,
                 $d['tax_rate'] !== '' && $d['tax_rate'] !== null ? (float) $d['tax_rate'] : null,
+                $d['meta_title'] ?? null, $d['meta_description'] ?? null,
                 (int) ($d['active'] ?? 1), (int) ($d['featured'] ?? 0), (int) ($d['position'] ?? 0), $id,
             ]);
     }
@@ -227,6 +248,12 @@ class ShopProduct
     public static function decreaseStock(int $id, int $qty): void
     {
         Database::pdo()->prepare('UPDATE shop_products SET stock = GREATEST(0, stock - ?) WHERE id = ? AND stock IS NOT NULL')->execute([$qty, $id]);
+    }
+
+    /** Gegenstück zu decreaseStock() – z. B. bei Stornierung/Erstattung. */
+    public static function increaseStock(int $id, int $qty): void
+    {
+        Database::pdo()->prepare('UPDATE shop_products SET stock = stock + ? WHERE id = ? AND stock IS NOT NULL')->execute([$qty, $id]);
     }
 
     private static function uniqueSlug(string $slug, ?int $ignore = null): string

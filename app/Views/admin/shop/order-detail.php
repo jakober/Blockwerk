@@ -1,5 +1,5 @@
 <?php
-$statusLabels = ['new' => 'Neu', 'paid' => 'Bezahlt', 'shipped' => 'Versendet', 'cancelled' => 'Storniert'];
+$statusLabels = \Models\ShopOrder::STATUS_LABELS;
 $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
 ?>
 <div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -52,21 +52,57 @@ $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
             <?= csrf_field() ?>
             <div class="form-group">
                 <select name="status">
-                    <?php foreach ($statusLabels as $k => $label): ?>
-                        <option value="<?= $k ?>" <?= $order['status'] === $k ? 'selected' : '' ?>><?= e($label) ?></option>
+                    <?php foreach (['new', 'paid', 'shipped', 'cancelled'] as $k): ?>
+                        <option value="<?= $k ?>" <?= $order['status'] === $k ? 'selected' : '' ?>><?= e($statusLabels[$k]) ?></option>
                     <?php endforeach; ?>
+                    <?php if ($order['status'] === 'refunded'): ?>
+                        <option value="refunded" selected disabled><?= e($statusLabels['refunded']) ?></option>
+                    <?php endif; ?>
                 </select>
             </div>
+            <?php if (in_array($order['status'], ['new', 'paid'], true)): ?>
+                <div class="form-group">
+                    <label for="tracking_number">Sendungsnummer (optional)</label>
+                    <input type="text" id="tracking_number" name="tracking_number" value="<?= e($order['tracking_number'] ?? '') ?>" placeholder="z. B. DHL-Trackingnummer">
+                </div>
+                <div class="form-group">
+                    <label for="tracking_url">Tracking-Link (optional)</label>
+                    <input type="text" id="tracking_url" name="tracking_url" value="<?= e($order['tracking_url'] ?? '') ?>" placeholder="https://…">
+                </div>
+            <?php endif; ?>
             <label class="checkbox-group" style="font-size:13px"><input type="checkbox" name="no_mail" value="1"> Kunde nicht per E-Mail benachrichtigen</label>
-            <p class="muted small" style="margin:4px 0 8px">Bei „Bezahlt", „Versendet" oder „Storniert" erhält der Kunde standardmäßig eine E-Mail mit dem neuen Status.</p>
+            <p class="muted small" style="margin:4px 0 8px">Bei „Bezahlt", „Versendet" oder „Storniert" erhält der Kunde standardmäßig eine E-Mail mit dem neuen Status – bei „Versendet" inklusive Sendungsnummer, falls hinterlegt.</p>
             <button type="submit" class="btn btn-primary btn-small">Status setzen</button>
         </form>
+
+        <?php if ($order['status'] !== 'refunded'): ?>
+            <h3 style="margin-top:20px">Rückerstattung</h3>
+            <form method="post" action="<?= e(url('/admin/shop/orders/' . $order['id'] . '/refund')) ?>" data-confirm="Bestellung „<?= e($order['number']) ?>“ erstatten?<?= ($order['payment_method'] ?? '') === 'paypal' ? ' Der Betrag wird über PayPal zurückgebucht.' : '' ?>" data-confirm-ok="Erstatten">
+                <?= csrf_field() ?>
+                <div class="form-group">
+                    <label for="refund_amount">Betrag (leer = voller Bestellwert <?= e($fmt($order['total'])) ?>)</label>
+                    <input type="text" id="refund_amount" name="amount" placeholder="<?= e($fmt($order['total'])) ?>" inputmode="decimal">
+                </div>
+                <p class="muted small" style="margin:4px 0 8px">
+                    <?= ($order['payment_method'] ?? '') === 'paypal' && !empty($order['paypal_order_id'])
+                        ? 'Wird über PayPal zurückgebucht, Lagerbestand wird zurückgebucht und der Kunde per E-Mail informiert.'
+                        : 'Nur Status-Änderung – die Rückzahlung (Überweisung) erfolgt außerhalb des Systems. Lagerbestand wird zurückgebucht.' ?>
+                </p>
+                <button type="submit" class="btn btn-small btn-danger">Als erstattet markieren</button>
+            </form>
+        <?php endif; ?>
 
         <h3 style="margin-top:20px">Zahlung</h3>
         <p class="small"><?= e($order['payment_method'] ?? '–') ?> ·
             <?= $order['payment_status'] === 'paid' ? '<span class="badge badge-green">bezahlt</span>' : '<span class="badge badge-amber">offen</span>' ?>
             <?php if (!empty($order['paypal_order_id'])): ?><br><span class="muted small">PayPal: <?= e($order['paypal_order_id']) ?></span><?php endif; ?>
         </p>
+        <?php if (!empty($order['tracking_number'])): ?>
+            <h3 style="margin-top:20px">Versand</h3>
+            <p class="small">Sendungsnummer: <?= e($order['tracking_number']) ?>
+                <?php if (!empty($order['tracking_url'])): ?><br><a href="<?= e($order['tracking_url']) ?>" target="_blank" rel="noopener">Sendung verfolgen</a><?php endif; ?>
+            </p>
+        <?php endif; ?>
 
         <h3 style="margin-top:20px">Kunde</h3>
         <p class="small">

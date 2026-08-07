@@ -19,11 +19,11 @@ use Models\ShopShipping;
 
 class ShopController
 {
-    private function render(string $view, string $title, array $data = []): void
+    private function render(string $view, string $title, array $data = [], string $metaDescription = ''): void
     {
         $data['shop_title'] = $title;
         $html = View::fetch('shop/' . $view, $data);
-        echo (new Renderer())->renderRaw($title, $html);
+        echo (new Renderer())->renderRaw($title, $html, Renderer::metaHead($title, $metaDescription));
     }
 
     /* ---------- Katalog ---------- */
@@ -50,13 +50,23 @@ class ShopController
             'min' => ($_GET['min'] ?? '') !== '' ? Shop::parsePrice((string) $_GET['min']) : '',
             'max' => ($_GET['max'] ?? '') !== '' ? Shop::parsePrice((string) $_GET['max']) : '',
         ];
-        $this->render('category', $cat['name'], [
+        $pageSize = max(1, (int) Setting::get('shop_page_size', '24'));
+        $page = max(1, (int) ($_GET['seite'] ?? 1));
+        $total = ShopProduct::queryCount($ids, $opts);
+        $pages = max(1, (int) ceil($total / $pageSize));
+        $page = min($page, $pages);
+
+        $title = trim((string) ($cat['meta_title'] ?? '')) !== '' ? (string) $cat['meta_title'] : $cat['name'];
+        $description = trim((string) ($cat['meta_description'] ?? '')) !== '' ? (string) $cat['meta_description'] : (string) ($cat['description'] ?? '');
+        $this->render('category', $title, [
             'category' => $cat,
             'subcategories' => array_filter(ShopCategory::all(), fn ($c) => (int) ($c['parent_id'] ?? 0) === (int) $cat['id']),
-            'products' => ShopProduct::query($ids, $opts),
+            'products' => ShopProduct::query($ids, $opts, $pageSize, ($page - 1) * $pageSize),
             'opts' => $opts,
             'range' => ShopProduct::priceRange(),
-        ]);
+            'page' => $page,
+            'pages' => $pages,
+        ], $description);
     }
 
     public function product(string $slug): void
@@ -67,7 +77,9 @@ class ShopController
             return;
         }
         $cat = $product['category_id'] ? ShopCategory::find((int) $product['category_id']) : null;
-        $this->render('product', $product['name'], [
+        $title = trim((string) ($product['meta_title'] ?? '')) !== '' ? (string) $product['meta_title'] : $product['name'];
+        $description = trim((string) ($product['meta_description'] ?? '')) !== '' ? (string) $product['meta_description'] : (string) ($product['short_desc'] ?? '');
+        $this->render('product', $title, [
             'product' => $product,
             'category' => $cat,
             'gallery' => array_filter(array_map('trim', explode("\n", (string) ($product['gallery'] ?? '')))),
@@ -75,7 +87,7 @@ class ShopController
             'optionGroups' => ShopProduct::options($product),
             'crossSell' => array_filter(ShopProduct::relatedProducts($product, 'cross_sell'), fn ($r) => (int) $r['id'] !== (int) $product['id']),
             'accessories' => array_filter(ShopProduct::relatedProducts($product, 'accessories'), fn ($r) => (int) $r['id'] !== (int) $product['id']),
-        ]);
+        ], $description);
     }
 
     /* ---------- Warenkorb ---------- */
@@ -412,6 +424,12 @@ class ShopController
         $items = Cart::items();
         if ($items === []) {
             return [[], [], 'Dein Warenkorb ist leer.'];
+        }
+        foreach ($items as $it) {
+            $stock = $it['product']['stock'] ?? null;
+            if ($stock !== null && (int) $it['qty'] > (int) $stock) {
+                return [[], [], 'Nur noch ' . (int) $stock . ' Stück von „' . $it['product']['name'] . '“ verfügbar.'];
+            }
         }
 
         $required = ['email', 'first_name', 'last_name', 'street', 'zip', 'city'];

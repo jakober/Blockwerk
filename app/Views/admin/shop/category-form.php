@@ -47,6 +47,18 @@ $action = $isEdit ? '/admin/shop/categories/' . $category['id'] : '/admin/shop/c
             <textarea id="description" name="description" rows="3"><?= e($category['description'] ?? '') ?></textarea>
         </div>
 
+        <details class="seo-details" <?= !empty($category['meta_title']) || !empty($category['meta_description']) ? 'open' : '' ?>>
+            <summary>SEO (Suchmaschinen-Einstellungen)</summary>
+            <div class="form-group">
+                <label for="meta_title">SEO-Titel (leer = Kategoriename)</label>
+                <input type="text" id="meta_title" name="meta_title" maxlength="200" value="<?= e($category['meta_title'] ?? '') ?>" placeholder="Titel für Google &amp; Browser-Tab">
+            </div>
+            <div class="form-group">
+                <label for="meta_description">Meta-Beschreibung (empfohlen: 120–160 Zeichen)</label>
+                <textarea id="meta_description" name="meta_description" rows="3" maxlength="500" placeholder="Kurze Beschreibung, die in Suchergebnissen angezeigt wird"><?= e($category['meta_description'] ?? '') ?></textarea>
+            </div>
+        </details>
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Speichern' : 'Anlegen' ?></button>
             <a class="btn btn-ghost" href="<?= e(url('/admin/shop/categories')) ?>">Abbrechen</a>

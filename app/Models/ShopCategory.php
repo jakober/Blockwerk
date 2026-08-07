@@ -67,15 +67,15 @@ class ShopCategory
     public static function create(array $d): int
     {
         $pdo = Database::pdo();
-        $pdo->prepare('INSERT INTO shop_categories (parent_id, name, slug, description, image, position) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$d['parent_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name']), $d['description'] ?? null, $d['image'] ?? null, (int) ($d['position'] ?? 0)]);
+        $pdo->prepare('INSERT INTO shop_categories (parent_id, name, slug, description, image, position, meta_title, meta_description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$d['parent_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name']), $d['description'] ?? null, $d['image'] ?? null, (int) ($d['position'] ?? 0), $d['meta_title'] ?? null, $d['meta_description'] ?? null]);
         return (int) $pdo->lastInsertId();
     }
 
     public static function update(int $id, array $d): void
     {
-        Database::pdo()->prepare('UPDATE shop_categories SET parent_id = ?, name = ?, slug = ?, description = ?, image = ?, position = ? WHERE id = ?')
-            ->execute([$d['parent_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name'], $id), $d['description'] ?? null, $d['image'] ?? null, (int) ($d['position'] ?? 0), $id]);
+        Database::pdo()->prepare('UPDATE shop_categories SET parent_id = ?, name = ?, slug = ?, description = ?, image = ?, position = ?, meta_title = ?, meta_description = ? WHERE id = ?')
+            ->execute([$d['parent_id'] ?: null, $d['name'], self::uniqueSlug($d['slug'] ?: $d['name'], $id), $d['description'] ?? null, $d['image'] ?? null, (int) ($d['position'] ?? 0), $d['meta_title'] ?? null, $d['meta_description'] ?? null, $id]);
     }
 
     public static function delete(int $id): void

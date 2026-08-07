@@ -337,6 +337,12 @@ class Database
         self::ensureColumn($pdo, 'shop_orders', 'customer_id', 'INT UNSIGNED NULL');
         self::ensureColumn($pdo, 'shop_products', 'tax_rate', 'DECIMAL(4,2) NULL');
         self::ensureColumn($pdo, 'shop_order_items', 'tax_rate', 'DECIMAL(4,2) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'tracking_number', 'VARCHAR(120) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'tracking_url', 'VARCHAR(255) NULL');
+        self::ensureColumn($pdo, 'shop_products', 'meta_title', 'VARCHAR(200) NULL');
+        self::ensureColumn($pdo, 'shop_products', 'meta_description', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_categories', 'meta_title', 'VARCHAR(200) NULL');
+        self::ensureColumn($pdo, 'shop_categories', 'meta_description', 'TEXT NULL');
     }
 
     /**

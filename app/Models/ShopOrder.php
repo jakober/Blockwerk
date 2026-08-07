@@ -13,6 +13,7 @@ class ShopOrder
         'paid' => 'Bezahlt',
         'shipped' => 'Versendet',
         'cancelled' => 'Storniert',
+        'refunded' => 'Erstattet',
     ];
 
     public static function statusLabel(string $status): string
@@ -169,6 +170,12 @@ class ShopOrder
     public static function setStatus(int $id, string $status): void
     {
         Database::pdo()->prepare('UPDATE shop_orders SET status = ? WHERE id = ?')->execute([$status, $id]);
+    }
+
+    public static function setTracking(int $id, ?string $number, ?string $url): void
+    {
+        Database::pdo()->prepare('UPDATE shop_orders SET tracking_number = ?, tracking_url = ? WHERE id = ?')
+            ->execute([$number, $url, $id]);
     }
 
     public static function setPaid(int $id, ?string $paypalId = null): void

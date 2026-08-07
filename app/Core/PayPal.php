@@ -102,6 +102,41 @@ class PayPal
         ];
     }
 
+    /**
+     * Erstattet eine per PayPal bezahlte Bestellung – ganz oder teilweise.
+     * Gespeichert ist nur die PayPal-Order-ID, nicht die Capture-ID; die wird
+     * hier zuerst per GET auf die Order nachgeschlagen.
+     * @return array{0:bool,1:?string}  [erfolgreich, error]
+     */
+    public static function refund(string $paypalOrderId, ?int $amountCents, string $currency): array
+    {
+        $token = self::token();
+        if ($token === null) {
+            return [false, 'PayPal ist nicht korrekt konfiguriert.'];
+        }
+        [$order, $code] = self::request('GET', '/v2/checkout/orders/' . rawurlencode($paypalOrderId), $token, []);
+        if ($order === null || $code !== 200) {
+            return [false, 'PayPal-Bestellung konnte nicht abgerufen werden.'];
+        }
+        $captureId = $order['purchase_units'][0]['payments']['captures'][0]['id'] ?? null;
+        if (!is_string($captureId) || $captureId === '') {
+            return [false, 'Keine erfasste Zahlung zu dieser PayPal-Bestellung gefunden.'];
+        }
+        $payload = [];
+        if ($amountCents !== null) {
+            $payload['amount'] = [
+                'currency_code' => $currency,
+                'value' => number_format($amountCents / 100, 2, '.', ''),
+            ];
+        }
+        [$res, $rcode] = self::request('POST', '/v2/payments/captures/' . rawurlencode($captureId) . '/refund', $token, $payload);
+        if ($res === null || ($rcode !== 200 && $rcode !== 201)) {
+            return [false, 'Rückerstattung über PayPal fehlgeschlagen.'];
+        }
+        $status = (string) ($res['status'] ?? '');
+        return [in_array($status, ['COMPLETED', 'PENDING'], true), $status === 'PENDING' ? 'Rückerstattung ist bei PayPal in Bearbeitung.' : null];
+    }
+
     /* ---------- Abonnements (wiederkehrende Zahlung) ---------- */
 
     /** @return array{0:?array,1:int} [decodedResponse, httpCode] */

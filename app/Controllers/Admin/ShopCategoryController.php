@@ -78,6 +78,8 @@ class ShopCategoryController extends ShopAdminController
             'description' => trim($_POST['description'] ?? '') ?: null,
             'image' => trim($_POST['image'] ?? '') ?: null,
             'position' => (int) ($_POST['position'] ?? 0),
+            'meta_title' => trim($_POST['meta_title'] ?? '') ?: null,
+            'meta_description' => trim($_POST['meta_description'] ?? '') ?: null,
         ];
     }
 

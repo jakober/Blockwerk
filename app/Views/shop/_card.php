@@ -18,6 +18,9 @@ $hasCompare = ($p['compare_price'] ?? null) !== null && (int) $p['compare_price'
     </div>
     <?php if (\Core\Shop::taxMode() === 'inclusive'): ?><p class="shop-tax-note muted small">inkl. MwSt., zzgl. Versandkosten</p><?php endif; ?>
     <?php $hasOptions = \Models\ShopProduct::options($p) !== []; ?>
+    <?php if ($p['stock'] !== null && (int) $p['stock'] > 0 && (int) $p['stock'] <= 5): ?>
+        <p class="shop-lowstock muted small">Nur noch <?= (int) $p['stock'] ?> auf Lager</p>
+    <?php endif; ?>
     <?php if ($p['stock'] !== null && (int) $p['stock'] <= 0): ?>
         <div class="shop-card-form"><button type="button" class="cms-button shop-add" disabled>Ausverkauft</button></div>
     <?php elseif ($hasOptions): ?>

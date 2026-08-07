@@ -129,6 +129,18 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
             <p class="muted small">Mehrfachauswahl mit Strg/⌘ + Klick.</p>
         <?php endif; ?>
 
+        <details class="seo-details" <?= !empty($product['meta_title']) || !empty($product['meta_description']) ? 'open' : '' ?>>
+            <summary>SEO (Suchmaschinen-Einstellungen)</summary>
+            <div class="form-group">
+                <label for="meta_title">SEO-Titel (leer = Produktname)</label>
+                <input type="text" id="meta_title" name="meta_title" maxlength="200" value="<?= e($product['meta_title'] ?? '') ?>" placeholder="Titel für Google &amp; Browser-Tab">
+            </div>
+            <div class="form-group">
+                <label for="meta_description">Meta-Beschreibung (empfohlen: 120–160 Zeichen)</label>
+                <textarea id="meta_description" name="meta_description" rows="3" maxlength="500" placeholder="Kurze Beschreibung, die in Suchergebnissen angezeigt wird"><?= e($product['meta_description'] ?? '') ?></textarea>
+            </div>
+        </details>
+
         <div class="form-row">
             <div class="form-group">
                 <label for="position">Sortierung</label>

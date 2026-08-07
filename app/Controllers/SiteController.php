@@ -147,6 +147,16 @@ class SiteController
             $type = $post['type'] === 'event' ? 'events' : 'news';
             $urls[] = [url('/' . $type . '/' . $post['slug']), $post['updated_at'] ?? null];
         }
+        if (\Core\Shop::enabled()) {
+            foreach (\Models\ShopCategory::all() as $cat) {
+                $urls[] = [\Core\Shop::url('kategorie/' . $cat['slug']), null];
+            }
+            foreach (\Models\ShopProduct::all() as $product) {
+                if ((int) $product['active'] === 1) {
+                    $urls[] = [\Core\Shop::url('produkt/' . $product['slug']), $product['updated_at'] ?? null];
+                }
+            }
+        }
 
         $host = \Core\App::scheme() . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
         echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";

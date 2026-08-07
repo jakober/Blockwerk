@@ -321,6 +321,7 @@ class App
         $router->add('GET', '/admin/shop/orders/{id}/invoice', [\Controllers\Admin\ShopOrderController::class, 'invoice']);
         $router->add('POST', '/admin/shop/orders/{id}/invoice-mail', [\Controllers\Admin\ShopOrderController::class, 'mailInvoice']);
         $router->add('POST', '/admin/shop/orders/{id}/status', [\Controllers\Admin\ShopOrderController::class, 'setStatus']);
+        $router->add('POST', '/admin/shop/orders/{id}/refund', [\Controllers\Admin\ShopOrderController::class, 'refund']);
         $router->add('POST', '/admin/shop/orders/{id}/delete', [\Controllers\Admin\ShopOrderController::class, 'delete']);
 
         $router->add('GET', '/admin/shop/customers', [\Controllers\Admin\ShopCustomerController::class, 'index']);

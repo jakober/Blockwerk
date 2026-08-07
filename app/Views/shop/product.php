@@ -2,6 +2,7 @@
 $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
 $hasCompare = ($product['compare_price'] ?? null) !== null && (int) $product['compare_price'] > (int) $product['price'];
 $soldOut = $product['stock'] !== null && (int) $product['stock'] <= 0;
+$lowStock = $product['stock'] !== null && (int) $product['stock'] > 0 && (int) $product['stock'] <= 5;
 ?>
 <div class="shop">
     <?= \Core\View::fetch('shop/_bar', []) ?>
@@ -42,6 +43,7 @@ $soldOut = $product['stock'] !== null && (int) $product['stock'] <= 0;
             <?php if ($soldOut): ?>
                 <p class="shop-soldout">Zurzeit ausverkauft</p>
             <?php else: ?>
+                <?php if ($lowStock): ?><p class="shop-lowstock muted small">Nur noch <?= (int) $product['stock'] ?> auf Lager</p><?php endif; ?>
                 <form method="post" action="<?= e(\Core\Shop::url('warenkorb/add')) ?>" class="shop-buy" id="shop-buy"
                       data-base="<?= (int) $product['price'] ?>"
                       data-tiers='<?= e(json_encode(array_map(fn ($t) => ['min' => $t['min'], 'price' => $t['price']], $tiers))) ?>'

@@ -41,10 +41,23 @@ class Renderer
         return self::$lang ?? cms_default_lang();
     }
 
-    /** Beliebiges HTML im Standard-Layout ausgeben (Suche, Fehlerseiten …). */
-    public function renderRaw(string $title, string $html): string
+    /** Beliebiges HTML im Standard-Layout ausgeben (Suche, Fehlerseiten, Shop …). */
+    public function renderRaw(string $title, string $html, string $extraHead = ''): string
     {
-        return $this->renderWithLayout(Layout::default(), $title, $html);
+        return $this->renderWithLayout(Layout::default(), $title, $html, $extraHead);
+    }
+
+    /** Meta-Description + og:title als <head>-Fragment (gleiches Muster wie seoHead()). */
+    public static function metaHead(string $title, string $description = ''): string
+    {
+        $head = '';
+        $description = trim($description);
+        if ($description !== '') {
+            $head .= '<meta name="description" content="' . e($description) . '">' . "\n";
+            $head .= '<meta property="og:description" content="' . e($description) . '">' . "\n";
+        }
+        $head .= '<meta property="og:title" content="' . e($title) . '">' . "\n";
+        return $head;
     }
 
     public function renderPage(array $page): string

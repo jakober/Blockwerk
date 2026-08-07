@@ -75,10 +75,28 @@ class ShopOrderController extends ShopAdminController
         $status = $_POST['status'] ?? '';
         $allowed = ['new', 'paid', 'shipped', 'cancelled'];
         if (in_array($status, $allowed, true)) {
+            $wasCancelled = $order['status'] === 'cancelled';
+            $nowCancelled = $status === 'cancelled';
             if ($status === 'paid') {
                 ShopOrder::setPaid((int) $order['id']);
             } else {
                 ShopOrder::setStatus((int) $order['id'], $status);
+            }
+            // Lagerbestand zurückbuchen, wenn eine Bestellung storniert wird –
+            // und symmetrisch wieder abziehen, falls eine Stornierung rückgängig
+            // gemacht wird, damit der Bestand nach mehrfachem Wechseln stimmt.
+            if ($nowCancelled && !$wasCancelled) {
+                $this->adjustStock((int) $order['id'], 1);
+            } elseif (!$nowCancelled && $wasCancelled) {
+                $this->adjustStock((int) $order['id'], -1);
+            }
+            // Tracking-Nummer/-URL mitspeichern, falls im selben Formular mitgeschickt.
+            if (isset($_POST['tracking_number']) || isset($_POST['tracking_url'])) {
+                ShopOrder::setTracking(
+                    (int) $order['id'],
+                    trim((string) ($_POST['tracking_number'] ?? '')) ?: null,
+                    trim((string) ($_POST['tracking_url'] ?? '')) ?: null
+                );
             }
             // Den Kunden über die Statusänderung informieren (paid/shipped/cancelled).
             $mailed = false;
@@ -91,6 +109,53 @@ class ShopOrderController extends ShopAdminController
             }
             flash('success', 'Status aktualisiert.' . ($mailed ? ' Der Kunde wurde per E-Mail benachrichtigt.' : ''));
         }
+        redirect('/admin/shop/orders/' . $order['id']);
+    }
+
+    /** Lagerbestand aller Positionen einer Bestellung anpassen: $sign=1 zurückbuchen, -1 erneut abziehen. */
+    private function adjustStock(int $orderId, int $sign): void
+    {
+        foreach (ShopOrder::items($orderId) as $it) {
+            if (empty($it['product_id'])) {
+                continue;
+            }
+            if ($sign > 0) {
+                \Models\ShopProduct::increaseStock((int) $it['product_id'], (int) $it['qty']);
+            } else {
+                \Models\ShopProduct::decreaseStock((int) $it['product_id'], (int) $it['qty']);
+            }
+        }
+    }
+
+    /**
+     * Bestellung erstatten: bei PayPal-Zahlung über die PayPal-API (ganz oder
+     * teilweise), sonst nur eine Status-Änderung (Überweisung/Rechnung läuft
+     * außerhalb des Systems). Bucht in beiden Fällen den Lagerbestand zurück.
+     */
+    public function refund(string $id): void
+    {
+        $order = ShopOrder::find((int) $id) ?? $this->abort();
+        $amountInput = trim((string) ($_POST['amount'] ?? ''));
+        $amountCents = $amountInput !== '' ? \Core\Shop::parsePrice($amountInput) : null;
+
+        if (($order['payment_method'] ?? '') === 'paypal' && !empty($order['paypal_order_id'])) {
+            [$ok, $err] = \Core\PayPal::refund((string) $order['paypal_order_id'], $amountCents, (string) $order['currency']);
+            if (!$ok) {
+                flash('error', 'Rückerstattung über PayPal fehlgeschlagen: ' . ($err ?? 'Unbekannter Fehler'));
+                redirect('/admin/shop/orders/' . $order['id']);
+            }
+        }
+
+        $wasCancelled = $order['status'] === 'cancelled';
+        ShopOrder::setStatus((int) $order['id'], 'refunded');
+        if (!$wasCancelled) {
+            $this->adjustStock((int) $order['id'], 1);
+        }
+        $updated = ShopOrder::find((int) $order['id']);
+        if ($updated !== null && empty($_POST['no_mail'])) {
+            \Core\ShopMail::statusUpdate($updated);
+        }
+        flash('success', 'Bestellung wurde als erstattet markiert' . (($amountCents !== null) ? ' (' . \Core\Shop::formatPrice($amountCents) . ')' : '') . '.');
         redirect('/admin/shop/orders/' . $order['id']);
     }
 

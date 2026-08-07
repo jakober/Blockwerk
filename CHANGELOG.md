@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 2.1.0 – 2026-07-28
+
+- **Zeilen-Vorlagen per Drag & Drop.** Die Spalten-Layouts oben in der Werkzeugleiste (1 Spalte, 2 gleiche, 3 gleiche, Breit/Schmal …) lassen sich jetzt genau wie Inhalts-Blöcke direkt an die gewünschte Stelle im Editor ziehen – zwischen zwei Zeilen oder auf eine bestehende Zeile (oberer/unterer Bereich entscheidet, ob davor oder danach eingefügt wird). Der Klick zum Anhängen am Ende bleibt weiterhin möglich.
+- **Spalten innerhalb einer Zeile per Drag & Drop verschieben.** Über den neuen Ziehgriff (⠿) in der Spalten-Leiste lässt sich die Reihenfolge der Spalten einer Zeile ändern – z. B. „Bild links, Text rechts" zu „Text links, Bild rechts" tauschen, ohne die Inhalte einzeln neu einzufügen.
+
 ## 2.0.0 – 2026-07-28
 
 Erste Veröffentlichung als eigenständiges Content-Management-System.

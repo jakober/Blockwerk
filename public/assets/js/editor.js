@@ -462,7 +462,7 @@
     const pageCssTag = document.getElementById('ed-page-css');
 
     let selected = null;   // {kind:'block', r,c,b} | {kind:'row', r}
-    let dragData = null;   // {kind:'new',type} | {kind:'move',from} | {kind:'row',from}
+    let dragData = null;   // {kind:'new',type} | {kind:'move',from} | {kind:'row',from} | {kind:'new-row',spans} | {kind:'col',from}
     let dirty = false;
 
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -615,7 +615,28 @@
         btn.title = 'Zeile hier einfügen';
         btn.addEventListener('click', () => openRowPicker(at));
         ins.appendChild(btn);
+        bindRowInsertDropzone(ins, at);
         return ins;
+    }
+
+    // Zeilen-Vorlage von der Werkzeugleiste hierher ziehen: fügt genau an
+    // dieser Stelle eine neue Zeile mit dem gewählten Spalten-Layout ein.
+    function bindRowInsertDropzone(ins, at) {
+        ins.addEventListener('dragover', (e) => {
+            if (!dragData || dragData.kind !== 'new-row') return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+            ins.classList.add('is-over');
+        });
+        ins.addEventListener('dragleave', () => ins.classList.remove('is-over'));
+        ins.addEventListener('drop', (e) => {
+            if (!dragData || dragData.kind !== 'new-row') return;
+            e.preventDefault();
+            ins.classList.remove('is-over');
+            const spans = dragData.spans;
+            dragData = null;
+            addRowAt(spans, at);
+        });
     }
 
     function render() {
@@ -709,6 +730,7 @@
                 colBar.className = 'ed-col-bar';
                 colBar.title = 'Spalte anklicken für Gestaltung (Hintergrund, Breite …)';
                 colBar.innerHTML =
+                    '<span class="ed-col-handle" draggable="true" title="Ziehen, um die Spalte innerhalb der Zeile zu verschieben">⠿</span>' +
                     '<button type="button" data-act="narrower" title="Schmaler">−</button>' +
                     '<span class="ed-col-width">' + col.span + '/12</span>' +
                     '<button type="button" data-act="wider" title="Breiter">+</button>' +
@@ -721,7 +743,21 @@
                     // Klick auf die Leiste selbst (nicht auf einen Knopf) wählt die Spalte.
                     selectCol(r, c);
                 });
+                const colHandle = colBar.querySelector('.ed-col-handle');
+                colHandle.addEventListener('dragstart', (e) => {
+                    dragData = { kind: 'col', from: { r: r, c: c } };
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', 'col');
+                    e.stopPropagation();
+                    setTimeout(() => colEl.classList.add('is-dragging'), 0);
+                });
+                colHandle.addEventListener('dragend', () => {
+                    dragData = null;
+                    colEl.classList.remove('is-dragging');
+                    clearDropHints();
+                });
                 colEl.appendChild(colBar);
+                bindColDropzone(colEl, r, c);
 
                 const blocksEl = document.createElement('div');
                 blocksEl.className = 'ed-blocks';
@@ -1840,7 +1876,7 @@
 
     function bindDropzone(zone, r, c) {
         zone.addEventListener('dragover', (e) => {
-            if (!dragData || dragData.kind === 'row') return;
+            if (!dragData || (dragData.kind !== 'new' && dragData.kind !== 'move')) return;
             e.preventDefault();
             e.stopPropagation();
             e.dataTransfer.dropEffect = dragData.kind === 'new' ? 'copy' : 'move';
@@ -1854,7 +1890,7 @@
             }
         });
         zone.addEventListener('drop', (e) => {
-            if (!dragData || dragData.kind === 'row') return;
+            if (!dragData || (dragData.kind !== 'new' && dragData.kind !== 'move')) return;
             e.preventDefault();
             e.stopPropagation();
             const index = insertIndex(zone, e.clientY);
@@ -1888,9 +1924,9 @@
 
     function bindRowDropzone(rowEl, r) {
         rowEl.addEventListener('dragover', (e) => {
-            if (!dragData || dragData.kind !== 'row') return;
+            if (!dragData || (dragData.kind !== 'row' && dragData.kind !== 'new-row')) return;
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            e.dataTransfer.dropEffect = dragData.kind === 'new-row' ? 'copy' : 'move';
             const rect = rowEl.getBoundingClientRect();
             const before = e.clientY < rect.top + rect.height / 2;
             rowEl.classList.toggle('row-insert-before', before);
@@ -1900,17 +1936,67 @@
             rowEl.classList.remove('row-insert-before', 'row-insert-after');
         });
         rowEl.addEventListener('drop', (e) => {
-            if (!dragData || dragData.kind !== 'row') return;
+            if (!dragData || (dragData.kind !== 'row' && dragData.kind !== 'new-row')) return;
             e.preventDefault();
             const rect = rowEl.getBoundingClientRect();
             const before = e.clientY < rect.top + rect.height / 2;
+            const at = r + (before ? 0 : 1);
+            if (dragData.kind === 'new-row') {
+                const spans = dragData.spans;
+                dragData = null;
+                addRowAt(spans, at);
+                return;
+            }
             const from = dragData.from;
-            let to = r + (before ? 0 : 1);
+            let to = at;
             if (from < to) to--;
             dragData = null;
             if (from !== to) {
                 const moved = state.rows.splice(from, 1)[0];
                 state.rows.splice(to, 0, moved);
+                markDirty();
+            }
+            deselect();
+            render();
+        });
+    }
+
+    /* ---------- Drag & Drop: Spalten innerhalb einer Zeile ---------- */
+
+    // Spalten lassen sich nur INNERHALB derselben Zeile umsortieren (per
+    // Ziehgriff ⠿ in der Spalten-Leiste) – über Zeilen hinweg würden die
+    // Spaltenbreiten (span) nicht mehr zusammenpassen.
+    function bindColDropzone(colEl, r, c) {
+        colEl.addEventListener('dragover', (e) => {
+            if (!dragData || dragData.kind !== 'col' || dragData.from.r !== r) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            const rect = colEl.getBoundingClientRect();
+            const before = e.clientX < rect.left + rect.width / 2;
+            colEl.classList.toggle('col-insert-before', before);
+            colEl.classList.toggle('col-insert-after', !before);
+        });
+        colEl.addEventListener('dragleave', (e) => {
+            if (!colEl.contains(e.relatedTarget)) {
+                colEl.classList.remove('col-insert-before', 'col-insert-after');
+            }
+        });
+        colEl.addEventListener('drop', (e) => {
+            if (!dragData || dragData.kind !== 'col' || dragData.from.r !== r) return;
+            e.preventDefault();
+            e.stopPropagation();
+            colEl.classList.remove('col-insert-before', 'col-insert-after');
+            const rect = colEl.getBoundingClientRect();
+            const before = e.clientX < rect.left + rect.width / 2;
+            const from = dragData.from.c;
+            let to = c + (before ? 0 : 1);
+            if (from < to) to--;
+            dragData = null;
+            if (from !== to) {
+                const cols = state.rows[r].columns;
+                const moved = cols.splice(from, 1)[0];
+                cols.splice(to, 0, moved);
                 markDirty();
             }
             deselect();
@@ -1950,8 +2036,9 @@
 
     function clearDropHints() {
         canvas.querySelectorAll('.ed-blocks.is-over').forEach((el) => el.classList.remove('is-over'));
-        canvas.querySelectorAll('.insert-before, .insert-after, .row-insert-before, .row-insert-after').forEach((el) => {
-            el.classList.remove('insert-before', 'insert-after', 'row-insert-before', 'row-insert-after');
+        canvas.querySelectorAll('.ed-row-insert.is-over').forEach((el) => el.classList.remove('is-over'));
+        canvas.querySelectorAll('.insert-before, .insert-after, .row-insert-before, .row-insert-after, .col-insert-before, .col-insert-after').forEach((el) => {
+            el.classList.remove('insert-before', 'insert-after', 'row-insert-before', 'row-insert-after', 'col-insert-before', 'col-insert-after');
         });
     }
 
@@ -1983,13 +2070,23 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ed-preset';
-        btn.title = preset.title;
+        btn.title = preset.title + ' – klicken zum Anhängen oder an eine Stelle im Editor ziehen';
+        btn.draggable = true;
         preset.spans.forEach((span) => {
             const bar = document.createElement('span');
             bar.style.flexGrow = span;
             btn.appendChild(bar);
         });
         btn.addEventListener('click', () => addRow(preset.spans));
+        btn.addEventListener('dragstart', (e) => {
+            dragData = { kind: 'new-row', spans: preset.spans };
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('text/plain', 'new-row');
+        });
+        btn.addEventListener('dragend', () => {
+            dragData = null;
+            clearDropHints();
+        });
         presetBar.appendChild(btn);
     });
 

@@ -428,9 +428,10 @@ body.is-editor .content { padding: 0; display: flex; flex-direction: column; }
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 6px;
-    cursor: pointer;
+    cursor: grab;
 }
 .ed-preset:hover { border-color: var(--primary); background: #fff1e6; }
+.ed-preset:active { cursor: grabbing; }
 .ed-preset span { background: #bfa183; border-radius: 2px; flex-basis: 0; }
 .ed-preset:hover span { background: var(--primary); }
 
@@ -540,6 +541,11 @@ body.is-editor .content { padding: 0; display: flex; flex-direction: column; }
     border-bottom: 1px dashed #e2cfbc;
 }
 .ed-col-width { font-size: 12px; font-weight: 700; color: var(--muted); min-width: 34px; text-align: center; }
+.ed-col-handle { cursor: grab; user-select: none; padding: 0 2px; color: var(--muted); font-weight: 700; }
+.ed-col-handle:active { cursor: grabbing; }
+.ed-col.is-dragging { opacity: .45; }
+.ed-col.col-insert-before { box-shadow: -4px 0 0 0 var(--primary); }
+.ed-col.col-insert-after { box-shadow: 4px 0 0 0 var(--primary); }
 .ed-blocks { flex: 1; padding: 8px; min-height: 60px; }
 .ed-blocks.is-over { background: #fff1e6; border-radius: 0 0 8px 8px; }
 .ed-col-empty {
@@ -1166,6 +1172,10 @@ body.nav-open .admin-burger span:nth-child(3) { transform: translateY(-7px) rota
     font-family: inherit;
 }
 .ed-row-insert:hover button, .ed-row-insert button:focus { opacity: 1; border-color: var(--primary); color: var(--primary); background: #fff1e6; }
+/* Eine Zeilen-Vorlage aus der Werkzeugleiste wird hierher gezogen. */
+.ed-row-insert.is-over { height: 32px; }
+.ed-row-insert.is-over::before { border-color: var(--primary); border-top-width: 2px; border-style: solid; }
+.ed-row-insert.is-over button { opacity: 1; border-color: var(--primary); color: var(--primary); background: #fff1e6; }
 .ed-empty p { margin: 0 0 14px; }
 
 /* Auswahl-Dialoge (Block einfügen / Zeile hinzufügen) */

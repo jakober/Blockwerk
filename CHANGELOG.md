@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 2.4.0 – 2026-08-07
+
+Dritter Teil des Shop-Ausbaus: Umsatz & Komfort (Gutscheine, Wunschliste, Bewertungen, Adressbuch, geräteübergreifender Warenkorb).
+
+- **Gutscheincodes.** Prozentuale oder feste Rabatte, wahlweise mit Mindestbestellwert, Gültigkeitszeitraum und Nutzungslimit – verwaltbar unter „Shop → Gutscheine". Warenkorb und Kasse zeigen den Rabatt direkt an, die Bestellung merkt sich Code und Rabattbetrag dauerhaft.
+- **Merkliste.** Eingeloggte Kund:innen können Produkte über das Herz-Symbol auf Karten und Produktseite merken und unter „Merkliste" wiederfinden.
+- **Produktbewertungen.** Wer ein Produkt gekauft hat, kann es mit 1–5 Sternen und Text bewerten. Neue Bewertungen erscheinen erst nach Freigabe im Backend („Shop → Bewertungen", mit Hinweis-Badge bei offenen Bewertungen); die Produktseite zeigt die Durchschnittsbewertung.
+- **Adressbuch.** Kund:innen können mehrere Lieferadressen speichern, eine davon als Standard markieren und beim Bestellen per Auswahl übernehmen.
+- **Geräteübergreifender Warenkorb.** Der Warenkorb eingeloggter Kund:innen wird zusätzlich in der Datenbank gespiegelt – nach einem Login auf einem anderen Gerät wird er automatisch mit dem dortigen Warenkorb zusammengeführt.
+
 ## 2.3.0 – 2026-08-07
 
 Zweiter Teil des Shop-Ausbaus: Kernfunktionen vervollständigt (Bestand, Rückerstattung, Versand, SEO, Paginierung).

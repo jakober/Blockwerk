@@ -3,6 +3,8 @@ $fmt = static fn ($c) => \Core\Shop::formatPrice((int) $c);
 $hasCompare = ($product['compare_price'] ?? null) !== null && (int) $product['compare_price'] > (int) $product['price'];
 $soldOut = $product['stock'] !== null && (int) $product['stock'] <= 0;
 $lowStock = $product['stock'] !== null && (int) $product['stock'] > 0 && (int) $product['stock'] <= 5;
+$loggedIn = \Core\CustomerAuth::check();
+$inWishlist = $loggedIn && \Models\ShopWishlist::has((int) \Core\CustomerAuth::id(), (int) $product['id']);
 ?>
 <div class="shop">
     <?= \Core\View::fetch('shop/_bar', []) ?>
@@ -23,8 +25,24 @@ $lowStock = $product['stock'] !== null && (int) $product['stock'] > 0 && (int) $
         </div>
 
         <div class="shop-product-info">
-            <h1 class="cms-heading"><?= e($product['name']) ?></h1>
+            <h1 class="cms-heading">
+                <?= e($product['name']) ?>
+                <?php if ($loggedIn): ?>
+                    <form method="post" action="<?= e(\Core\Shop::url('merkliste/' . ($inWishlist ? 'entfernen' : 'hinzufuegen'))) ?>" class="shop-wish-form shop-wish-form-inline">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                        <input type="hidden" name="back" value="<?= e($_SERVER['REQUEST_URI'] ?? '') ?>">
+                        <button type="submit" class="shop-wish-btn" aria-label="<?= $inWishlist ? 'Von der Merkliste entfernen' : 'Auf die Merkliste' ?>"><?= $inWishlist ? '♥' : '♡' ?></button>
+                    </form>
+                <?php endif; ?>
+            </h1>
             <?php if (!empty($product['sku'])): ?><p class="muted small">Art.-Nr.: <?= e($product['sku']) ?></p><?php endif; ?>
+            <?php if ($reviewSummary['count'] > 0): ?>
+                <p class="shop-rating">
+                    <span class="shop-stars" aria-hidden="true"><?= str_repeat('★', (int) round($reviewSummary['avg'])) . str_repeat('☆', 5 - (int) round($reviewSummary['avg'])) ?></span>
+                    <span class="muted small"><?= e(number_format($reviewSummary['avg'], 1, ',', '.')) ?> von 5 (<?= (int) $reviewSummary['count'] ?> Bewertung<?= $reviewSummary['count'] === 1 ? '' : 'en' ?>)</span>
+                </p>
+            <?php endif; ?>
             <div class="shop-product-price">
                 <?php if ($hasCompare): ?><span class="shop-price-old"><?= e($fmt($product['compare_price'])) ?></span><?php endif; ?>
                 <span class="shop-price-big" id="shop-live-price"><?= e($fmt($product['price'])) ?></span>
@@ -74,6 +92,41 @@ $lowStock = $product['stock'] !== null && (int) $product['stock'] > 0 && (int) $
             <?php endif; ?>
         </div>
     </div>
+
+    <section class="shop-reviews">
+        <h2 class="cms-heading">Bewertungen</h2>
+        <?php if (empty($reviews)): ?>
+            <p class="muted">Noch keine Bewertungen für dieses Produkt.</p>
+        <?php else: ?>
+            <ul class="shop-review-list">
+                <?php foreach ($reviews as $r): ?>
+                    <li class="shop-review">
+                        <span class="shop-stars" aria-hidden="true"><?= str_repeat('★', (int) $r['rating']) . str_repeat('☆', 5 - (int) $r['rating']) ?></span>
+                        <strong><?= e($r['name']) ?></strong>
+                        <span class="muted small"><?= e(format_date_de($r['created_at'])) ?></span>
+                        <?php if (!empty($r['text'])): ?><p><?= nl2br(e($r['text'])) ?></p><?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+
+        <?php if ($canReview): ?>
+            <form method="post" action="<?= e(\Core\Shop::url('produkt/' . $product['slug'] . '/bewertung')) ?>" class="shop-review-form">
+                <?= csrf_field() ?>
+                <h3>Bewertung abgeben</h3>
+                <label class="shop-stars-input">
+                    <?php foreach ([5, 4, 3, 2, 1] as $n): ?>
+                        <input type="radio" name="rating" value="<?= $n ?>" id="rating-<?= $n ?>" <?= $n === 5 ? 'checked' : '' ?>>
+                        <label for="rating-<?= $n ?>"><?= $n ?> ★</label>
+                    <?php endforeach; ?>
+                </label>
+                <textarea name="text" rows="3" placeholder="Deine Erfahrung mit dem Produkt (optional)"></textarea>
+                <button type="submit" class="cms-button">Bewertung senden</button>
+            </form>
+        <?php elseif (\Core\CustomerAuth::check()): ?>
+            <p class="muted small">Du kannst dieses Produkt bewerten, sobald du es bestellt hast.</p>
+        <?php endif; ?>
+    </section>
 
     <?php foreach ([['accessories', 'Zubehör', $accessories], ['cross', 'Passt dazu', $crossSell]] as [$k, $heading, $list]): ?>
         <?php if (!empty($list)): ?>

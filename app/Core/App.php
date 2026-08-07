@@ -315,6 +315,17 @@ class App
         $router->add('POST', '/admin/shop/categories/{id}', [\Controllers\Admin\ShopCategoryController::class, 'update']);
         $router->add('POST', '/admin/shop/categories/{id}/delete', [\Controllers\Admin\ShopCategoryController::class, 'delete']);
 
+        $router->add('GET', '/admin/shop/reviews', [\Controllers\Admin\ShopReviewController::class, 'index']);
+        $router->add('POST', '/admin/shop/reviews/{id}/approve', [\Controllers\Admin\ShopReviewController::class, 'approve']);
+        $router->add('POST', '/admin/shop/reviews/{id}/delete', [\Controllers\Admin\ShopReviewController::class, 'delete']);
+
+        $router->add('GET', '/admin/shop/coupons', [\Controllers\Admin\ShopCouponController::class, 'index']);
+        $router->add('GET', '/admin/shop/coupons/new', [\Controllers\Admin\ShopCouponController::class, 'create']);
+        $router->add('POST', '/admin/shop/coupons', [\Controllers\Admin\ShopCouponController::class, 'store']);
+        $router->add('GET', '/admin/shop/coupons/{id}/edit', [\Controllers\Admin\ShopCouponController::class, 'edit']);
+        $router->add('POST', '/admin/shop/coupons/{id}', [\Controllers\Admin\ShopCouponController::class, 'update']);
+        $router->add('POST', '/admin/shop/coupons/{id}/delete', [\Controllers\Admin\ShopCouponController::class, 'delete']);
+
         $router->add('GET', '/admin/shop/orders', [\Controllers\Admin\ShopOrderController::class, 'index']);
         $router->add('GET', '/admin/shop/orders/{id}', [\Controllers\Admin\ShopOrderController::class, 'show']);
         $router->add('POST', '/admin/shop/orders/{id}/invoice/create', [\Controllers\Admin\ShopOrderController::class, 'createInvoice']);
@@ -344,6 +355,11 @@ class App
             $router->add('POST', $b . '/warenkorb/add', [\Controllers\ShopController::class, 'cartAdd']);
             $router->add('POST', $b . '/warenkorb/update', [\Controllers\ShopController::class, 'cartUpdate']);
             $router->add('POST', $b . '/warenkorb/remove', [\Controllers\ShopController::class, 'cartRemove']);
+            $router->add('POST', $b . '/gutschein', [\Controllers\ShopController::class, 'couponApply']);
+            $router->add('POST', $b . '/gutschein/entfernen', [\Controllers\ShopController::class, 'couponRemove']);
+            $router->add('GET', $b . '/merkliste', [\Controllers\ShopController::class, 'wishlistPage']);
+            $router->add('POST', $b . '/merkliste/hinzufuegen', [\Controllers\ShopController::class, 'wishlistAdd']);
+            $router->add('POST', $b . '/merkliste/entfernen', [\Controllers\ShopController::class, 'wishlistRemove']);
             $router->add('GET', $b . '/kasse', [\Controllers\ShopController::class, 'checkout']);
             $router->add('POST', $b . '/kasse', [\Controllers\ShopController::class, 'placeOrder']);
             $router->add('POST', $b . '/paypal/create', [\Controllers\ShopController::class, 'paypalCreate']);
@@ -351,6 +367,7 @@ class App
             $router->add('GET', $b . '/bestellung/{token}', [\Controllers\ShopController::class, 'orderConfirm']);
             $router->add('GET', $b . '/bestellung/{token}/rechnung', [\Controllers\ShopController::class, 'invoice']);
             $router->add('GET', $b . '/produkt/{slug}', [\Controllers\ShopController::class, 'product']);
+            $router->add('POST', $b . '/produkt/{slug}/bewertung', [\Controllers\ShopController::class, 'reviewSubmit']);
             $router->add('GET', $b . '/kategorie/{slug}', [\Controllers\ShopController::class, 'category']);
             // Kundenkonten
             $router->add('GET', $b . '/login', [\Controllers\ShopController::class, 'login']);
@@ -359,6 +376,13 @@ class App
             $router->add('GET', $b . '/registrieren', [\Controllers\ShopController::class, 'register']);
             $router->add('POST', $b . '/registrieren', [\Controllers\ShopController::class, 'doRegister']);
             $router->add('GET', $b . '/konto', [\Controllers\ShopController::class, 'account']);
+            $router->add('GET', $b . '/konto/adressen', [\Controllers\ShopController::class, 'addresses']);
+            $router->add('GET', $b . '/konto/adressen/neu', [\Controllers\ShopController::class, 'addressCreate']);
+            $router->add('POST', $b . '/konto/adressen', [\Controllers\ShopController::class, 'addressStore']);
+            $router->add('GET', $b . '/konto/adressen/{id}/bearbeiten', [\Controllers\ShopController::class, 'addressEdit']);
+            $router->add('POST', $b . '/konto/adressen/{id}', [\Controllers\ShopController::class, 'addressUpdate']);
+            $router->add('POST', $b . '/konto/adressen/{id}/loeschen', [\Controllers\ShopController::class, 'addressDelete']);
+            $router->add('POST', $b . '/konto/adressen/{id}/standard', [\Controllers\ShopController::class, 'addressSetDefault']);
             $router->add('GET', $b . '/passwort-vergessen', [\Controllers\ShopController::class, 'forgotPassword']);
             $router->add('POST', $b . '/passwort-vergessen', [\Controllers\ShopController::class, 'sendReset']);
             $router->add('GET', $b . '/passwort-neu/{token}', [\Controllers\ShopController::class, 'resetPassword']);

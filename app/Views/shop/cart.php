@@ -31,7 +31,13 @@
                     <?php endforeach; ?>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="3" style="text-align:right"><strong>Zwischensumme</strong></td><td><strong><?= e($fmt($subtotal)) ?></strong></td></tr>
+                    <tr><td colspan="3" style="text-align:right">Zwischensumme</td><td><?= e($fmt($subtotal)) ?></td></tr>
+                    <?php if (!empty($coupon)): ?>
+                        <tr><td colspan="3" style="text-align:right">Rabatt (<?= e($coupon['code']) ?>)</td><td>−<?= e($fmt($discount)) ?></td></tr>
+                        <tr><td colspan="3" style="text-align:right"><strong>Summe</strong></td><td><strong><?= e($fmt($total)) ?></strong></td></tr>
+                    <?php else: ?>
+                        <tr><td colspan="3" style="text-align:right"><strong>Summe</strong></td><td><strong><?= e($fmt($subtotal)) ?></strong></td></tr>
+                    <?php endif; ?>
                 </tfoot>
             </table>
             <p class="muted small">
@@ -43,6 +49,24 @@
                 <a class="cms-button" href="<?= e(\Core\Shop::url('kasse')) ?>">Zur Kasse →</a>
             </div>
         </form>
+
+        <div class="shop-coupon">
+            <?php if (!empty($coupon)): ?>
+                <form method="post" action="<?= e(\Core\Shop::url('gutschein/entfernen')) ?>" class="inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="back" value="warenkorb">
+                    <span class="muted small">Gutschein „<?= e($coupon['code']) ?>" angewendet.</span>
+                    <button type="submit" class="shop-remove-link">Entfernen</button>
+                </form>
+            <?php else: ?>
+                <form method="post" action="<?= e(\Core\Shop::url('gutschein')) ?>" class="shop-coupon-form">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="back" value="warenkorb">
+                    <input type="text" name="coupon_code" placeholder="Gutscheincode">
+                    <button type="submit" class="cms-button cms-button-ghost">Einlösen</button>
+                </form>
+            <?php endif; ?>
+        </div>
 
         <div class="shop-cart-removes">
             <?php foreach ($items as $it): $p = $it['product']; ?>

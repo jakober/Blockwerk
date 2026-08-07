@@ -3,6 +3,7 @@
     <a class="shop-bar-home" href="<?= e(\Core\Shop::url()) ?>">← Shop</a>
     <span class="shop-bar-right">
         <?php if (\Core\CustomerAuth::check()): ?>
+            <a class="shop-bar-account" href="<?= e(\Core\Shop::url('merkliste')) ?>">♡ Merkliste</a>
             <a class="shop-bar-account" href="<?= e(\Core\Shop::url('konto')) ?>">👤 Mein Konto</a>
         <?php else: ?>
             <a class="shop-bar-account" href="<?= e(\Core\Shop::url('login')) ?>">👤 Anmelden</a>

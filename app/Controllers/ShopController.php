@@ -79,6 +79,12 @@ class ShopController
         $cat = $product['category_id'] ? ShopCategory::find((int) $product['category_id']) : null;
         $title = trim((string) ($product['meta_title'] ?? '')) !== '' ? (string) $product['meta_title'] : $product['name'];
         $description = trim((string) ($product['meta_description'] ?? '')) !== '' ? (string) $product['meta_description'] : (string) ($product['short_desc'] ?? '');
+
+        $customerId = CustomerAuth::id();
+        $canReview = $customerId !== null
+            && ShopOrder::customerPurchasedProduct($customerId, (int) $product['id'])
+            && !\Models\ShopReview::hasReviewed($customerId, (int) $product['id']);
+
         $this->render('product', $title, [
             'product' => $product,
             'category' => $cat,
@@ -87,7 +93,41 @@ class ShopController
             'optionGroups' => ShopProduct::options($product),
             'crossSell' => array_filter(ShopProduct::relatedProducts($product, 'cross_sell'), fn ($r) => (int) $r['id'] !== (int) $product['id']),
             'accessories' => array_filter(ShopProduct::relatedProducts($product, 'accessories'), fn ($r) => (int) $r['id'] !== (int) $product['id']),
+            'reviews' => \Models\ShopReview::approvedForProduct((int) $product['id']),
+            'reviewSummary' => \Models\ShopReview::summaryForProduct((int) $product['id']),
+            'canReview' => $canReview,
         ], $description);
+    }
+
+    public function reviewSubmit(string $slug): void
+    {
+        CustomerAuth::requireLogin();
+        $product = ShopProduct::findBySlug($slug);
+        if ($product === null) {
+            (new SiteController())->notFound();
+            return;
+        }
+        $customerId = (int) CustomerAuth::id();
+        if (!ShopOrder::customerPurchasedProduct($customerId, (int) $product['id'])) {
+            flash('error', 'Eine Bewertung ist nur nach dem Kauf dieses Produkts möglich.');
+            redirect($this->path('produkt/' . $slug));
+        }
+        if (\Models\ShopReview::hasReviewed($customerId, (int) $product['id'])) {
+            flash('error', 'Du hast dieses Produkt bereits bewertet.');
+            redirect($this->path('produkt/' . $slug));
+        }
+        $rating = (int) ($_POST['rating'] ?? 0);
+        if ($rating < 1 || $rating > 5) {
+            flash('error', 'Bitte eine Bewertung von 1 bis 5 Sternen abgeben.');
+            redirect($this->path('produkt/' . $slug));
+        }
+        $customer = CustomerAuth::current();
+        $name = trim((string) ($customer['first_name'] ?? '')) !== ''
+            ? trim((string) $customer['first_name'])
+            : 'Verifizierter Käufer';
+        \Models\ShopReview::create((int) $product['id'], $customerId, $name, $rating, trim((string) ($_POST['text'] ?? '')));
+        flash('success', 'Danke für deine Bewertung! Sie erscheint nach kurzer Prüfung.');
+        redirect($this->path('produkt/' . $slug));
     }
 
     /* ---------- Warenkorb ---------- */
@@ -97,6 +137,9 @@ class ShopController
         $this->render('cart', 'Warenkorb', [
             'items' => Cart::items(),
             'subtotal' => Cart::subtotal(),
+            'coupon' => Cart::coupon(),
+            'discount' => Cart::discount(),
+            'total' => Cart::total(),
         ]);
     }
 
@@ -132,6 +175,71 @@ class ShopController
         redirect($this->path('warenkorb'));
     }
 
+    /* ---------- Gutschein ---------- */
+
+    private function couponBack(): string
+    {
+        $back = (string) ($_POST['back'] ?? 'warenkorb');
+        return $this->path($back === 'kasse' ? 'kasse' : 'warenkorb');
+    }
+
+    public function couponApply(): void
+    {
+        $code = trim((string) ($_POST['coupon_code'] ?? ''));
+        if ($code === '') {
+            flash('error', 'Bitte einen Gutscheincode eingeben.');
+            redirect($this->couponBack());
+        }
+        $result = Cart::applyCoupon($code);
+        if ($result['ok']) {
+            flash('success', 'Gutschein „' . $code . '" wurde angewendet.');
+        } else {
+            flash('error', $result['error']);
+        }
+        redirect($this->couponBack());
+    }
+
+    public function couponRemove(): void
+    {
+        Cart::removeCoupon();
+        flash('success', 'Gutschein wurde entfernt.');
+        redirect($this->couponBack());
+    }
+
+    /* ---------- Merkliste ---------- */
+
+    private function wishBack(): string
+    {
+        $back = trim((string) ($_POST['back'] ?? ''));
+        // Nur einen internen, relativen Pfad zulassen – kein Open-Redirect.
+        if ($back !== '' && str_starts_with($back, '/') && !str_starts_with($back, '//')) {
+            return $back;
+        }
+        return $this->path('merkliste');
+    }
+
+    public function wishlistAdd(): void
+    {
+        CustomerAuth::requireLogin();
+        \Models\ShopWishlist::add((int) CustomerAuth::id(), (int) ($_POST['product_id'] ?? 0));
+        redirect($this->wishBack());
+    }
+
+    public function wishlistRemove(): void
+    {
+        CustomerAuth::requireLogin();
+        \Models\ShopWishlist::remove((int) CustomerAuth::id(), (int) ($_POST['product_id'] ?? 0));
+        redirect($this->wishBack());
+    }
+
+    public function wishlistPage(): void
+    {
+        CustomerAuth::requireLogin();
+        $this->render('wishlist', 'Merkliste', [
+            'products' => \Models\ShopWishlist::products((int) CustomerAuth::id()),
+        ]);
+    }
+
     /* ---------- Kasse ---------- */
 
     public function checkout(): void
@@ -154,15 +262,27 @@ class ShopController
         $shipCountries = $shipping === []
             ? []
             : ($hasWorldwide ? \Core\Countries::all() : \Core\Countries::sort(ShopShipping::allCountries()));
-        // Eingeloggte Kunden: Formular mit Profildaten vorbefüllen.
+        // Eingeloggte Kunden: Formular mit Profildaten vorbefüllen (bzw. der
+        // Standardadresse, falls vorhanden).
         $customer = \Core\CustomerAuth::current();
+        $addresses = [];
         $form = $_SESSION['shop_checkout'] ?? [];
-        if ($form === [] && $customer !== null) {
-            $form = [
-                'email' => $customer['email'],
-                'first_name' => (string) ($customer['first_name'] ?? ''),
-                'last_name' => (string) ($customer['last_name'] ?? ''),
-            ];
+        if ($customer !== null) {
+            $addresses = \Models\ShopCustomerAddress::forCustomer((int) $customer['id']);
+            if ($form === []) {
+                $default = \Models\ShopCustomerAddress::defaultShipping((int) $customer['id']);
+                $form = [
+                    'email' => $customer['email'],
+                    'first_name' => (string) ($default['first_name'] ?? $customer['first_name'] ?? ''),
+                    'last_name' => (string) ($default['last_name'] ?? $customer['last_name'] ?? ''),
+                    'company' => (string) ($default['company'] ?? ''),
+                    'street' => (string) ($default['street'] ?? ''),
+                    'zip' => (string) ($default['zip'] ?? ''),
+                    'city' => (string) ($default['city'] ?? ''),
+                    'country' => (string) ($default['country'] ?? ''),
+                    'phone' => (string) ($default['phone'] ?? ''),
+                ];
+            }
         }
         $agbPage = \Models\Page::findBySlug('agb');
         $widerrufPage = \Models\Page::findBySlug('widerrufsbelehrung');
@@ -170,11 +290,14 @@ class ShopController
             'items' => Cart::items(),
             'subtotal' => Cart::subtotal(),
             'weight' => Cart::weight(),
+            'coupon' => Cart::coupon(),
+            'discount' => Cart::discount(),
             'shipping' => $shipping,
             'shipCountries' => $shipCountries,
             'payments' => Shop::paymentMethods(),
             'form' => $form,
             'customer' => $customer,
+            'addresses' => $addresses,
             'agbUrl' => $agbPage !== null ? url('/' . $agbPage['slug']) : url('/agb'),
             'widerrufUrl' => $widerrufPage !== null ? url('/' . $widerrufPage['slug']) : url('/widerrufsbelehrung'),
         ]);
@@ -316,6 +439,82 @@ class ShopController
             'customer' => $customer,
             'orders' => ShopOrder::forCustomer((int) $customer['id'], (string) $customer['email']),
         ]);
+    }
+
+    /* ---------- Adressbuch ---------- */
+
+    public function addresses(): void
+    {
+        CustomerAuth::requireLogin();
+        $this->render('addresses', 'Adressbuch', [
+            'addresses' => \Models\ShopCustomerAddress::forCustomer((int) CustomerAuth::id()),
+        ]);
+    }
+
+    public function addressCreate(): void
+    {
+        CustomerAuth::requireLogin();
+        $this->render('address-form', 'Neue Adresse', ['address' => null]);
+    }
+
+    public function addressEdit(string $id): void
+    {
+        CustomerAuth::requireLogin();
+        $address = \Models\ShopCustomerAddress::find((int) $id, (int) CustomerAuth::id());
+        if ($address === null) {
+            flash('error', 'Adresse nicht gefunden.');
+            redirect($this->path('konto/adressen'));
+        }
+        $this->render('address-form', 'Adresse bearbeiten', ['address' => $address]);
+    }
+
+    private function addressData(): array
+    {
+        return [
+            'label' => trim($_POST['label'] ?? ''),
+            'first_name' => trim($_POST['first_name'] ?? ''),
+            'last_name' => trim($_POST['last_name'] ?? ''),
+            'company' => trim($_POST['company'] ?? ''),
+            'street' => trim($_POST['street'] ?? ''),
+            'zip' => trim($_POST['zip'] ?? ''),
+            'city' => trim($_POST['city'] ?? ''),
+            'country' => trim($_POST['country'] ?? ''),
+            'phone' => trim($_POST['phone'] ?? ''),
+        ];
+    }
+
+    public function addressStore(): void
+    {
+        CustomerAuth::requireLogin();
+        \Models\ShopCustomerAddress::create((int) CustomerAuth::id(), $this->addressData());
+        flash('success', 'Adresse gespeichert.');
+        redirect($this->path('konto/adressen'));
+    }
+
+    public function addressUpdate(string $id): void
+    {
+        CustomerAuth::requireLogin();
+        \Models\ShopCustomerAddress::update((int) $id, (int) CustomerAuth::id(), $this->addressData());
+        flash('success', 'Adresse aktualisiert.');
+        redirect($this->path('konto/adressen'));
+    }
+
+    public function addressDelete(string $id): void
+    {
+        CustomerAuth::requireLogin();
+        \Models\ShopCustomerAddress::delete((int) $id, (int) CustomerAuth::id());
+        flash('success', 'Adresse gelöscht.');
+        redirect($this->path('konto/adressen'));
+    }
+
+    public function addressSetDefault(string $id): void
+    {
+        CustomerAuth::requireLogin();
+        $customerId = (int) CustomerAuth::id();
+        \Models\ShopCustomerAddress::setDefault((int) $id, $customerId, 'shipping');
+        \Models\ShopCustomerAddress::setDefault((int) $id, $customerId, 'billing');
+        flash('success', 'Als Standardadresse festgelegt.');
+        redirect($this->path('konto/adressen'));
     }
 
     public function forgotPassword(): void
@@ -495,12 +694,17 @@ class ShopController
             return [[], [], 'In das gewählte Land ist derzeit kein Versand möglich.'];
         }
 
+        $coupon = Cart::coupon();
+        $discount = $coupon !== null ? \Models\ShopCoupon::discountFor($coupon, $subtotal) : 0;
+
         $head = $form + [
             'token' => bin2hex(random_bytes(16)),
             'status' => 'new',
             'subtotal' => $subtotal,
             'shipping_cost' => $shippingCost,
-            'total' => $subtotal + $shippingCost,
+            'discount_cents' => $discount,
+            'coupon_code' => $coupon['code'] ?? null,
+            'total' => max(0, $subtotal + $shippingCost - $discount),
             'currency' => Shop::currency(),
             'shipping_method' => $shippingName,
             'payment_method' => $payment,

@@ -12,6 +12,7 @@ $name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? 
         </form>
     </div>
     <p class="muted">Angemeldet als <strong><?= e($name !== '' ? $name : $customer['email']) ?></strong> (<?= e($customer['email']) ?>)</p>
+    <p><a href="<?= e(\Core\Shop::url('konto/adressen')) ?>">📇 Adressbuch verwalten</a></p>
 
     <h2 class="cms-heading">Deine Bestellungen</h2>
     <?php if (empty($orders)): ?>

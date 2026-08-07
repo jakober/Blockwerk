@@ -11,11 +11,29 @@ $clientId = \Core\Shop::paypalClientId();
 
     <div class="shop-checkout">
         <form method="post" action="<?= e(\Core\Shop::url('kasse')) ?>" id="checkout-form" class="shop-checkout-form"
-              data-subtotal="<?= (int) $subtotal ?>" data-symbol="<?= e(\Core\Shop::currencySymbol()) ?>">
+              data-subtotal="<?= (int) $subtotal ?>" data-discount="<?= (int) $discount ?>" data-symbol="<?= e(\Core\Shop::currencySymbol()) ?>">
             <?= csrf_field() ?>
 
             <fieldset class="shop-fieldset">
                 <legend>Rechnungs- &amp; Lieferadresse</legend>
+                <?php if (!empty($addresses)): ?>
+                    <label>Gespeicherte Adresse verwenden
+                        <select id="saved-address">
+                            <option value="">– Adresse wählen –</option>
+                            <?php foreach ($addresses as $a): ?>
+                                <option value="<?= (int) $a['id'] ?>"
+                                    data-address='<?= e(json_encode([
+                                        'first_name' => $a['first_name'], 'last_name' => $a['last_name'],
+                                        'company' => $a['company'], 'street' => $a['street'],
+                                        'zip' => $a['zip'], 'city' => $a['city'],
+                                        'country' => $a['country'], 'phone' => $a['phone'],
+                                    ], JSON_UNESCAPED_UNICODE)) ?>'>
+                                    <?= e($a['label'] !== '' && $a['label'] !== null ? $a['label'] : trim(($a['first_name'] ?? '') . ' ' . ($a['last_name'] ?? '') . ', ' . ($a['street'] ?? ''))) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                <?php endif; ?>
                 <div class="shop-form-row">
                     <label>Vorname*<input type="text" name="first_name" value="<?= $val('first_name') ?>" required></label>
                     <label>Nachname*<input type="text" name="last_name" value="<?= $val('last_name') ?>" required></label>
@@ -116,9 +134,27 @@ $clientId = \Core\Shop::paypalClientId();
                 <?php endforeach; ?>
             </ul>
             <div class="shop-summary-row"><span>Zwischensumme</span><span id="sum-subtotal"><?= e($fmt($subtotal)) ?></span></div>
+            <?php if (!empty($coupon)): ?>
+                <div class="shop-summary-row"><span>Rabatt (<?= e($coupon['code']) ?>)</span><span>−<?= e($fmt($discount)) ?></span></div>
+            <?php endif; ?>
             <div class="shop-summary-row"><span>Versand</span><span id="sum-shipping">–</span></div>
-            <div class="shop-summary-row shop-summary-total"><span>Gesamt</span><span id="sum-total"><?= e($fmt($subtotal)) ?></span></div>
+            <div class="shop-summary-row shop-summary-total"><span>Gesamt</span><span id="sum-total"><?= e($fmt($subtotal - $discount)) ?></span></div>
             <?php if (\Core\Shop::taxMode() === 'inclusive'): ?><p class="shop-tax-note muted small">inkl. MwSt.</p><?php endif; ?>
+
+            <?php if (!empty($coupon)): ?>
+                <form method="post" action="<?= e(\Core\Shop::url('gutschein/entfernen')) ?>" class="inline shop-coupon">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="back" value="kasse">
+                    <button type="submit" class="shop-remove-link">Gutschein entfernen</button>
+                </form>
+            <?php else: ?>
+                <form method="post" action="<?= e(\Core\Shop::url('gutschein')) ?>" class="shop-coupon shop-coupon-form">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="back" value="kasse">
+                    <input type="text" name="coupon_code" placeholder="Gutscheincode">
+                    <button type="submit" class="cms-button cms-button-ghost">Einlösen</button>
+                </form>
+            <?php endif; ?>
         </aside>
     </div>
 </div>
@@ -132,6 +168,7 @@ $clientId = \Core\Shop::paypalClientId();
     var form = document.getElementById('checkout-form');
     if (!form) return;
     var subtotal = parseInt(form.dataset.subtotal, 10) || 0;
+    var discount = parseInt(form.dataset.discount, 10) || 0;
     var symbol = form.dataset.symbol || '€';
     var csrf = form.querySelector('input[name=_csrf]').value;
     var base = <?= json_encode(\Core\Shop::url()) ?>;
@@ -147,9 +184,24 @@ $clientId = \Core\Shop::paypalClientId();
     function updateTotals() {
         var ship = shippingCost();
         document.getElementById('sum-shipping').textContent = ship === 0 ? 'kostenlos' : fmt(ship);
-        document.getElementById('sum-total').textContent = fmt(subtotal + ship);
+        document.getElementById('sum-total').textContent = fmt(subtotal - discount + ship);
     }
     form.querySelectorAll('input[name=shipping_id]').forEach(function (el) { el.addEventListener('change', updateTotals); });
+
+    // Gespeicherte Adresse übernehmen: füllt die Felder, ohne die Seite neu zu laden.
+    var savedAddress = document.getElementById('saved-address');
+    if (savedAddress) {
+        savedAddress.addEventListener('change', function () {
+            var opt = savedAddress.options[savedAddress.selectedIndex];
+            var data = opt.getAttribute('data-address');
+            if (!data) return;
+            try { data = JSON.parse(data); } catch (e) { return; }
+            Object.keys(data).forEach(function (key) {
+                var field = form.querySelector('[name=' + key + ']');
+                if (field) { field.value = data[key] || ''; field.dispatchEvent(new Event('change')); }
+            });
+        });
+    }
 
     // Versandarten nach gewähltem Land ein-/ausblenden.
     var countrySel = document.getElementById('ship-country');

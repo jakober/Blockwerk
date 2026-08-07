@@ -286,6 +286,70 @@ class Database
                 qty INT NOT NULL DEFAULT 1,
                 INDEX idx_order (order_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+            'CREATE TABLE IF NOT EXISTS shop_wishlist_items (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                customer_id INT UNSIGNED NOT NULL,
+                product_id INT UNSIGNED NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_customer_product (customer_id, product_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_cart_items (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                customer_id INT UNSIGNED NOT NULL,
+                cart_key VARCHAR(191) NOT NULL,
+                product_id INT UNSIGNED NOT NULL,
+                opts_json TEXT NULL,
+                qty INT NOT NULL DEFAULT 1,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_customer_key (customer_id, cart_key)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_customer_addresses (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                customer_id INT UNSIGNED NOT NULL,
+                label VARCHAR(80) NULL,
+                first_name VARCHAR(120) NULL,
+                last_name VARCHAR(120) NULL,
+                company VARCHAR(160) NULL,
+                street VARCHAR(200) NULL,
+                zip VARCHAR(20) NULL,
+                city VARCHAR(120) NULL,
+                country VARCHAR(80) NULL,
+                phone VARCHAR(60) NULL,
+                is_default_shipping TINYINT(1) NOT NULL DEFAULT 0,
+                is_default_billing TINYINT(1) NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_customer (customer_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_reviews (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                product_id INT UNSIGNED NOT NULL,
+                customer_id INT UNSIGNED NOT NULL,
+                name VARCHAR(120) NOT NULL,
+                rating TINYINT UNSIGNED NOT NULL,
+                text TEXT NULL,
+                approved TINYINT(1) NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_customer_product (customer_id, product_id),
+                INDEX idx_product (product_id, approved)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+            'CREATE TABLE IF NOT EXISTS shop_coupons (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                code VARCHAR(60) NOT NULL UNIQUE,
+                type VARCHAR(10) NOT NULL DEFAULT \'percent\',
+                value INT NOT NULL DEFAULT 0,
+                min_subtotal INT NULL,
+                starts_at DATETIME NULL,
+                ends_at DATETIME NULL,
+                usage_limit INT NULL,
+                used_count INT NOT NULL DEFAULT 0,
+                active TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
             // Rechnungen: fortlaufende Nummer erst bei „Rechnung erstellen".
             'CREATE TABLE IF NOT EXISTS invoices (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -343,6 +407,8 @@ class Database
         self::ensureColumn($pdo, 'shop_products', 'meta_description', 'TEXT NULL');
         self::ensureColumn($pdo, 'shop_categories', 'meta_title', 'VARCHAR(200) NULL');
         self::ensureColumn($pdo, 'shop_categories', 'meta_description', 'TEXT NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'coupon_code', 'VARCHAR(60) NULL');
+        self::ensureColumn($pdo, 'shop_orders', 'discount_cents', 'INT NOT NULL DEFAULT 0');
     }
 
     /**

@@ -33,6 +33,8 @@ if (\Core\Shop::enabled()) {
         'shop-products' => ['Produkte', '/admin/shop/products', '◰'],
         'shop-categories' => ['Kategorien', '/admin/shop/categories', '≡'],
         'shop-orders' => ['Bestellungen', '/admin/shop/orders', '🛒'],
+        'shop-reviews' => ['Bewertungen', '/admin/shop/reviews', '★'],
+        'shop-coupons' => ['Gutscheine', '/admin/shop/coupons', '🏷'],
         'shop-customers' => ['Kunden', '/admin/shop/customers', '👤'],
         'shop-settings' => ['Shop-Einstellungen', '/admin/shop/settings', '⚙'],
     ]];
@@ -45,6 +47,8 @@ if (!\Core\Auth::isAdmin()) {
 }
 // Verfügbares Update (nur Cache-Lesen) – markiert den „Updates"-Menüpunkt.
 $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : null;
+// Unmoderierte Bewertungen – markiert den „Bewertungen"-Menüpunkt.
+$navPendingReviews = \Core\Shop::enabled() ? \Models\ShopReview::countPending() : 0;
 ?>
 <!doctype html>
 <html lang="de">
@@ -72,6 +76,7 @@ $navUpdateVersion = \Core\Auth::isAdmin() ? \Core\Updater::updateAvailable() : n
                         <a href="<?= e(url($href)) ?>" data-nav-key="<?= e($key) ?>" class="<?= ($active ?? '') === $key ? 'active' : '' ?>">
                             <span class="nav-icon"><?= $icon ?></span><?= e($label) ?>
                             <?php if ($key === 'update' && $navUpdateVersion !== null): ?><span class="nav-badge" title="Update auf <?= e($navUpdateVersion) ?> verfügbar">1</span><?php endif; ?>
+                            <?php if ($key === 'shop-reviews' && $navPendingReviews > 0): ?><span class="nav-badge" title="<?= (int) $navPendingReviews ?> unmoderierte Bewertung(en)"><?= (int) $navPendingReviews ?></span><?php endif; ?>
                         </a>
                     <?php endforeach; ?>
                 <?php endforeach; ?>

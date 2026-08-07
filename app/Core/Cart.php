@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Core;
 
+use Models\ShopCartItem;
+use Models\ShopCoupon;
 use Models\ShopProduct;
 
 /**
@@ -49,6 +51,7 @@ class Cart
         } else {
             $cart[$key] = ['id' => $productId, 'qty' => max(1, $qty), 'opts' => $clean];
         }
+        self::syncToDb();
     }
 
     public static function set(string $key, int $qty): void
@@ -62,17 +65,41 @@ class Cart
         } else {
             $cart[$key]['qty'] = $qty;
         }
+        self::syncToDb();
     }
 
     public static function remove(string $key): void
     {
         $cart = &self::store();
         unset($cart[$key]);
+        self::syncToDb();
     }
 
     public static function clear(): void
     {
         $_SESSION[self::KEY] = [];
+        self::removeCoupon();
+        self::syncToDb();
+    }
+
+    /** Aktuellen Warenkorb für eingeloggte Kunden in die Datenbank spiegeln. */
+    private static function syncToDb(): void
+    {
+        if (CustomerAuth::check()) {
+            ShopCartItem::replaceAll((int) CustomerAuth::id(), self::store());
+        }
+    }
+
+    /**
+     * Beim Login einen evtl. gespeicherten Warenkorb in die aktuelle Sitzung
+     * mergen (Mengen werden addiert) – so findet ein Kunde seinen Warenkorb
+     * auf einem neuen Gerät wieder.
+     */
+    public static function mergeFromDb(int $customerId): void
+    {
+        foreach (ShopCartItem::forCustomer($customerId) as $entry) {
+            self::add((int) $entry['id'], (int) $entry['qty'], (array) $entry['opts']);
+        }
     }
 
     public static function count(): int
@@ -136,5 +163,58 @@ class Cart
             $sum += max(0, (int) ($item['product']['weight'] ?? 0)) * (int) $item['qty'];
         }
         return $sum;
+    }
+
+    /* ---------- Gutschein ---------- */
+
+    private const COUPON_KEY = 'shop_coupon_code';
+
+    /**
+     * Gutscheincode prüfen und in der Sitzung merken.
+     * @return array{ok:bool,error:?string}
+     */
+    public static function applyCoupon(string $code): array
+    {
+        $coupon = ShopCoupon::findByCode($code);
+        if ($coupon === null) {
+            return ['ok' => false, 'error' => 'Diesen Gutscheincode gibt es nicht.'];
+        }
+        $reason = ShopCoupon::invalidReason($coupon, self::subtotal());
+        if ($reason !== null) {
+            return ['ok' => false, 'error' => $reason];
+        }
+        $_SESSION[self::COUPON_KEY] = $coupon['code'];
+        return ['ok' => true, 'error' => null];
+    }
+
+    public static function removeCoupon(): void
+    {
+        unset($_SESSION[self::COUPON_KEY]);
+    }
+
+    /** Aktuell hinterlegter, noch gültiger Gutschein – wird bei Ungültigkeit automatisch entfernt. */
+    public static function coupon(): ?array
+    {
+        $code = $_SESSION[self::COUPON_KEY] ?? null;
+        if (!is_string($code) || $code === '') {
+            return null;
+        }
+        $coupon = ShopCoupon::findByCode($code);
+        if ($coupon === null || ShopCoupon::invalidReason($coupon, self::subtotal()) !== null) {
+            self::removeCoupon();
+            return null;
+        }
+        return $coupon;
+    }
+
+    public static function discount(): int
+    {
+        $coupon = self::coupon();
+        return $coupon !== null ? ShopCoupon::discountFor($coupon, self::subtotal()) : 0;
+    }
+
+    public static function total(): int
+    {
+        return max(0, self::subtotal() - self::discount());
     }
 }

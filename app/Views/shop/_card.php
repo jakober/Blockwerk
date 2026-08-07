@@ -1,6 +1,8 @@
 <?php
 /** @var array $p  Produkt  @var callable $fmt */
 $hasCompare = ($p['compare_price'] ?? null) !== null && (int) $p['compare_price'] > (int) $p['price'];
+$loggedIn = \Core\CustomerAuth::check();
+$inWishlist = $loggedIn && \Models\ShopWishlist::has((int) \Core\CustomerAuth::id(), (int) $p['id']);
 ?>
 <div class="shop-card">
     <a class="shop-card-link" href="<?= e(\Core\Shop::url('produkt/' . $p['slug'])) ?>">
@@ -12,6 +14,14 @@ $hasCompare = ($p['compare_price'] ?? null) !== null && (int) $p['compare_price'
         </div>
         <div class="shop-card-name"><?= e($p['name']) ?></div>
     </a>
+    <?php if ($loggedIn): ?>
+        <form method="post" action="<?= e(\Core\Shop::url('merkliste/' . ($inWishlist ? 'entfernen' : 'hinzufuegen'))) ?>" class="shop-wish-form">
+            <?= csrf_field() ?>
+            <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+            <input type="hidden" name="back" value="<?= e($_SERVER['REQUEST_URI'] ?? '') ?>">
+            <button type="submit" class="shop-wish-btn" aria-label="<?= $inWishlist ? 'Von der Merkliste entfernen' : 'Auf die Merkliste' ?>"><?= $inWishlist ? '♥' : '♡' ?></button>
+        </form>
+    <?php endif; ?>
     <div class="shop-card-price">
         <?php if ($hasCompare): ?><span class="shop-price-old"><?= e($fmt($p['compare_price'])) ?></span><?php endif; ?>
         <span class="shop-price"><?= e($fmt($p['price'])) ?></span>

@@ -120,6 +120,17 @@ class ShopOrder
         return $stmt->fetchAll();
     }
 
+    /** Hat der Kunde dieses Produkt schon einmal bestellt? (Grundlage für Bewertungen.) */
+    public static function customerPurchasedProduct(int $customerId, int $productId): bool
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT 1 FROM shop_orders o JOIN shop_order_items i ON i.order_id = o.id
+             WHERE o.customer_id = ? AND i.product_id = ? LIMIT 1'
+        );
+        $stmt->execute([$customerId, $productId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
     public static function countNew(): int
     {
         return (int) Database::pdo()->query("SELECT COUNT(*) FROM shop_orders WHERE status = 'new'")->fetchColumn();
@@ -141,7 +152,7 @@ class ShopOrder
         $number = self::nextNumber($pdo);
         $cols = ['number', 'token', 'status', 'email', 'first_name', 'last_name', 'company', 'street', 'zip', 'city',
             'country', 'phone', 'note', 'subtotal', 'shipping_cost', 'total', 'currency', 'shipping_method',
-            'payment_method', 'payment_status', 'paypal_order_id'];
+            'payment_method', 'payment_status', 'paypal_order_id', 'coupon_code', 'discount_cents'];
         $vals = [
             $number, $order['token'], $order['status'] ?? 'new', $order['email'],
             $order['first_name'] ?? null, $order['last_name'] ?? null, $order['company'] ?? null,
@@ -150,6 +161,7 @@ class ShopOrder
             (int) $order['subtotal'], (int) $order['shipping_cost'], (int) $order['total'],
             $order['currency'] ?? 'EUR', $order['shipping_method'] ?? null, $order['payment_method'] ?? null,
             $order['payment_status'] ?? 'pending', $order['paypal_order_id'] ?? null,
+            $order['coupon_code'] ?? null, (int) ($order['discount_cents'] ?? 0),
         ];
         // customer_id nur mitschreiben, wenn die Spalte existiert (Selbstheilung).
         if ($hasCustomer) {
@@ -162,6 +174,13 @@ class ShopOrder
         $stmt = $pdo->prepare('INSERT INTO shop_order_items (order_id, product_id, name, sku, price, qty, tax_rate) VALUES (?, ?, ?, ?, ?, ?, ?)');
         foreach ($items as $it) {
             $stmt->execute([$orderId, $it['product_id'] ?: null, $it['name'], $it['sku'] ?? null, (int) $it['price'], (int) $it['qty'], $it['tax_rate'] ?? null]);
+        }
+        // Gutschein-Nutzung erst nach erfolgreichem Anlegen der Bestellung zählen.
+        if (!empty($order['coupon_code'])) {
+            $coupon = \Models\ShopCoupon::findByCode((string) $order['coupon_code']);
+            if ($coupon !== null) {
+                \Models\ShopCoupon::tryIncrementUsage((int) $coupon['id']);
+            }
         }
         $pdo->commit();
         return $orderId;

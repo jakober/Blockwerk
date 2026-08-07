@@ -48,6 +48,8 @@ class CustomerAuth
         session_regenerate_id(true);
         $_SESSION['customer_id'] = (int) $customer['id'];
         $_SESSION['customer_email'] = (string) $customer['email'];
+        // Warenkorb von einem früheren Login (anderes Gerät) in die aktuelle Sitzung mergen.
+        Cart::mergeFromDb((int) $customer['id']);
     }
 
     public static function logout(): void

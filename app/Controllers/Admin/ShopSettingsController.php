@@ -60,11 +60,8 @@ class ShopSettingsController extends ShopAdminController
 
         // Steuern: Modus + Standardsatz.
         $taxMode = ($_POST['tax_mode'] ?? '') === 'inclusive' ? 'inclusive' : 'none';
-        Setting::set('shop_tax_mode', $taxMode);
         $taxRate = (float) str_replace(',', '.', (string) ($_POST['tax_rate'] ?? '19'));
-        if ($taxRate < 0) { $taxRate = 0; }
-        if ($taxRate > 100) { $taxRate = 100; }
-        Setting::set('shop_default_tax_rate', rtrim(rtrim(number_format($taxRate, 2, '.', ''), '0'), '.') ?: '0');
+        Shop::setTaxMode($taxMode, $taxRate);
         Setting::set('shop_currency', trim($_POST['currency'] ?? 'EUR') ?: 'EUR');
         Setting::set('shop_currency_symbol', trim($_POST['symbol'] ?? '€') ?: '€');
         Setting::set('shop_pay_invoice', isset($_POST['pay_invoice']) ? '1' : '0');
@@ -149,22 +146,22 @@ class ShopSettingsController extends ShopAdminController
         $countriesRaw = is_array($countriesInput) ? $countriesInput : explode(',', (string) $countriesInput);
         $countries = array_values(array_filter(array_map('trim', $countriesRaw), static fn ($c) => $c !== ''));
 
-        // Gewichtsstaffeln als kompakter Text "kg:€" pro Stufe, mit Semikolon
-        // (oder Zeilenumbruch) getrennt – z. B. "5:20; 20:50,50" = bis 5 kg 20 €,
-        // bis 20 kg 50,50 €. Semikolon als Trenner, damit Komma-Preise funktionieren.
+        // Gewichtsstaffeln: eine Zeile je Stufe ("bis X kg" + Preis), nur
+        // ausgewertet, wenn die Staffelung überhaupt aktiviert ist – so bleibt
+        // "Checkbox nachträglich aus, Zeilen aber stehen gelassen" robust ohne
+        // sich auf JavaScript zu verlassen (weight_tiers wird dann NULL = Pauschalpreis).
         $tiers = [];
-        foreach (preg_split('/[;\n]+/', (string) ($_POST['weight_tiers'] ?? '')) ?: [] as $part) {
-            $part = trim($part);
-            if ($part === '' || !str_contains($part, ':')) {
-                continue;
+        if (isset($_POST['tiered_pricing'])) {
+            $kgs = (array) ($_POST['tier_max_kg'] ?? []);
+            $prices = (array) ($_POST['tier_price'] ?? []);
+            foreach ($kgs as $i => $kg) {
+                $grams = (int) round(((float) str_replace(',', '.', trim((string) $kg))) * 1000);
+                if ($grams > 0) {
+                    $tiers[] = ['max' => $grams, 'price' => Shop::parsePrice((string) ($prices[$i] ?? '0'))];
+                }
             }
-            [$kg, $price] = explode(':', $part, 2);
-            $grams = (int) round(((float) str_replace(',', '.', trim($kg))) * 1000);
-            if ($grams > 0) {
-                $tiers[] = ['max' => $grams, 'price' => Shop::parsePrice(trim($price))];
-            }
+            usort($tiers, static fn ($a, $b) => $a['max'] <=> $b['max']);
         }
-        usort($tiers, static fn ($a, $b) => $a['max'] <=> $b['max']);
 
         return [
             'name' => $name,

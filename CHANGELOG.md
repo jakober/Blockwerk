@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen pro Version. Das Format pro Eintrag: Version, Datum, Änderungen. Die installierte Version steht in der Datei `VERSION` und wird im Admin unter **Updates** angezeigt.
 
+## 2.6.0 – 2026-08-07
+
+Versandarten einfacher gestalten, KI-Assistent kennt jetzt den gesamten Shop-Ausbau.
+
+- **Versandarten neu gestaltet.** Gewichtsstaffeln werden nicht mehr als Freitext (z. B. „5:20; 20:50") eingegeben, sondern Zeile für Zeile über ein geführtes Formular („bis X kg" + Preis, beliebig viele Zeilen hinzufügen/entfernen) – wie schon bei den Staffelpreisen im Produktformular. Jede Versandart lässt sich einzeln aufklappen.
+- **KI-Assistent kennt den ganzen Shop.** Der KI-Assistent kann jetzt auch den Steuer-Modus einstellen (Kleinunternehmer §19 UStG oder Bruttopreise inkl. MwSt.), Gutscheincodes anlegen/ändern, Kategorien nachträglich bearbeiten sowie SEO-Felder und einen eigenen Steuersatz für Produkte setzen. Er weiß außerdem über automatische Rechnungen, Überverkaufsschutz, die automatisch angelegten Rechtstexte (AGB/Widerrufsbelehrung) sowie SEPA-Lastschrift als Zahlungsart Bescheid – Rückerstattungen, Versand-Tracking und Bewertungen bleiben bewusst reine Backend-Aktionen des Nutzers.
+
 ## 2.5.0 – 2026-08-07
 
 Neue Zahlungsart: SEPA-Lastschrift ganz ohne Zahlungsdienstleister.

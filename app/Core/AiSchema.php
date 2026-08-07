@@ -62,7 +62,14 @@ class AiSchema
 
         // Shop-Abschnitt nur im Prompt, wenn der Shop aktiviert ist.
         $shopSection = \Core\Shop::enabled()
-            ? "\n- **Shop** (list_shop_categories/create_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Du kannst pro Produkt auch **Staffelpreise** (tier_prices: ab Menge X günstigerer Stückpreis), **Varianten/Eigenschaften** (variants: z. B. Größe S/M/L oder Farbe, optional mit Preisaufschlag surcharge) sowie **Cross-Selling** und **Zubehör** (cross_sell/accessories mit Produkt-IDs aus list_shop_products) setzen. **Versandarten** (list_shipping/create_shipping/update_shipping): Du kannst Versandarten anlegen und ändern – pauschal oder **gewichtsabhängig** (weight_tiers: „bis X kg → Preis“) und auf bestimmte **Länder** begrenzt (countries mit deutschen Ländernamen, leer = alle). Beispiel: „bis 5 kg 20 €, bis 20 kg 50 € nur nach Deutschland“. Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungs- und Versandarten richtet der Nutzer dort selbst ein."
+            ? "\n- **Shop** (list_shop_categories/create_shop_category/update_shop_category, list_shop_products/create_shop_product/update_shop_product): Produkte und Kategorien anlegen und pflegen. Preise immer in Euro (z. B. 19.90). Für ein Produkt in einer Kategorie zuerst list_shop_categories aufrufen und die passende category_id verwenden – oder die Kategorie vorher mit create_shop_category anlegen. Produktbilder kannst du mit generate_image erzeugen oder mit list_media aus der Mediathek holen und als image-URL übergeben. Du kannst pro Produkt auch **Staffelpreise** (tier_prices: ab Menge X günstigerer Stückpreis), **Varianten/Eigenschaften** (variants: z. B. Größe S/M/L oder Farbe, optional mit Preisaufschlag surcharge), **Cross-Selling** und **Zubehör** (cross_sell/accessories mit Produkt-IDs aus list_shop_products) sowie **SEO-Felder** (meta_title/meta_description für Kategorie und Produkt) setzen. Ein eigener **Steuersatz** je Produkt (tax_rate in %) überschreibt den Standardsatz.\n"
+                . "  **Steuern** (set_shop_tax): Frag aktiv nach, ob der Betreiber Kleinunternehmer nach §19 UStG ist (mode „none“, keine MwSt.-Ausweisung) oder Bruttopreise inkl. MwSt. ausweisen will (mode „inclusive“, mit default_rate in %, üblich 19 oder 7) – nimm das nicht selbst an.\n"
+                . "  **Rechtstexte**: Bei Shop-Aktivierung werden AGB und Widerrufsbelehrung automatisch mit Platzhaltertext angelegt (wie Impressum/Datenschutz) – lege sie nicht neu an, sondern weise den Nutzer bei Bedarf darauf hin, sie zu vervollständigen.\n"
+                . "  **Rechnungen** entstehen automatisch zu jeder Bestellung inkl. PDF-Mailversand – dafür ist kein Tool nötig. **Lagerbestand** (stock je Produkt) schützt automatisch vor Überverkauf an der Kasse.\n"
+                . "  **Gutscheine** (list_shop_coupons/create_shop_coupon/update_shop_coupon): Rabattcodes anlegen und ändern – prozentual (percent, 0–100) oder als fester Betrag in Euro (fixed), optional mit Mindestbestellwert, Gültigkeitszeitraum und Nutzungslimit. Vor Änderungen erst list_shop_coupons aufrufen, um die passende coupon_id zu finden.\n"
+                . "  **Versandarten** (list_shipping/create_shipping/update_shipping): Du kannst Versandarten anlegen und ändern – pauschal oder **gewichtsabhängig** (weight_tiers: „bis X kg → Preis“) und auf bestimmte **Länder** begrenzt (countries mit deutschen Ländernamen, leer = alle). Beispiel: „bis 5 kg 20 €, bis 20 kg 50 € nur nach Deutschland“.\n"
+                . "  **Nur zur Info, kein eigenes Werkzeug**: Merkliste, geräteübergreifender Warenkorb und Adressbuch sind reine Kundenselbstbedienung. **Produktbewertungen** entstehen automatisch nach einem echten Kauf und müssen im Backend freigeschaltet werden – du darfst **niemals selbst Bewertungen erfinden oder anlegen**. Rückerstattungen und Versand-Tracking werden vom Nutzer direkt bei der jeweiligen Bestellung im Backend verwaltet – dafür gibt es kein Tool.\n"
+                . "  Weise den Nutzer darauf hin, dass der Shop unter „Shop-Einstellungen“ aktiviert und eine Hauptseite gewählt sein muss, damit Produkte auf der Website erscheinen; Zahlungsarten (Rechnung, Vorkasse, PayPal, SEPA-Lastschrift) sowie deren Zugangsdaten (z. B. PayPal-Zugangsdaten, SEPA-Gläubiger-ID/IBAN) richtet der Nutzer dort selbst ein."
             : '';
 
         return <<<PROMPT
@@ -485,8 +492,27 @@ PROMPT
                         'parent_id' => ['type' => 'integer', 'description' => 'ID der Oberkategorie (optional)'],
                         'description' => ['type' => 'string', 'description' => 'Kurztext oben auf der Kategorieseite (optional)'],
                         'image' => ['type' => 'string', 'description' => 'Bild-URL (optional)'],
+                        'meta_title' => ['type' => 'string', 'description' => 'SEO-Titel (optional, leer = Kategoriename)'],
+                        'meta_description' => ['type' => 'string', 'description' => 'SEO-Beschreibung für Suchergebnisse (optional, ~120–160 Zeichen)'],
                     ],
                     'required' => ['name'],
+                ],
+            ],
+            [
+                'name' => 'update_shop_category',
+                'description' => 'Ändert eine bestehende Shop-Kategorie (per id aus list_shop_categories). Nur übergebene Felder werden geändert.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'category_id' => ['type' => 'integer'],
+                        'name' => ['type' => 'string'],
+                        'parent_id' => ['type' => 'integer', 'description' => 'ID der Oberkategorie (optional)'],
+                        'description' => ['type' => 'string'],
+                        'image' => ['type' => 'string'],
+                        'meta_title' => ['type' => 'string'],
+                        'meta_description' => ['type' => 'string'],
+                    ],
+                    'required' => ['category_id'],
                 ],
             ],
             [
@@ -514,6 +540,9 @@ PROMPT
                         'stock' => ['type' => 'integer', 'description' => 'Lagerbestand (optional, leer = unbegrenzt)'],
                         'weight' => ['type' => 'number', 'description' => 'Gewicht in kg (optional, für gewichtsabhängigen Versand, z. B. 2.5)'],
                         'featured' => ['type' => 'integer', 'description' => '1 = auf der Shop-Startseite empfehlen'],
+                        'tax_rate' => ['type' => 'number', 'description' => 'Eigener Steuersatz in % für dieses Produkt (optional, z. B. 7) – leer = Standardsatz aus den Shop-Einstellungen'],
+                        'meta_title' => ['type' => 'string', 'description' => 'SEO-Titel (optional, leer = Produktname)'],
+                        'meta_description' => ['type' => 'string', 'description' => 'SEO-Beschreibung für Suchergebnisse (optional, ~120–160 Zeichen)'],
                         'tier_prices' => [
                             'type' => 'array',
                             'description' => 'Staffelpreise (optional): ab Menge „min" (>1) gilt der Stückpreis „price" in Euro.',
@@ -551,6 +580,9 @@ PROMPT
                         'weight' => ['type' => 'number', 'description' => 'Gewicht in kg (optional, z. B. 2.5)'],
                         'featured' => ['type' => 'integer'],
                         'active' => ['type' => 'integer', 'description' => '1 = sichtbar, 0 = ausgeblendet'],
+                        'tax_rate' => ['type' => 'number', 'description' => 'Eigener Steuersatz in % (optional, z. B. 7) – leer/weglassen lässt den vorhandenen Wert unverändert'],
+                        'meta_title' => ['type' => 'string'],
+                        'meta_description' => ['type' => 'string'],
                         'tier_prices' => [
                             'type' => 'array',
                             'description' => 'Staffelpreise (optional, ersetzt vorhandene): ab Menge „min" (>1) Stückpreis „price" in Euro.',
@@ -612,6 +644,60 @@ PROMPT
                         'active' => ['type' => 'integer'],
                     ],
                     'required' => ['shipping_id'],
+                ],
+            ],
+            [
+                'name' => 'set_shop_tax',
+                'description' => 'Stellt den Steuer-Modus des Shops ein: „none" = Kleinunternehmer nach §19 UStG (keine MwSt.-Ausweisung), „inclusive" = Bruttopreise inkl. MwSt. mit Ausweisung auf Rechnung. Frag den Nutzer aktiv, welcher Fall zutrifft, statt es anzunehmen.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'mode' => ['type' => 'string', 'enum' => ['none', 'inclusive'], 'description' => '„none" = Kleinunternehmer §19 UStG, „inclusive" = Bruttopreise inkl. MwSt.'],
+                        'default_rate' => ['type' => 'number', 'description' => 'Standard-Steuersatz in %, z. B. 19 (nur bei „inclusive" relevant, Standard 19)'],
+                    ],
+                    'required' => ['mode'],
+                ],
+            ],
+            [
+                'name' => 'list_shop_coupons',
+                'description' => 'Listet die Rabatt-Gutscheine (id, Code, Typ, Wert, Gültigkeit). Vor dem Ändern eines Gutscheins aufrufen.',
+                'input_schema' => ['type' => 'object', 'properties' => (object) []],
+            ],
+            [
+                'name' => 'create_shop_coupon',
+                'description' => 'Legt einen Rabatt-Gutschein für den Shop an. Der Code wird automatisch großgeschrieben und muss eindeutig sein.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'code' => ['type' => 'string', 'description' => 'Gutscheincode, z. B. „WILLKOMMEN10" (wird automatisch großgeschrieben)'],
+                        'type' => ['type' => 'string', 'enum' => ['percent', 'fixed'], 'description' => '„percent" = Prozent-Rabatt, „fixed" = fester Euro-Betrag'],
+                        'value' => ['type' => 'number', 'description' => 'Bei „percent": 0–100 (z. B. 10 für 10 %). Bei „fixed": Euro-Betrag (z. B. 5.00).'],
+                        'min_subtotal' => ['type' => 'number', 'description' => 'Mindest-Warenkorbsumme in Euro, ab der der Gutschein gilt (optional)'],
+                        'starts_at' => ['type' => 'string', 'description' => 'Gültig ab, Format „JJJJ-MM-TT" oder „JJJJ-MM-TT HH:MM" (optional)'],
+                        'ends_at' => ['type' => 'string', 'description' => 'Gültig bis, Format „JJJJ-MM-TT" oder „JJJJ-MM-TT HH:MM" (optional)'],
+                        'usage_limit' => ['type' => 'integer', 'description' => 'Maximale Anzahl Einlösungen insgesamt (optional, leer = unbegrenzt)'],
+                        'active' => ['type' => 'integer', 'description' => '1 = aktiv (Standard), 0 = deaktiviert'],
+                    ],
+                    'required' => ['code', 'type', 'value'],
+                ],
+            ],
+            [
+                'name' => 'update_shop_coupon',
+                'description' => 'Ändert einen bestehenden Gutschein (per id aus list_shop_coupons). Nur übergebene Felder werden geändert.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'coupon_id' => ['type' => 'integer'],
+                        'code' => ['type' => 'string'],
+                        'type' => ['type' => 'string', 'enum' => ['percent', 'fixed']],
+                        'value' => ['type' => 'number', 'description' => 'Bei „percent": 0–100. Bei „fixed": Euro-Betrag.'],
+                        'min_subtotal' => ['type' => 'number'],
+                        'starts_at' => ['type' => 'string'],
+                        'ends_at' => ['type' => 'string'],
+                        'usage_limit' => ['type' => 'integer'],
+                        'active' => ['type' => 'integer'],
+                    ],
+                    'required' => ['coupon_id'],
                 ],
             ],
             [
@@ -696,7 +782,10 @@ PROMPT
 
         // Shop-Werkzeuge nur anbieten, wenn der Shop aktiviert ist.
         if (!\Core\Shop::enabled()) {
-            $shopTools = ['list_shop_categories', 'create_shop_category', 'list_shop_products', 'create_shop_product', 'update_shop_product', 'list_shipping', 'create_shipping', 'update_shipping'];
+            $shopTools = ['list_shop_categories', 'create_shop_category', 'update_shop_category',
+                'list_shop_products', 'create_shop_product', 'update_shop_product',
+                'list_shipping', 'create_shipping', 'update_shipping',
+                'set_shop_tax', 'list_shop_coupons', 'create_shop_coupon', 'update_shop_coupon'];
             $all = array_values(array_filter($all, static fn (array $t): bool => !in_array($t['name'], $shopTools, true)));
         }
 

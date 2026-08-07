@@ -77,6 +77,15 @@ class Shop
         return $rate >= 0 && $rate <= 100 ? $rate : 19.0;
     }
 
+    /** Steuer-Modus + Standardsatz setzen ('inclusive' = Bruttopreise inkl. MwSt., sonst Kleinunternehmer §19 UStG). */
+    public static function setTaxMode(string $mode, float $rate): void
+    {
+        $mode = $mode === 'inclusive' ? 'inclusive' : 'none';
+        Setting::set('shop_tax_mode', $mode);
+        $rate = max(0.0, min(100.0, $rate));
+        Setting::set('shop_default_tax_rate', rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.') ?: '0');
+    }
+
     /** Steuersatz eines Produkts – eigener Satz, sonst der Standardsatz. */
     public static function productTaxRate(array $product): float
     {

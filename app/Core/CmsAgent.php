@@ -331,6 +331,21 @@ class CmsAgent
             $notes[] = 'PFLICHT: Es fehlt noch ' . implode(' und ', $missing)
                 . '. Lege die Seite(n) an – für geschäftliche Websites sind beide vorgeschrieben.';
         }
+
+        // Shop: automatisch angelegte Rechtstexte noch mit Platzhalter?
+        if (\Core\Shop::enabled()) {
+            $todo = [];
+            foreach (['agb' => 'AGB', 'widerrufsbelehrung' => 'Widerrufsbelehrung'] as $slug => $label) {
+                $p = Page::findBySlug($slug);
+                if ($p !== null && str_contains((string) $p['content'], '[Bitte ergänzen')) {
+                    $todo[] = $label;
+                }
+            }
+            if ($todo !== []) {
+                $notes[] = 'SHOP: ' . implode(' und ', $todo) . ' enthält/enthalten noch [Bitte ergänzen]-Platzhalter – '
+                    . 'weise den Nutzer einmal kurz darauf hin, sie zu vervollständigen (nicht neu anlegen).';
+            }
+        }
         return $notes === [] ? '' : "\n" . implode(' ', $notes);
     }
 
@@ -788,6 +803,8 @@ class CmsAgent
                         'parent_id' => $pid > 0 && \Models\ShopCategory::find($pid) !== null ? $pid : 0,
                         'description' => trim((string) ($input['description'] ?? '')) ?: null,
                         'image' => trim((string) ($input['image'] ?? '')) ?: null,
+                        'meta_title' => trim((string) ($input['meta_title'] ?? '')) ?: null,
+                        'meta_description' => trim((string) ($input['meta_description'] ?? '')) ?: null,
                         'position' => 0,
                     ]);
                     Cache::clear();
@@ -799,6 +816,32 @@ class CmsAgent
                         'viewUrl' => \Core\Shop::enabled() ? \Core\Shop::url('kategorie/' . ($cat['slug'] ?? '')) : null,
                     ];
                     return 'Kategorie angelegt: id=' . $cid . ', Name=' . $name;
+
+                case 'update_shop_category':
+                    $cat = \Models\ShopCategory::find((int) ($input['category_id'] ?? 0));
+                    if ($cat === null) {
+                        return 'FEHLER: Kategorie nicht gefunden.';
+                    }
+                    $pidUpd = array_key_exists('parent_id', $input) ? (int) $input['parent_id'] : (int) ($cat['parent_id'] ?? 0);
+                    \Models\ShopCategory::update((int) $cat['id'], [
+                        'name' => trim((string) ($input['name'] ?? '')) ?: $cat['name'],
+                        // Slug bewusst unverändert lassen – ein Namenswechsel darf die URL nicht überraschend ändern.
+                        'slug' => $cat['slug'],
+                        'parent_id' => $pidUpd > 0 && $pidUpd !== (int) $cat['id'] && \Models\ShopCategory::find($pidUpd) !== null ? $pidUpd : 0,
+                        'description' => array_key_exists('description', $input) ? (trim((string) $input['description']) ?: null) : ($cat['description'] ?? null),
+                        'image' => array_key_exists('image', $input) ? (trim((string) $input['image']) ?: null) : ($cat['image'] ?? null),
+                        'meta_title' => array_key_exists('meta_title', $input) ? (trim((string) $input['meta_title']) ?: null) : ($cat['meta_title'] ?? null),
+                        'meta_description' => array_key_exists('meta_description', $input) ? (trim((string) $input['meta_description']) ?: null) : ($cat['meta_description'] ?? null),
+                        'position' => (int) ($cat['position'] ?? 0),
+                    ]);
+                    Cache::clear();
+                    $actions[] = [
+                        'type' => 'link',
+                        'label' => 'Kategorie „' . $cat['name'] . '“ aktualisiert',
+                        'editorUrl' => url('/admin/shop/categories/' . $cat['id'] . '/edit'),
+                        'viewUrl' => \Core\Shop::enabled() ? \Core\Shop::url('kategorie/' . $cat['slug']) : null,
+                    ];
+                    return 'Kategorie id=' . $cat['id'] . ' aktualisiert.';
 
                 case 'list_shop_products':
                     $search = trim((string) ($input['search'] ?? ''));
@@ -845,6 +888,9 @@ class CmsAgent
                         'accessories' => $extras['accessories'],
                         'stock' => isset($input['stock']) && $input['stock'] !== '' ? (int) $input['stock'] : null,
                         'weight' => isset($input['weight']) && $input['weight'] !== '' ? (int) round(((float) $input['weight']) * 1000) : null,
+                        'tax_rate' => isset($input['tax_rate']) && $input['tax_rate'] !== '' ? (float) $input['tax_rate'] : null,
+                        'meta_title' => trim((string) ($input['meta_title'] ?? '')) ?: null,
+                        'meta_description' => trim((string) ($input['meta_description'] ?? '')) ?: null,
                         'active' => 1,
                         'featured' => (int) ($input['featured'] ?? 0) ? 1 : 0,
                         'position' => 0,
@@ -881,6 +927,9 @@ class CmsAgent
                         ...self::shopExtrasJson($input, $prod),
                         'stock' => array_key_exists('stock', $input) && $input['stock'] !== '' ? (int) $input['stock'] : ($prod['stock'] ?? null),
                         'weight' => array_key_exists('weight', $input) && $input['weight'] !== '' ? (int) round(((float) $input['weight']) * 1000) : ($prod['weight'] ?? null),
+                        'tax_rate' => array_key_exists('tax_rate', $input) && $input['tax_rate'] !== '' ? (float) $input['tax_rate'] : ($prod['tax_rate'] ?? null),
+                        'meta_title' => array_key_exists('meta_title', $input) ? (trim((string) $input['meta_title']) ?: null) : ($prod['meta_title'] ?? null),
+                        'meta_description' => array_key_exists('meta_description', $input) ? (trim((string) $input['meta_description']) ?: null) : ($prod['meta_description'] ?? null),
                         'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : (int) $prod['active'],
                         'featured' => array_key_exists('featured', $input) ? ((int) $input['featured'] ? 1 : 0) : (int) $prod['featured'],
                         'position' => (int) $prod['position'],
@@ -931,6 +980,81 @@ class CmsAgent
                     Cache::clear();
                     $actions[] = ['type' => 'link', 'label' => 'Versandart aktualisiert', 'editorUrl' => url('/admin/shop/settings'), 'viewUrl' => null];
                     return 'Versandart id=' . $ship['id'] . ' aktualisiert.';
+
+                case 'set_shop_tax':
+                    $mode = ($input['mode'] ?? '') === 'inclusive' ? 'inclusive' : 'none';
+                    $rate = isset($input['default_rate']) && $input['default_rate'] !== '' ? (float) $input['default_rate'] : \Core\Shop::defaultTaxRate();
+                    \Core\Shop::setTaxMode($mode, $rate);
+                    if ($mode === 'none' && trim((string) \Models\Setting::get('shop_invoice_note', '')) === '') {
+                        \Models\Setting::set('shop_invoice_note', 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.');
+                    }
+                    Cache::clear();
+                    $actions[] = ['type' => 'link', 'label' => 'Steuer-Einstellungen aktualisiert', 'editorUrl' => url('/admin/shop/settings'), 'viewUrl' => null];
+                    return $mode === 'none'
+                        ? 'Steuer-Modus auf Kleinunternehmer nach §19 UStG gestellt (keine MwSt.-Ausweisung).'
+                        : 'Steuer-Modus auf Bruttopreise inkl. MwSt. gestellt, Standardsatz ' . rtrim(rtrim(number_format($rate, 2, ',', '.'), '0'), ',') . ' %.';
+
+                case 'list_shop_coupons':
+                    $lines = [];
+                    foreach (\Models\ShopCoupon::all() as $cp) {
+                        $val = $cp['type'] === 'fixed' ? \Core\Shop::formatPrice((int) $cp['value']) : ((int) $cp['value'] . ' %');
+                        $lines[] = 'id=' . $cp['id'] . ' „' . $cp['code'] . '“ ' . $val
+                            . ($cp['active'] ? '' : ' (deaktiviert)')
+                            . (($cp['starts_at'] ?? null) !== null ? ' | ab ' . $cp['starts_at'] : '')
+                            . (($cp['ends_at'] ?? null) !== null ? ' | bis ' . $cp['ends_at'] : '')
+                            . (($cp['usage_limit'] ?? null) !== null ? ' | Limit ' . $cp['usage_limit'] . ' (genutzt ' . $cp['used_count'] . ')' : '');
+                    }
+                    return $lines !== [] ? implode("\n", $lines) : 'Noch keine Gutscheine.';
+
+                case 'create_shop_coupon':
+                    $code = trim((string) ($input['code'] ?? ''));
+                    if ($code === '') {
+                        return 'FEHLER: Gutscheincode fehlt.';
+                    }
+                    if (\Models\ShopCoupon::findByCode($code) !== null) {
+                        return 'FEHLER: Dieser Code existiert bereits.';
+                    }
+                    $cpType = ($input['type'] ?? '') === 'fixed' ? 'fixed' : 'percent';
+                    if (!isset($input['value'])) {
+                        return 'FEHLER: Wert fehlt (bei percent: 0–100, bei fixed: Euro-Betrag).';
+                    }
+                    $cpValue = $cpType === 'fixed'
+                        ? \Core\Shop::parsePrice((string) $input['value'])
+                        : max(0, min(100, (int) round((float) $input['value'])));
+                    $couponId = \Models\ShopCoupon::create([
+                        'code' => $code,
+                        'type' => $cpType,
+                        'value' => $cpValue,
+                        'min_subtotal' => isset($input['min_subtotal']) && $input['min_subtotal'] !== '' ? \Core\Shop::parsePrice((string) $input['min_subtotal']) : null,
+                        'starts_at' => self::dt($input['starts_at'] ?? null),
+                        'ends_at' => self::dt($input['ends_at'] ?? null),
+                        'usage_limit' => isset($input['usage_limit']) && $input['usage_limit'] !== '' ? (int) $input['usage_limit'] : null,
+                        'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : 1,
+                    ]);
+                    $actions[] = ['type' => 'link', 'label' => 'Gutschein „' . mb_strtoupper($code) . '“ angelegt', 'editorUrl' => url('/admin/shop/coupons'), 'viewUrl' => null];
+                    return 'Gutschein angelegt: id=' . $couponId . ', Code=' . mb_strtoupper($code) . '.';
+
+                case 'update_shop_coupon':
+                    $cp = \Models\ShopCoupon::find((int) ($input['coupon_id'] ?? 0));
+                    if ($cp === null) {
+                        return 'FEHLER: Gutschein nicht gefunden.';
+                    }
+                    $cpTypeUpd = array_key_exists('type', $input) ? (($input['type'] ?? '') === 'fixed' ? 'fixed' : 'percent') : $cp['type'];
+                    $cpValueUpd = array_key_exists('value', $input)
+                        ? ($cpTypeUpd === 'fixed' ? \Core\Shop::parsePrice((string) $input['value']) : max(0, min(100, (int) round((float) $input['value']))))
+                        : (int) $cp['value'];
+                    \Models\ShopCoupon::update((int) $cp['id'], [
+                        'code' => array_key_exists('code', $input) ? (trim((string) $input['code']) ?: $cp['code']) : $cp['code'],
+                        'type' => $cpTypeUpd,
+                        'value' => $cpValueUpd,
+                        'min_subtotal' => array_key_exists('min_subtotal', $input) ? ($input['min_subtotal'] !== '' ? \Core\Shop::parsePrice((string) $input['min_subtotal']) : null) : ($cp['min_subtotal'] ?? null),
+                        'starts_at' => array_key_exists('starts_at', $input) ? self::dt($input['starts_at']) : ($cp['starts_at'] ?? null),
+                        'ends_at' => array_key_exists('ends_at', $input) ? self::dt($input['ends_at']) : ($cp['ends_at'] ?? null),
+                        'usage_limit' => array_key_exists('usage_limit', $input) ? ($input['usage_limit'] !== '' ? (int) $input['usage_limit'] : null) : ($cp['usage_limit'] ?? null),
+                        'active' => array_key_exists('active', $input) ? ((int) $input['active'] ? 1 : 0) : (int) $cp['active'],
+                    ]);
+                    $actions[] = ['type' => 'link', 'label' => 'Gutschein aktualisiert', 'editorUrl' => url('/admin/shop/coupons'), 'viewUrl' => null];
+                    return 'Gutschein id=' . $cp['id'] . ' aktualisiert.';
 
                 case 'create_design':
                     $name = trim((string) ($input['name'] ?? ''));

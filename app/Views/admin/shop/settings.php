@@ -171,16 +171,8 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
 
 <div class="card">
     <h2>Versandarten</h2>
+    <p class="muted small">Für jede Versandart gilt ein Pauschalpreis – optional lässt sich der Preis nach Warenkorbgewicht staffeln. Ohne Staffelung gilt einfach der Pauschalpreis oben. Mit Staffelung: für jede Gewichtsstufe eine Zeile – „bis X kg" und der Preis dafür (Reihenfolge wird automatisch sortiert). Das Warenkorbgewicht ergibt sich aus dem Gewicht der Produkte. Länder einschränken (leer = alle); an der Kasse werden nur passende Versandarten angezeigt.</p>
     <?php
-    $tiersToText = static function (array $sh): string {
-        $parts = [];
-        foreach (\Models\ShopShipping::weightTiers($sh) as $t) {
-            $kg = rtrim(rtrim(number_format($t['max'] / 1000, 3, '.', ''), '0'), '.');
-            $eur = rtrim(rtrim(number_format($t['price'] / 100, 2, ',', ''), '0'), ',');
-            $parts[] = $kg . ':' . $eur;
-        }
-        return implode('; ', $parts);
-    };
     $countryOptions = static function (array $selected): string {
         $sel = array_map('mb_strtolower', $selected);
         $html = '';
@@ -189,56 +181,95 @@ $priceStr = static fn ($cents) => $cents === null || $cents === '' ? '' : number
         }
         return $html;
     };
+    $renderTierRows = static function (array $tiers) use ($priceStr): string {
+        $html = '';
+        foreach ($tiers as $t) {
+            $kg = rtrim(rtrim(number_format($t['max'] / 1000, 3, '.', ''), '0'), '.');
+            $html .= '<tr class="tier-row">'
+                . '<td><input type="number" name="tier_max_kg[]" min="0.01" step="0.01" value="' . e($kg) . '" placeholder="5"></td>'
+                . '<td><input type="text" name="tier_price[]" inputmode="decimal" value="' . e($priceStr($t['price'])) . '" placeholder="20,00"></td>'
+                . '<td><button type="button" class="btn btn-small btn-ghost tier-del">✕</button></td>'
+                . '</tr>';
+        }
+        return $html;
+    };
+    $renderShippingBlock = function (?array $sh) use ($priceStr, $countryOptions, $renderTierRows): void {
+        $isEdit = $sh !== null;
+        $rowId = $isEdit ? (int) $sh['id'] : 'new';
+        $action = $isEdit ? url('/admin/shop/shipping/' . $sh['id']) : url('/admin/shop/shipping');
+        $tiers = $isEdit ? \Models\ShopShipping::weightTiers($sh) : [];
+        $tieredChecked = $tiers !== [];
+        ?>
+        <form method="post" action="<?= e($action) ?>" class="shipping-form">
+            <?= csrf_field() ?>
+            <div class="form-row">
+                <div class="form-group grow">
+                    <label>Name</label>
+                    <input type="text" name="name" value="<?= $isEdit ? e($sh['name']) : '' ?>" placeholder="z. B. Standardversand" required>
+                </div>
+                <div class="form-group grow">
+                    <label>Beschreibung (optional)</label>
+                    <input type="text" name="description" value="<?= $isEdit ? e($sh['description'] ?? '') : '' ?>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Preis (€)</label>
+                    <input type="text" name="price" value="<?= $isEdit ? e($priceStr($sh['price'])) : '' ?>" placeholder="4,90" inputmode="decimal" style="max-width:110px">
+                </div>
+                <div class="form-group">
+                    <label>Gratis ab (€, optional)</label>
+                    <input type="text" name="free_from" value="<?= $isEdit ? e($priceStr($sh['free_from'] ?? '')) : '' ?>" placeholder="50,00" inputmode="decimal" style="max-width:110px">
+                </div>
+                <div class="form-group checkbox-group" style="align-self:flex-end">
+                    <label><input type="checkbox" name="active" <?= (!$isEdit || (int) $sh['active']) ? 'checked' : '' ?>> Aktiv</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Länder (leer = alle)</label>
+                <select name="countries[]" multiple data-country-select data-placeholder="Land hinzufügen …"><?= $countryOptions($isEdit ? \Models\ShopShipping::countries($sh) : []) ?></select>
+            </div>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" name="tiered_pricing" data-tier-toggle data-target="#tier-block-<?= $rowId ?>" <?= $tieredChecked ? 'checked' : '' ?>> Preis nach Gewicht staffeln</label>
+            </div>
+            <div class="tier-block" id="tier-block-<?= $rowId ?>" <?= $tieredChecked ? '' : 'hidden' ?>>
+                <table class="shop-tier-table">
+                    <thead><tr><th>bis (kg)</th><th>Preis (€)</th><th></th></tr></thead>
+                    <tbody id="tier-rows-<?= $rowId ?>"><?= $renderTierRows($tiers) ?></tbody>
+                </table>
+                <button type="button" class="btn btn-small tier-add" data-target="#tier-rows-<?= $rowId ?>">+ Gewichtsstufe hinzufügen</button>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-small"><?= $isEdit ? 'Speichern' : '+ Versandart hinzufügen' ?></button>
+            </div>
+        </form>
+        <?php if ($isEdit): ?>
+            <form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'] . '/delete')) ?>" class="inline" data-confirm="Versandart „<?= e($sh['name']) ?>“ löschen?" data-confirm-danger data-confirm-ok="Löschen">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-small btn-danger">Versandart löschen</button>
+            </form>
+        <?php endif;
+    };
     ?>
-    <p class="muted small">Gewichtsstaffeln als „kg:€" je Stufe, mit <strong>Semikolon</strong> getrennt – z. B. <code>5:20; 20:50</code> = bis 5 kg 20 €, bis 20 kg 50 €. Ohne Staffeln gilt der Pauschalpreis. Das Warenkorbgewicht ergibt sich aus dem Gewicht der Produkte (kein Gewicht = niedrigste Stufe). Länder per Suchfeld auswählen (mehrere möglich; leer = alle Länder); an der Kasse werden nur passende Versandarten angezeigt.</p>
+
     <?php if (!empty($shipping)): ?>
-        <table class="table table-plain">
-            <thead><tr><th>Name</th><th>Preis</th><th>Gratis ab</th><th>Länder</th><th>Staffeln (kg:€)</th><th>Aktiv</th><th class="actions-col"></th></tr></thead>
-            <tbody>
-                <?php foreach ($shipping as $sh): ?>
-                    <?php $shipFormId = 'ship-form-' . (int) $sh['id']; ?>
-                    <tr>
-                        <td><form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'])) ?>" id="<?= e($shipFormId) ?>" class="inline shipping-row"><?= csrf_field() ?>
-                            <input type="text" name="name" form="<?= e($shipFormId) ?>" value="<?= e($sh['name']) ?>" required>
-                            <input type="text" name="description" form="<?= e($shipFormId) ?>" value="<?= e($sh['description'] ?? '') ?>" placeholder="Beschreibung">
-                        </td>
-                        <td><input type="text" name="price" form="<?= e($shipFormId) ?>" value="<?= e($priceStr($sh['price'])) ?>" style="max-width:90px" inputmode="decimal"></td>
-                        <td><input type="text" name="free_from" form="<?= e($shipFormId) ?>" value="<?= e($priceStr($sh['free_from'] ?? '')) ?>" placeholder="—" style="max-width:90px" inputmode="decimal"></td>
-                        <td style="min-width:200px"><select name="countries[]" form="<?= e($shipFormId) ?>" multiple data-country-select data-placeholder="alle Länder"><?= $countryOptions(\Models\ShopShipping::countries($sh)) ?></select></td>
-                        <td><input type="text" name="weight_tiers" form="<?= e($shipFormId) ?>" value="<?= e($tiersToText($sh)) ?>" placeholder="z. B. 5:20; 20:50" style="max-width:150px"></td>
-                        <td><input type="checkbox" name="active" form="<?= e($shipFormId) ?>" <?= (int) $sh['active'] ? 'checked' : '' ?>></td>
-                        <td class="actions-col">
-                            <button type="submit" form="<?= e($shipFormId) ?>" class="btn btn-small btn-primary">Speichern</button>
-                            </form>
-                            <form method="post" action="<?= e(url('/admin/shop/shipping/' . $sh['id'] . '/delete')) ?>" class="inline" data-confirm="Versandart löschen?" data-confirm-danger data-confirm-ok="Löschen"><?= csrf_field() ?>
-                                <button type="submit" class="btn btn-small btn-danger">✕</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <?php foreach ($shipping as $sh): ?>
+            <details class="shop-extra">
+                <summary><?= e($sh['name']) ?> — <?= e(\Core\Shop::formatPrice((int) $sh['price'])) ?><?= (int) $sh['active'] ? '' : ' <span class="badge">inaktiv</span>' ?></summary>
+                <?php $renderShippingBlock($sh); ?>
+            </details>
+        <?php endforeach; ?>
     <?php else: ?>
         <p class="muted small">Noch keine Versandarten. Ohne Versandart ist die Kasse trotzdem nutzbar (Versand = 0).</p>
     <?php endif; ?>
 
-    <h3>Versandart hinzufügen</h3>
-    <form method="post" action="<?= e(url('/admin/shop/shipping')) ?>" class="shipping-add">
-        <?= csrf_field() ?>
-        <div class="form-row">
-            <div class="form-group grow"><label>Name</label><input type="text" name="name" placeholder="z. B. Standardversand" required></div>
-            <div class="form-group"><label>Preis (€)</label><input type="text" name="price" placeholder="4,90" inputmode="decimal"></div>
-            <div class="form-group"><label>Gratis ab (€, optional)</label><input type="text" name="free_from" placeholder="50,00" inputmode="decimal"></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group grow"><label>Länder (leer = alle)</label><select name="countries[]" multiple data-country-select data-placeholder="Land hinzufügen …"><?= $countryOptions([]) ?></select></div>
-            <div class="form-group grow"><label>Gewichtsstaffeln (kg:€)</label><input type="text" name="weight_tiers" placeholder="5:20; 20:50"></div>
-        </div>
-        <div class="form-group checkbox-group"><label><input type="checkbox" name="active" checked> Aktiv</label></div>
-        <button type="submit" class="btn">+ Versandart hinzufügen</button>
-    </form>
+    <details class="shop-extra" open>
+        <summary>+ Neue Versandart</summary>
+        <?php $renderShippingBlock(null); ?>
+    </details>
 </div>
 
 <script src="<?= e(asset('/assets/js/country-select.js')) ?>" defer></script>
+<script src="<?= e(asset('/assets/js/shipping-tiers.js')) ?>" defer></script>
 <!-- Mediathek-Auswahl (data-media-pick) für das Rechnungs-Logo. -->
 <script src="<?= e(asset('/assets/js/admin-tools.js')) ?>"></script>
